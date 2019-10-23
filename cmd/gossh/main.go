@@ -1,96 +1,86 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"log"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
+
+	"github.com/bingoohuang/gossh"
+	"github.com/bingoohuang/gossh/scp"
 
 	"github.com/golang/glog"
 	expect "github.com/google/goexpect"
-	"golang.org/x/crypto/ssh"
+	"github.com/mitchellh/go-homedir"
 )
 
 const (
 	timeout = 10 * time.Second
 )
 
-// http://networkbit.ch/golang-ssh-client/
 func main() {
-	host := ""
-	port := "22"
-	user := ""
-	pass := ""
-	cmd1 := "pwd"
-	cmd2 := "whoami"
-	promptRE := regexp.MustCompile(`\$`)
+	scptest()
+	sshtest()
+}
 
-	// get host public key
-	hostKey := getHostKey(host)
+func scptest() {
+	clientConfig, _ := gossh.PasswordKey("root", "bjca2019")
+	client := scp.NewConf().CreateClient()
 
-	sshClt, err := ssh.Dial("tcp", host+":"+port, &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{ssh.Password(pass)},
-		// allow any host key to be used (non-prod)
-		//HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-
-		// verify host public key
-		HostKeyCallback: ssh.FixedHostKey(hostKey),
-	})
-	if err != nil {
-		glog.Exitf("ssh.Dial(%q) failed: %v", host, err)
+	if err := client.Connect("192.168.136.22:8022", clientConfig); err != nil {
+		fmt.Println("Couldn't establish a connection to the remote server ", err)
+		return
 	}
+
+	defer client.Close()
+
+	fi, _ := homedir.Expand("~/go/bin/linux_amd64/sysinfo")
+	f, _ := os.Open(fi)
+
+	defer f.Close()
+
+	stat, _ := os.Stat(fi)
+
+	mod := fmt.Sprintf("0%o", stat.Mode())
+	if err := client.CopyFile(f, "./sysinfo", mod); err != nil {
+		fmt.Println("Error while copying file ", err)
+	}
+}
+
+// http://networkbit.ch/golang-ssh-client/
+func sshtest() {
+	addr := "192.168.136.22:8022"
+	promptRE := regexp.MustCompile(`#|\$`)
+
+	clientConfig, _ := gossh.PasswordKey("root", "bjca2019")
+
+	sshClt, err := gossh.DialTCP(addr, clientConfig)
+	if err != nil {
+		glog.Exitf("ssh.Dial(%q) failed: %v", addr, err)
+	}
+
 	defer sshClt.Close()
 
-	e, _, err := expect.SpawnSSH(sshClt, timeout)
+	ge, _, err := expect.SpawnSSH(sshClt, timeout)
 	if err != nil {
 		glog.Exit(err)
 	}
-	defer e.Close()
 
-	e.Expect(promptRE, timeout)
-	e.Send(cmd1 + "\n")
-	result1, _, _ := e.Expect(promptRE, timeout)
-	e.Send(cmd2 + "\n")
-	result2, _, _ := e.Expect(promptRE, timeout)
-	e.Send("exit\n")
+	defer ge.Close()
 
-	fmt.Printf("%s: result:\n %s\n\n", cmd1, result1)
-	fmt.Printf("%s: result:\n %s\n\n", cmd2, result2)
-}
+	result1, _, _ := ge.Expect(promptRE, timeout)
+	fmt.Print(result1)
+	fmt.Println("pwd")
 
-func getHostKey(host string) ssh.PublicKey {
-	// parse OpenSSH known_hosts file, ssh or use ssh-keyscan to pull key
-	home := os.Getenv("HOME")
-	file, err := os.Open(filepath.Join(home, ".ssh", "known_hosts"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
+	_ = ge.Send("pwd" + "\n")
+	result2, _, _ := ge.Expect(promptRE, timeout)
+	fmt.Print(result2)
+	fmt.Println("whoami")
 
-	scanner := bufio.NewScanner(file)
-	var hostKey ssh.PublicKey
-	for scanner.Scan() {
-		fields := strings.Split(scanner.Text(), " ")
-		if len(fields) != 3 || !strings.Contains(fields[0], host) {
-			continue
-		}
+	_ = ge.Send(("whoami") + "\n")
+	result3, _, _ := ge.Expect(promptRE, timeout)
+	fmt.Print(result3)
+	fmt.Println("exit")
 
-		var err error
-		hostKey, _, _, _, err = ssh.ParseAuthorizedKey(scanner.Bytes())
-		if err != nil {
-			log.Fatalf("error parsing %q: %v", fields[2], err)
-		}
-		break
-	}
-
-	if hostKey == nil {
-		log.Fatalf("no hostkey found for %s", host)
-	}
-
-	return hostKey
+	_ = ge.Send("exit\n")
 }
