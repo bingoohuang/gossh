@@ -1,0 +1,18 @@
+vars = [
+
+]
+
+hosts = [
+    "server-22 192.168.136.22:8022 root/bjca2019",
+    "server-23 192.168.136.23:8022 root/123456",
+]
+
+cmds = [
+    "cd ~/GitHub/docker-compose-mysql-master-master/tool/mci",
+    "env GOOS=linux GOARCH=amd64 go install ./...",
+    "upx ~/go/bin/linux_amd64/mci",
+    "scp %host ~/go/bin/linux_amd64/mci .",
+    "ssh %host ./mci --checkmc",
+]
+
+

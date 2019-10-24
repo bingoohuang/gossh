@@ -25,8 +25,6 @@ func NewConf() *ClientConf {
 	}
 }
 
-
-
 // Builds a client with the configuration stored within the ClientConf
 func (c *ClientConf) CreateClient() Client {
 	return Client{

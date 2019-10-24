@@ -1,6 +1,42 @@
 # gossh
 execute shell scripts among multiple ssh servers
 
+## usage
+
+```bash
+$  uuidgen
+6F948925-429E-4D2C-B551-C9C6D12E5062
+$  gossh --pbe hello,word --password C9C6D12E5062
++---+-------+-----------------------------+
+| # | PLAIN | ENCRYPTED                   |
++---+-------+-----------------------------+
+| 1 | hello | {PBE}eiRMlsZPLikVYpZMcHicyg |
+| 2 | word  | {PBE}lAHH0UfuqZ0YtV_5VE77uw |
++---+-------+-----------------------------+
+$  gossh --pbe hello,word --password C9C6D12E5062
++---+-------+-----------------------------+
+| # | PLAIN | ENCRYPTED                   |
++---+-------+-----------------------------+
+| 1 | hello | {PBE}6RGab13x5WfzFP0NpA_suA |
+| 2 | word  | {PBE}qmPJAysHSmnfQEK-a6JM0A |
++---+-------+-----------------------------+
+
+$  gossh --ebp 6RGab13x5WfzFP0NpA_suA,qmPJAysHSmnfQEK-a6JM0A --password C9C6D12E5062
++---+------------------------+-------+
+| # | ENCRYPTED              | PLAIN |
++---+------------------------+-------+
+| 1 | 6RGab13x5WfzFP0NpA_suA | hello |
+| 2 | qmPJAysHSmnfQEK-a6JM0A | word  |
++---+------------------------+-------+
+$  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --password C9C6D12E5062
++---+-----------------------------+-------+
+| # | ENCRYPTED                   | PLAIN |
++---+-----------------------------+-------+
+| 1 | {PBE}eiRMlsZPLikVYpZMcHicyg | hello |
+| 2 | {PBE}lAHH0UfuqZ0YtV_5VE77uw | word  |
++---+-----------------------------+-------+
+```
+
 
 ## resources
 
@@ -10,3 +46,5 @@ execute shell scripts among multiple ssh servers
 1. [Golang SSH Client: Multiple Commands, Crypto & Goexpect Examples](http://networkbit.ch/golang-ssh-client/)
 1. [bramvdbogaerde/go-scp](https://github.com/bramvdbogaerde/go-scp)
 1. [golang 批量scp 远程传输文件](https://www.jianshu.com/p/f9d6dfefb63d)
+1. [PBEWithMD5AndDES in go](https://github.com/LucasSloan/passwordbasedencryption)
+1. [like python-sh, for easy call shell with golang](https://github.com/codeskyblue/go-sh)

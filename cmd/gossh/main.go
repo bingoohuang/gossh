@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"time"
+
+	"github.com/bingoohuang/gossh/pbe"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/bingoohuang/gossh"
 	"github.com/bingoohuang/gossh/scp"
 
+	"github.com/gobars/cmd"
 	"github.com/golang/glog"
 	expect "github.com/google/goexpect"
 	"github.com/mitchellh/go-homedir"
@@ -19,8 +25,47 @@ const (
 )
 
 func main() {
-	scptest()
-	sshtest()
+	pbe.Pflags()
+	pflag.Parse()
+	args := pflag.Args()
+
+	if len(args) > 0 {
+		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
+		pflag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	viper.SetEnvPrefix("GOSSH")
+	viper.AutomaticEnv()
+	_ = viper.BindPFlags(pflag.CommandLine)
+
+	pbe.DealPflag()
+
+	// cmdtest()
+	//scptest()
+	//sshtest()
+}
+
+func cmdtest() {
+	x := "cd ~/GitHub/docker-compose-mysql-master-master/tool/mci; env GOOS=linux GOARCH=amd64 go install ./..."
+	home, _ := homedir.Dir()
+	x = strings.ReplaceAll(x, " ~", " "+home)
+
+	p := cmd.NewCmdOptions(cmd.Options{Buffered: true, Streaming: true}, "/bin/bash", "-c", x)
+	status := p.Start()
+
+FOR:
+	for {
+		select {
+		case so := <-p.Stdout:
+			fmt.Println(so)
+		case se := <-p.Stderr:
+			fmt.Fprintln(os.Stderr, se)
+		case exitState := <-status:
+			fmt.Println("exit status ", exitState.Exit)
+			break FOR
+		}
+	}
 }
 
 func scptest() {
@@ -70,11 +115,14 @@ func sshtest() {
 
 	result1, _, _ := ge.Expect(promptRE, timeout)
 	fmt.Print(result1)
-	fmt.Println("pwd")
 
-	_ = ge.Send("pwd" + "\n")
+	cmd := "pwd"
+	fmt.Println(cmd)
+
+	_ = ge.Send(cmd + "\n")
 	result2, _, _ := ge.Expect(promptRE, timeout)
 	fmt.Print(result2)
+
 	fmt.Println("whoami")
 
 	_ = ge.Send(("whoami") + "\n")
