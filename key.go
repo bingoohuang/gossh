@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-//PrivateKey Loads a private and public key from "path" and returns a SSH ClientConfig to authenticate with the server
+// PrivateKey loads a public key from "path" and returns a SSH ClientConfig to authenticate with the server.
 func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
 	privateKey, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -25,13 +25,14 @@ func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
 	}, nil
 }
 
-func PrivateKeyWithPassphrase(username string, passpharase []byte, path string) (*ssh.ClientConfig, error) {
+// PrivateKeyPassphrase returns the ssh.ClientConfig based on specified username, passphrase and path.
+func PrivateKeyPassphrase(username string, passphrase []byte, path string) (*ssh.ClientConfig, error) {
 	privateKey, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	signer, err := ssh.ParsePrivateKeyWithPassphrase(privateKey, passpharase)
+	signer, err := ssh.ParsePrivateKeyWithPassphrase(privateKey, passphrase)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +44,7 @@ func PrivateKeyWithPassphrase(username string, passpharase []byte, path string) 
 	}, nil
 }
 
+// PasswordKey returns the ssh.ClientConfig based on specified username and password.
 func PasswordKey(username, password string) (*ssh.ClientConfig, error) {
 	return &ssh.ClientConfig{
 		User:            username,

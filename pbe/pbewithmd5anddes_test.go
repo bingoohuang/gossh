@@ -74,12 +74,12 @@ func TestEncryptWithFixedSalt(t *testing.T) {
 		{"", "TO72&BjDpUYa", "u0@5#4Yj9LxI", 1000},
 	}
 	for _, c := range cases {
-		ciphered, err := EncryptWithFixedSalt(c.plaintext, c.password, c.fixedsalt, c.iterations)
+		ciphered, err := EncryptSalt(c.plaintext, c.password, c.fixedsalt, c.iterations)
 		if err != nil {
 			t.Errorf("Got error %q for password %q, plaintext %q, salt %q", err.Error(), c.password, c.plaintext, c.fixedsalt)
 		}
 
-		plaintext, err := DecryptWithFixedSalt(ciphered, c.password, c.fixedsalt, c.iterations)
+		plaintext, err := DecryptSalt(ciphered, c.password, c.fixedsalt, c.iterations)
 		if plaintext != c.plaintext {
 			t.Errorf("Got %q, expected %q", plaintext, c.plaintext)
 		}
@@ -93,7 +93,7 @@ func TestDecryptWithFixedSalt(t *testing.T) {
 		{"IcszAY8NRJf6ANt152Fifg==", "password", "encryption test", "fixed_salt"},
 	}
 	for _, c := range cases {
-		got, err := DecryptWithFixedSalt(c.ciphered, c.password, c.fixedSalt, 1000)
+		got, err := DecryptSalt(c.ciphered, c.password, c.fixedSalt, 1000)
 		if err != nil {
 			t.Errorf("Got error %q for password %q, ciphered %q, salt %q", err.Error(), c.password, c.ciphered, c.fixedSalt)
 		}

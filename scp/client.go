@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// Client represents a client of scp session.
 type Client struct {
 	// the client config to use
 	ClientConfig *ssh.ClientConfig
@@ -29,7 +30,7 @@ type Client struct {
 	RemoteBinary string
 }
 
-// NewSession connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server
+// Connect connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server
 func (a *Client) Connect(addr string, clientConfig *ssh.ClientConfig) (err error) {
 	a.Conn, a.Session, err = gossh.NewSession(addr, clientConfig)
 
@@ -167,6 +168,7 @@ func (a *Client) copy(w io.Writer, r io.Reader, filename, permissions string, si
 	return nil
 }
 
+// Close closes the client.
 func (a *Client) Close() error {
 	if err := a.Session.Close(); err != nil {
 		return err

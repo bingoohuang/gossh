@@ -3,6 +3,7 @@ module github.com/bingoohuang/gossh
 go 1.13
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/go-openapi/strfmt v0.19.3 // indirect
 	github.com/gobars/cmd v0.0.0-20190805053627-b12a1f0df5b0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -12,8 +13,10 @@ require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/mattn/go-runewidth v0.0.5 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
+	github.com/tkrajina/go-reflector v0.5.1
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	google.golang.org/grpc v1.24.0 // indirect
 )

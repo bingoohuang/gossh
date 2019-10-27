@@ -7,17 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gossh/pbe"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-
 	"github.com/bingoohuang/gossh"
+	"github.com/bingoohuang/gossh/cnf"
+	"github.com/bingoohuang/gossh/pbe"
 	"github.com/bingoohuang/gossh/scp"
 
 	"github.com/gobars/cmd"
 	"github.com/golang/glog"
 	expect "github.com/google/goexpect"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 const (
@@ -25,25 +23,17 @@ const (
 )
 
 func main() {
-	pbe.Pflags()
-	pflag.Parse()
-	args := pflag.Args()
+	pbe.DeclarePflags()
+	defer pbe.DealPflag()
 
-	if len(args) > 0 {
-		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
-		pflag.PrintDefaults()
-		os.Exit(1)
-	}
+	cnf.DeclarePflags()
+	cnf.DeclarePflagsByStruct(gossh.Config{})
+	cnf.ParsePflags("GOSSH")
 
-	viper.SetEnvPrefix("GOSSH")
-	viper.AutomaticEnv()
-	_ = viper.BindPFlags(pflag.CommandLine)
+	var config gossh.Config
+	cnf.LoadByPflag(&config)
 
-	pbe.DealPflag()
-
-	// cmdtest()
-	//scptest()
-	//sshtest()
+	fmt.Printf("%+v", config)
 }
 
 func cmdtest() {
@@ -60,7 +50,7 @@ FOR:
 		case so := <-p.Stdout:
 			fmt.Println(so)
 		case se := <-p.Stderr:
-			fmt.Fprintln(os.Stderr, se)
+			_, _ = fmt.Fprintln(os.Stderr, se)
 		case exitState := <-status:
 			fmt.Println("exit status ", exitState.Exit)
 			break FOR
@@ -95,7 +85,7 @@ func scptest() {
 // http://networkbit.ch/golang-ssh-client/
 func sshtest() {
 	addr := "192.168.136.22:8022"
-	promptRE := regexp.MustCompile(`#|\$`)
+	promptRE := regexp.MustCompile(`[#$]`)
 
 	clientConfig, _ := gossh.PasswordKey("root", "bjca2019")
 
@@ -116,10 +106,10 @@ func sshtest() {
 	result1, _, _ := ge.Expect(promptRE, timeout)
 	fmt.Print(result1)
 
-	cmd := "pwd"
-	fmt.Println(cmd)
+	cmdx := "pwd"
+	fmt.Println(cmdx)
 
-	_ = ge.Send(cmd + "\n")
+	_ = ge.Send(cmdx + "\n")
 	result2, _, _ := ge.Expect(promptRE, timeout)
 	fmt.Print(result2)
 

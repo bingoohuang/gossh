@@ -5,22 +5,26 @@ import (
 	"io"
 )
 
+// ResponseType represents the type of the response.
 type ResponseType = uint8
 
 const (
-	Ok ResponseType = 0
+	// OK represents everything is OK
+	OK ResponseType = iota + 1
+	// Warning represents there is warning.
 	Warning
+	// Error means there is error.
 	Error
 )
 
-// There are tree types of responses that the remote can send back:
+// Response has tree types of responses that the remote can send back:
 // ok, warning and error
 //
 // The difference between warning and error is that the connection is not closed by the remote,
 // however, a warning can indicate a file transfer failure (such as invalid destination directory)
 // and such be handled as such.
 //
-// All responses except for the `Ok` type always have a message (although these can be empty)
+// All responses except for the `OK` type always have a message (although these can be empty)
 //
 // The remote sends a confirmation after every SCP command, because a failure can occur after every
 // command, the response should be read and checked after sending them.
@@ -29,32 +33,36 @@ type Response struct {
 	Message string
 }
 
-// Reads from the given reader (assuming it is the output of the remote) and parses it into a Response structure
-func ParseResponse(reader io.Reader) (Response, error) {
+// ParseResponse reads from the given reader (assuming it is the output of the remote) and parses it into a Response structure
+func ParseResponse(reader io.Reader) (rsp Response, err error) {
 	buffer := make([]uint8, 1)
-	_, err := reader.Read(buffer)
-
-	if err != nil {
-		return Response{}, err
+	if _, err = reader.Read(buffer); err != nil {
+		return
 	}
 
-	responseType := buffer[0]
-	message := ""
+	rsp.Type = buffer[0]
 
-	if responseType > 0 {
+	if rsp.Type > 0 {
 		bufferedReader := bufio.NewReader(reader)
-		message, err = bufferedReader.ReadString('\n')
-
-		if err != nil {
-			return Response{}, err
+		if rsp.Message, err = bufferedReader.ReadString('\n'); err != nil {
+			return
 		}
 	}
 
-	return Response{responseType, message}, nil
+	return
 }
 
-func (r *Response) IsOk() bool         { return r.Type == Ok }
-func (r *Response) IsWarning() bool    { return r.Type == Warning }
-func (r *Response) IsError() bool      { return r.Type == Error }
-func (r *Response) IsFailure() bool    { return r.Type > 0 }
+// IsOK tells the response is OK or not.
+func (r *Response) IsOK() bool { return r.Type == OK }
+
+// IsWarning tells the response has warning or not.
+func (r *Response) IsWarning() bool { return r.Type == Warning }
+
+// IsError tells if there is error in the response.
+func (r *Response) IsError() bool { return r.Type == Error }
+
+// IsFailure tells if the response if none OK or not.
+func (r *Response) IsFailure() bool { return r.Type > 0 }
+
+// GetMessage returns the detailed message.
 func (r *Response) GetMessage() string { return r.Message }

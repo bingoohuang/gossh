@@ -4,14 +4,13 @@ import (
 	"time"
 )
 
-// A struct containing all the configuration options
-// used by an scp client.
+// ClientConf is a struct containing all the configuration options used by an scp client.
 type ClientConf struct {
 	Timeout      time.Duration
 	RemoteBinary string
 }
 
-// Creates a new client configurer.
+// NewConf creates a new client configurer.
 // It takes the required parameters: the addr and the ssh.ClientConfig and
 // returns a configurer populated with the default values for the optional
 // parameters.
@@ -25,7 +24,7 @@ func NewConf() *ClientConf {
 	}
 }
 
-// Builds a client with the configuration stored within the ClientConf
+// CreateClient builds a client with the configuration stored within the ClientConf
 func (c *ClientConf) CreateClient() Client {
 	return Client{
 		Timeout:      c.Timeout,

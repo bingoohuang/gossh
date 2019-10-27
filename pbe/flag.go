@@ -11,12 +11,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Pflags() {
+// DeclarePflags declares the pbe required pflags.
+func DeclarePflags() {
 	pflag.StringP("password", "", "", "pbe password")
 	pflag.StringSliceP("pbe", "", nil, "encrypt by pbe")
 	pflag.StringSliceP("ebp", "", nil, "decrypt by pbe")
 }
 
+// DealPflag deals the request by the pflags.
 func DealPflag() {
 	pbes := viper.GetStringSlice("pbe")
 	ebps := viper.GetStringSlice("ebp")
@@ -29,7 +31,7 @@ func DealPflag() {
 	passStr := getPassword()
 
 	if len(pbes) > 0 {
-		pbeEncrypt(pbes, passStr)
+		encrypt(pbes, passStr)
 
 		alreadyHasOutput = true
 	}
@@ -39,7 +41,7 @@ func DealPflag() {
 			fmt.Println()
 		}
 
-		pbeDecrypt(ebps, passStr)
+		decrypt(ebps, passStr)
 	}
 
 	os.Exit(0)
@@ -65,7 +67,7 @@ func getPassword() string {
 const iterations = 19
 const pbePrefix = `{PBE}`
 
-func pbeEncrypt(pbes []string, passStr string) {
+func encrypt(pbes []string, passStr string) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"#", "Plain", "Encrypted"})
@@ -83,7 +85,7 @@ func pbeEncrypt(pbes []string, passStr string) {
 	t.Render()
 }
 
-func pbeDecrypt(ebps []string, passStr string) {
+func decrypt(ebps []string, passStr string) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"#", "Encrypted", "Plain"})
