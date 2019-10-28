@@ -15,8 +15,8 @@ type LocalCmd struct {
 	cmd string
 }
 
-func (l *LocalCmd) ExecInHosts(_ []*Host) {
-
+func (l *LocalCmd) ExecInHosts(_ []*Host) error {
+	return nil
 }
 
 // Parse parses the local cmd

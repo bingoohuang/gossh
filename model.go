@@ -32,7 +32,7 @@ type CmdExcResult struct {
 
 type Cmd interface {
 	Parse()
-	ExecInHosts(hosts []*Host)
+	ExecInHosts(hosts []*Host) error
 }
 
 // CmdGroup represents the a group of structure of command line with same cmd type in config's cmds.

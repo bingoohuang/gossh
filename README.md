@@ -48,3 +48,6 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --passwor
 1. [golang 批量scp 远程传输文件](https://www.jianshu.com/p/f9d6dfefb63d)
 1. [PBEWithMD5AndDES in go](https://github.com/LucasSloan/passwordbasedencryption)
 1. [like python-sh, for easy call shell with golang](https://github.com/codeskyblue/go-sh)
+1. [A scp client library written in Go. The remote server must have the scp command](https://github.com/hnakamur/go-scp)
+1. [How the SCP protocol works](https://chuacw.ath.cx/blogs/chuacw/archive/2019/02/04/how-the-scp-protocol-works.aspx)
+1. [Golang SFTP Client: Download File, Upload File Example](http://networkbit.ch/golang-sftp-client/)

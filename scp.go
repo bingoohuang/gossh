@@ -74,18 +74,20 @@ func buildSCPCmd(cmd string) *SCPCmd {
 	return nil
 }
 
-func (s *SCPCmd) ExecInHosts(hosts []*Host) {
+func (s *SCPCmd) ExecInHosts(hosts []*Host) error {
 	if s.direction == UploadDir {
-		s.Upload(hosts)
+		return s.Upload(hosts)
 	}
+
+	return nil
 }
 
-func (s *SCPCmd) Upload(hosts []*Host) {
+func (s *SCPCmd) Upload(hosts []*Host) error {
 	var err error
 	if s.sourceDir == elf.UnknownDirMode {
 		if s.sourceDir, err = elf.GetDirMode(s.source); err != nil {
 			logrus.Warnf("error %v", err)
-			return
+			return err
 		}
 	}
 
@@ -97,22 +99,77 @@ func (s *SCPCmd) Upload(hosts []*Host) {
 			dest = filepath.Join(dest, baseFrom)
 		}
 
-		var wg sync.WaitGroup
-		wg.Add(len(hosts))
+		dest = strings.TrimPrefix(dest, "%host:")
+		uploadFile(hosts, s.source, dest)
+	} else if s.sourceDir == elf.DirectoryMode {
+		destBase := strings.TrimPrefix(s.dest, "%host:")
 
-		for _, host := range hosts {
-			go func(h Host, from, to string) {
-				ScpUpload(*host, from, to)
-				wg.Done()
-			}(*host, s.source, strings.TrimPrefix(dest, "%host:"))
+		remotePaths := make([]string, 0)
+		if err := filepath.Walk(s.source,
+			func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
 
+				if info.IsDir() {
+					dest := filepath.Join(destBase, path)
+					remotePaths = append(remotePaths, dest)
+				}
+
+				return nil
+			}); err != nil {
+			logrus.Warnf(" filepath.Walk %s error %v", s.source, err)
+			return err
 		}
 
-		wg.Wait()
+		mkdirs := SSHCmd{cmd: "mkdir -p " + strings.Join(remotePaths, " ")}
+		if err := mkdirs.ExecInHosts(hosts); err != nil {
+			return err
+		}
+
+		if err := filepath.Walk(s.source,
+			func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				if !info.IsDir() {
+					dest := filepath.Join(destBase, path)
+					uploadFile(hosts, path, dest)
+				}
+
+				return nil
+			}); err != nil {
+			logrus.Warnf(" filepath.Walk %s error %v", s.source, err)
+			return err
+		}
 	}
+
+	return nil
+}
+
+func uploadFile(hosts []*Host, src, dest string) {
+	var wg sync.WaitGroup
+	wg.Add(len(hosts))
+
+	for _, host := range hosts {
+		go func(h Host, from, to string) {
+			if err := ScpUpload(*host, from, to); err != nil {
+				logrus.Warnf(" ScpUpload %s error %v", from, err)
+			}
+			wg.Done()
+		}(*host, src, dest)
+	}
+
+	wg.Wait()
 }
 
 func ScpUpload(h Host, from, to string) error {
+	stat, err := os.Stat(from)
+	if err != nil {
+		return err
+	}
+
 	startTime := time.Now()
 	scpClient := scp.NewConf().CreateClient()
 
@@ -124,8 +181,6 @@ func ScpUpload(h Host, from, to string) error {
 
 	f, _ := os.Open(from)
 	defer f.Close()
-
-	stat, _ := os.Stat(from)
 
 	mod := fmt.Sprintf("0%o", stat.Mode())
 	if err := scpClient.CopyFile(f, to, mod); err != nil {
