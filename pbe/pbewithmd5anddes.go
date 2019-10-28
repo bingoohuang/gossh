@@ -6,8 +6,8 @@ import (
 	"github.com/bingoohuang/gossh/elf"
 
 	"crypto/cipher"
-	"crypto/des"
-	"crypto/md5"
+	"crypto/des" // nolint
+	"crypto/md5" // nolint
 	"crypto/rand"
 )
 
@@ -36,18 +36,20 @@ func Decrypt(cipherText, password string, iterations int) (string, error) {
 
 	salt := msgBytes[:8]
 	encText := msgBytes[8:]
+
 	return doDecrypt(encText, password, salt, iterations)
 }
 
 // EncryptSalt PrintEncrypt the plainText based on password and iterations with fixed salt.
 func EncryptSalt(plainText, password, fixedSalt string, iterations int) (string, error) {
 	salt := make([]byte, 8)
-	copy(salt[:], fixedSalt)
+	copy(salt, fixedSalt)
 
 	encText, err := doEncrypt(plainText, password, salt, iterations)
 	if err != nil {
 		return "", err
 	}
+
 	return elf.Base64SafeEncode(encText), nil
 }
 
@@ -59,9 +61,9 @@ func DecryptSalt(cipherText, password, fixedSalt string, iterations int) (string
 	}
 
 	salt := make([]byte, 8)
-	copy(salt[:], fixedSalt)
-	encText := msgBytes[:]
-	return doDecrypt(encText, password, salt, iterations)
+	copy(salt, fixedSalt)
+
+	return doDecrypt(msgBytes, password, salt, iterations)
 }
 
 func doEncrypt(plainText, password string, salt []byte, iterations int) ([]byte, error) {
@@ -71,7 +73,8 @@ func doEncrypt(plainText, password string, salt []byte, iterations int) ([]byte,
 	}
 
 	dk, iv := getDerivedKey(password, string(salt), iterations)
-	block, err := des.NewCipher(dk)
+	block, err := des.NewCipher(dk) // nolint
+
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +88,7 @@ func doEncrypt(plainText, password string, salt []byte, iterations int) ([]byte,
 
 func doDecrypt(encText []byte, password string, salt []byte, iterations int) (string, error) {
 	dk, iv := getDerivedKey(password, string(salt), iterations)
-	block, err := des.NewCipher(dk)
+	block, err := des.NewCipher(dk) // nolint
 
 	if err != nil {
 		return "", err
@@ -101,9 +104,11 @@ func doDecrypt(encText []byte, password string, salt []byte, iterations int) (st
 }
 
 func getDerivedKey(password, salt string, iterations int) ([]byte, []byte) {
-	key := md5.Sum([]byte(password + salt))
+	key := md5.Sum([]byte(password + salt)) // nolint
+
 	for i := 0; i < iterations-1; i++ {
-		key = md5.Sum(key[:])
+		key = md5.Sum(key[:]) // nolint
 	}
+
 	return key[:8], key[8:]
 }

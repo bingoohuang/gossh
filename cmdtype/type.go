@@ -6,13 +6,13 @@ import "strings"
 type CmdType int
 
 const (
-	/// NoopCmdType means no operation cmd, its a placeholder for some purpose.
+	// Noop means no operation cmd, its a placeholder for some purpose.
 	Noop CmdType = iota
-	// LocalCmdType means the commands will be executed locally.
+	// Local means the commands will be executed locally.
 	Local
-	// SCPCmdType means the commands will scp some files to remote hosts.
+	// SCP means the commands will scp some files to remote hosts.
 	SCP
-	// SSHCmdType means the ssh commands will executed by ssh in remote hosts.
+	// SSH means the ssh commands will executed by ssh in remote hosts.
 	SSH
 )
 

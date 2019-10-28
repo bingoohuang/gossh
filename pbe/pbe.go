@@ -11,7 +11,9 @@ import (
 const iterations = 19
 const pbePrefix = `{PBE}`
 
-func PbeEncrypt(p string) (string, error) {
+// Pbe encrypts p by PBEWithMD5AndDES with 19 iterations.
+// it will prompt password if viper get none.
+func Pbe(p string) (string, error) {
 	pwd := GetPbePwd()
 	if pwd == "" {
 		return "", fmt.Errorf("pbepwd is requird")
@@ -25,7 +27,8 @@ func PbeEncrypt(p string) (string, error) {
 	return pbePrefix + encrypt, nil
 }
 
-func PbeDecrypt(p string) (string, error) {
+// Ebp decrypts p by PBEWithMD5AndDES with 19 iterations.
+func Ebp(p string) (string, error) {
 	pwd := GetPbePwd()
 	if pwd == "" {
 		return "", fmt.Errorf("pbepwd is requird")
@@ -38,6 +41,7 @@ func PbeDecrypt(p string) (string, error) {
 	return p, nil
 }
 
+// PrintEncrypt prints the PBE encryption.
 func PrintEncrypt(passStr string, plains ...string) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
@@ -56,6 +60,7 @@ func PrintEncrypt(passStr string, plains ...string) {
 	t.Render()
 }
 
+// PrintDecrypt prints the PBE decryption.
 func PrintDecrypt(passStr string, cipherText ...string) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)

@@ -1,12 +1,9 @@
 package gossh
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/bingoohuang/gossh/gossh"
 	"golang.org/x/crypto/ssh"
@@ -14,14 +11,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// SSHCmd means SSH command.
 type SSHCmd struct {
 	cmd string
 }
 
-func (SSHCmd) Parse() {
+// Parse parses command.
+func (SSHCmd) Parse() {}
 
-}
-
+// ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(hosts []*Host) error {
 	for _, host := range hosts {
 		if err := func(h Host, cmd string) error {
@@ -57,25 +55,19 @@ func sshInHost(h Host, cmd string) error {
 
 	defer sshClt.Close()
 
-	if err := SSHScripts(sshClt, []string{cmd}); err != nil {
+	if err := sshScripts(sshClt, []string{cmd}); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
 	}
 
 	return nil
 }
 
-type SSHResult struct {
-	Cmd   string
-	Start time.Time
-	End   time.Time
-	Sep   string
-}
-
-func SSHScripts(client *ssh.Client, scripts []string) error {
+func sshScripts(client *ssh.Client, scripts []string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
 	modes := ssh.TerminalModes{
@@ -83,9 +75,11 @@ func SSHScripts(client *ssh.Client, scripts []string) error {
 		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
 		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
 	}
+
 	if err := session.RequestPty("vt100", 800, 400, modes); err != nil {
 		return err
 	}
+
 	w, err := session.StdinPipe()
 	if err != nil {
 		return err
@@ -101,6 +95,7 @@ func SSHScripts(client *ssh.Client, scripts []string) error {
 	for _, cmd := range scripts {
 		_, _ = w.Write([]byte(cmd + "\n"))
 	}
+
 	_, _ = w.Write([]byte("exit\n"))
 
 	if err := session.Wait(); err != nil {
@@ -108,38 +103,4 @@ func SSHScripts(client *ssh.Client, scripts []string) error {
 	}
 
 	return err
-}
-
-func StringInQuote(s, start string, end string) string {
-	startPos := strings.Index(s, start)
-	if startPos < 0 {
-		return ""
-	}
-
-	endPos := strings.Index(s, end)
-	if startPos < 0 {
-		endPos = len(s)
-	}
-
-	return s[startPos+len(start) : endPos]
-}
-
-type singleWriter struct {
-	b  bytes.Buffer
-	mu sync.Mutex
-}
-
-func (w *singleWriter) Write(p []byte) (int, error) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	return w.b.Write(p)
-}
-
-func StripAfterSep(s, sep string) string {
-	pos := strings.Index(s, sep)
-	if pos < 0 {
-		return s
-	}
-
-	return s[0:pos]
 }

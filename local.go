@@ -8,13 +8,15 @@ import (
 
 	"github.com/gobars/cmd"
 	"github.com/google/uuid"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
+// LocalCmd means local commands.
 type LocalCmd struct {
 	cmd string
 }
 
+// ExecInHosts execute in specified hosts.
 func (l *LocalCmd) ExecInHosts(_ []*Host) error {
 	return nil
 }

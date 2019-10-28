@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// PbePwd defines the keyword for client flag.
 const PbePwd = "pbepwd"
 
 // DeclarePflags declares the pbe required pflags.
@@ -49,26 +50,29 @@ func DealPflag() {
 	os.Exit(0)
 }
 
-var pbePwdOnce sync.Once
-var pbePwd string
+var pbePwdOnce sync.Once // nolint
+var pbePwd string        // nolint
 
+// GetPbePwd read pbe password from viper, or from stdin.
 func GetPbePwd() string {
-	pbePwdOnce.Do(func() {
-		pbePwd = viper.GetString(PbePwd)
-		if pbePwd != "" {
-			return
-		}
-
-		fmt.Printf("PBE Password: ")
-
-		pass, err := gopass.GetPasswdMasked()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "GetPasswd error %v", err)
-			os.Exit(1)
-		}
-
-		pbePwd = string(pass)
-	})
+	pbePwdOnce.Do(readInternal)
 
 	return pbePwd
+}
+
+func readInternal() {
+	pbePwd = viper.GetString(PbePwd)
+	if pbePwd != "" {
+		return
+	}
+
+	fmt.Printf("PBE Password: ")
+
+	pass, err := gopass.GetPasswdMasked()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "GetPasswd error %v", err)
+		os.Exit(1)
+	}
+
+	pbePwd = string(pass)
 }

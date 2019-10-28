@@ -1,6 +1,8 @@
 package gossh
 
 import (
+	"fmt"
+
 	"github.com/bingoohuang/gossh/cmdtype"
 	"github.com/bingoohuang/gossh/pbe"
 	"github.com/bingoohuang/gou/str"
@@ -30,8 +32,11 @@ type Host struct {
 type CmdExcResult struct {
 }
 
+// Cmd means the executable interface
 type Cmd interface {
+	// Parse parses the command.
 	Parse()
+	// ExecInHosts execute in specified hosts.
 	ExecInHosts(hosts []*Host) error
 }
 
@@ -43,12 +48,14 @@ type CmdGroup struct {
 	Results []CmdExcResult
 }
 
+// Parse parses the CmdGroup's data.
 func (g *CmdGroup) Parse() {
 	for _, cmd := range g.Cmds {
 		cmd.Parse()
 	}
 }
 
+// Exec executes the CmdGroup.
 func (g *CmdGroup) Exec() {
 	g.Results = make([]CmdExcResult, len(g.Cmds))
 	switch g.Type {
@@ -56,15 +63,20 @@ func (g *CmdGroup) Exec() {
 		g.execLocal()
 	case cmdtype.SSH:
 		for _, cmd := range g.Cmds {
-			cmd.ExecInHosts(g.gs.Hosts)
+			if err := cmd.ExecInHosts(g.gs.Hosts); err != nil {
+				fmt.Printf("ExecInHosts error %v", err)
+			}
 		}
 	case cmdtype.SCP:
 		for _, cmd := range g.Cmds {
-			cmd.ExecInHosts(g.gs.Hosts)
+			if err := cmd.ExecInHosts(g.gs.Hosts); err != nil {
+				fmt.Printf("ExecInHosts error %v", err)
+			}
 		}
 	}
 }
 
+// GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
 	Vars      Vars
 	Hosts     []*Host
@@ -72,6 +84,7 @@ type GoSSH struct {
 	CmdGroups []CmdGroup
 }
 
+// Parse parses the flags or cnf files to GoSSH.
 func (c Config) Parse() GoSSH {
 	gs := GoSSH{}
 
@@ -86,7 +99,9 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	lastCmdType := cmdtype.Noop
 
 	var group *CmdGroup
+
 	groups := make([]*CmdGroup, 0)
+
 	for _, cmd := range c.Cmds {
 		cmdType, cmd := cmdtype.Parse(cmd)
 		if cmdType == cmdtype.Noop {
@@ -114,10 +129,12 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	}
 
 	returnGroups := make([]CmdGroup, len(groups))
+
 	for i, group := range groups {
 		group.Parse()
 		returnGroups[i] = *group
 	}
+
 	return returnGroups
 }
 

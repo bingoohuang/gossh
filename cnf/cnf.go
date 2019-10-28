@@ -47,18 +47,18 @@ func ParsePflags(envPrefix string) error {
 
 // FindFile tries to find cnfFile from specified path, or current path cnf.toml, executable path cnf.toml.
 func FindFile(cnfFile string) (string, error) {
-	if elf.FileExists(cnfFile) == nil {
+	if elf.SingleFileExists(cnfFile) == nil {
 		return cnfFile, nil
 	}
 
 	if wd, _ := os.Getwd(); wd != "" {
-		if cnfFile := filepath.Join(wd, "cnf.toml"); elf.FileExists(cnfFile) == nil {
+		if cnfFile := filepath.Join(wd, "cnf.toml"); elf.SingleFileExists(cnfFile) == nil {
 			return cnfFile, nil
 		}
 	}
 
 	if ex, err := os.Executable(); err == nil {
-		if cnfFile := filepath.Join(filepath.Dir(ex), "cnf.toml"); elf.FileExists(cnfFile) == nil {
+		if cnfFile := filepath.Join(filepath.Dir(ex), "cnf.toml"); elf.SingleFileExists(cnfFile) == nil {
 			return cnfFile, nil
 		}
 	}
@@ -128,6 +128,7 @@ func DeclarePflagsByStruct(structVar interface{}) {
 		}
 
 		name := f.Name()
+
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
 			pflag.StringSliceP(name, "", nil, name)

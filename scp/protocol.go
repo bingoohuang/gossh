@@ -33,7 +33,8 @@ type Response struct {
 	Message string
 }
 
-// ParseResponse reads from the given reader (assuming it is the output of the remote) and parses it into a Response structure
+// ParseResponse reads from the given reader (assuming it is the output of the remote)
+// and parses it into a Response structure
 func ParseResponse(reader io.Reader) (rsp Response, err error) {
 	buffer := make([]uint8, 1)
 	if _, err = reader.Read(buffer); err != nil {

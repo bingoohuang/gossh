@@ -12,6 +12,7 @@ import (
 func (c Config) parseHosts() ([]*Host, map[string]*Host) {
 	m := make(map[string]*Host)
 	hosts := make([]*Host, 0)
+
 	var err error
 
 	for _, host := range c.Hosts {
@@ -31,7 +32,7 @@ func (c Config) parseHosts() ([]*Host, map[string]*Host) {
 
 		user, pass := str.Split2(userpass, "/", false, false)
 		if pass != "" {
-			if pass, err = pbe.PbeDecrypt(pass); err != nil {
+			if pass, err = pbe.Ebp(pass); err != nil {
 				panic(err)
 			}
 		}
