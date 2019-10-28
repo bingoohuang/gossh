@@ -3,7 +3,7 @@ package pbe
 import (
 	"strings"
 
-	"github.com/bingoohuang/gossh/util"
+	"github.com/bingoohuang/gossh/elf"
 
 	"crypto/cipher"
 	"crypto/des"
@@ -11,7 +11,7 @@ import (
 	"crypto/rand"
 )
 
-// Encrypt encrypt the plainText based on password and iterations with random salt.
+// Encrypt PrintEncrypt the plainText based on password and iterations with random salt.
 // The result contains the first 8 bytes salt before BASE64.
 func Encrypt(plainText, password string, iterations int) (string, error) {
 	salt := make([]byte, 8)
@@ -24,12 +24,12 @@ func Encrypt(plainText, password string, iterations int) (string, error) {
 		return "", err
 	}
 
-	return util.Base64SafeEncode(append(salt, encText...)), nil
+	return elf.Base64SafeEncode(append(salt, encText...)), nil
 }
 
-// Decrypt decrypt the cipherText(result of Encrypt) based on password and iterations.
+// Decrypt PrintDecrypt the cipherText(result of Encrypt) based on password and iterations.
 func Decrypt(cipherText, password string, iterations int) (string, error) {
-	msgBytes, err := util.Base64SafeDecode(cipherText)
+	msgBytes, err := elf.Base64SafeDecode(cipherText)
 	if err != nil {
 		return "", err
 	}
@@ -39,7 +39,7 @@ func Decrypt(cipherText, password string, iterations int) (string, error) {
 	return doDecrypt(encText, password, salt, iterations)
 }
 
-// EncryptSalt encrypt the plainText based on password and iterations with fixed salt.
+// EncryptSalt PrintEncrypt the plainText based on password and iterations with fixed salt.
 func EncryptSalt(plainText, password, fixedSalt string, iterations int) (string, error) {
 	salt := make([]byte, 8)
 	copy(salt[:], fixedSalt)
@@ -48,12 +48,12 @@ func EncryptSalt(plainText, password, fixedSalt string, iterations int) (string,
 	if err != nil {
 		return "", err
 	}
-	return util.Base64SafeEncode(encText), nil
+	return elf.Base64SafeEncode(encText), nil
 }
 
-// DecryptSalt decrypt the cipherText(result of EncryptSalt) based on password and iterations.
+// DecryptSalt PrintDecrypt the cipherText(result of EncryptSalt) based on password and iterations.
 func DecryptSalt(cipherText, password, fixedSalt string, iterations int) (string, error) {
-	msgBytes, err := util.Base64SafeDecode(cipherText)
+	msgBytes, err := elf.Base64SafeDecode(cipherText)
 	if err != nil {
 		return "", err
 	}

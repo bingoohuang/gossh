@@ -1,16 +1,18 @@
 vars = [
+    "passphrase=xxx"
 ]
 
 hosts = [
-    "server-1 192.168.1.22:1022 root/xyz",
-    "server-2 192.168.1.23:1022 root/xyz",
+    "server-1 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
+    #"server-2 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
 ]
 
 cmds = [
     "cd ~/GitHub/docker-compose-mysql-master-master/tool/mci",
     "env GOOS=linux GOARCH=amd64 go install ./...",
     "upx ~/go/bin/linux_amd64/mci",
-    "scp %host ~/go/bin/linux_amd64/mci .",
+    "ssh %host rm -fr ./mci",
+    "scp  ~/go/bin/linux_amd64/mci %host:.",
     "ssh %host ./mci --checkmc",
 ]
 

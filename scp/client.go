@@ -11,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bingoohuang/gossh"
+	"github.com/bingoohuang/gossh/gossh"
+
 	"golang.org/x/crypto/ssh"
 )
 

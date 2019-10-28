@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bingoohuang/gossh/elf"
+
 	"github.com/BurntSushi/toml"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
@@ -45,18 +47,18 @@ func ParsePflags(envPrefix string) error {
 
 // FindFile tries to find cnfFile from specified path, or current path cnf.toml, executable path cnf.toml.
 func FindFile(cnfFile string) (string, error) {
-	if FileExists(cnfFile) == nil {
+	if elf.FileExists(cnfFile) == nil {
 		return cnfFile, nil
 	}
 
 	if wd, _ := os.Getwd(); wd != "" {
-		if cnfFile := filepath.Join(wd, "cnf.toml"); FileExists(cnfFile) == nil {
+		if cnfFile := filepath.Join(wd, "cnf.toml"); elf.FileExists(cnfFile) == nil {
 			return cnfFile, nil
 		}
 	}
 
 	if ex, err := os.Executable(); err == nil {
-		if cnfFile := filepath.Join(filepath.Dir(ex), "cnf.toml"); FileExists(cnfFile) == nil {
+		if cnfFile := filepath.Join(filepath.Dir(ex), "cnf.toml"); elf.FileExists(cnfFile) == nil {
 			return cnfFile, nil
 		}
 	}
@@ -82,17 +84,6 @@ func Load(cnfFile string, value interface{}) {
 	}
 
 	ViperToStruct(value)
-}
-
-// FileExists 检查文件是否存在，并且不是目录
-func FileExists(name string) error {
-	if fi, err := os.Stat(name); err != nil {
-		return err
-	} else if fi.IsDir() {
-		return fmt.Errorf("file %s is a directory", name)
-	}
-
-	return nil
 }
 
 // ViperToStruct read viper value to struct

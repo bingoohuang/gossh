@@ -1,4 +1,4 @@
-package util
+package elf
 
 import (
 	"encoding/base64"

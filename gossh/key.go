@@ -26,13 +26,13 @@ func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
 }
 
 // PrivateKeyPassphrase returns the ssh.ClientConfig based on specified username, passphrase and path.
-func PrivateKeyPassphrase(username string, passphrase []byte, path string) (*ssh.ClientConfig, error) {
+func PrivateKeyPassphrase(username, passphrase, path string) (*ssh.ClientConfig, error) {
 	privateKey, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	signer, err := ssh.ParsePrivateKeyWithPassphrase(privateKey, passphrase)
+	signer, err := ssh.ParsePrivateKeyWithPassphrase(privateKey, []byte(passphrase))
 	if err != nil {
 		return nil, err
 	}
@@ -45,10 +45,10 @@ func PrivateKeyPassphrase(username string, passphrase []byte, path string) (*ssh
 }
 
 // PasswordKey returns the ssh.ClientConfig based on specified username and password.
-func PasswordKey(username, password string) (*ssh.ClientConfig, error) {
+func PasswordKey(username, password string) *ssh.ClientConfig {
 	return &ssh.ClientConfig{
 		User:            username,
 		Auth:            []ssh.AuthMethod{ssh.Password(password)},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // nolint G106
-	}, nil
+	}
 }

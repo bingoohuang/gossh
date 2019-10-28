@@ -3,19 +3,21 @@ package pbe
 import (
 	"fmt"
 	"os"
-	"strings"
+	"sync"
 
 	"github.com/howeyc/gopass"
-	"github.com/jedib0t/go-pretty/table"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
+const PbePwd = "pbepwd"
+
 // DeclarePflags declares the pbe required pflags.
 func DeclarePflags() {
-	pflag.StringP("password", "", "", "pbe password")
-	pflag.StringSliceP("pbe", "", nil, "encrypt by pbe")
-	pflag.StringSliceP("ebp", "", nil, "decrypt by pbe")
+	pflag.StringP(PbePwd, "", "", "pbe password")
+	pflag.StringSliceP("pbe", "", nil, "PrintEncrypt by pbe")
+	pflag.StringSliceP("ebp", "", nil, "PrintDecrypt by pbe")
 }
 
 // DealPflag deals the request by the pflags.
@@ -28,10 +30,10 @@ func DealPflag() {
 	}
 
 	alreadyHasOutput := false
-	passStr := getPassword()
+	passStr := GetPbePwd()
 
 	if len(pbes) > 0 {
-		encrypt(pbes, passStr)
+		PrintEncrypt(passStr, pbes...)
 
 		alreadyHasOutput = true
 	}
@@ -41,66 +43,32 @@ func DealPflag() {
 			fmt.Println()
 		}
 
-		decrypt(ebps, passStr)
+		PrintDecrypt(passStr, ebps...)
 	}
 
 	os.Exit(0)
 }
 
-func getPassword() string {
-	passStr := viper.GetString("password")
-	if passStr != "" {
-		return passStr
-	}
+var pbePwdOnce sync.Once
+var pbePwd string
 
-	fmt.Printf("Password: ")
+func GetPbePwd() string {
+	pbePwdOnce.Do(func() {
+		pbePwd = viper.GetString(PbePwd)
+		if pbePwd != "" {
+			return
+		}
 
-	pass, err := gopass.GetPasswdMasked()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "GetPasswd error %v", err)
-		os.Exit(1)
-	}
+		fmt.Printf("PBE Password: ")
 
-	return string(pass)
-}
-
-const iterations = 19
-const pbePrefix = `{PBE}`
-
-func encrypt(pbes []string, passStr string) {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Plain", "Encrypted"})
-
-	for i, p := range pbes {
-		pbed, err := Encrypt(p, passStr, iterations)
+		pass, err := gopass.GetPasswdMasked()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "pbe.Encrypt error %v", err)
+			fmt.Fprintf(os.Stderr, "GetPasswd error %v", err)
 			os.Exit(1)
 		}
 
-		t.AppendRow(table.Row{i + 1, p, pbePrefix + pbed})
-	}
+		pbePwd = string(pass)
+	})
 
-	t.Render()
-}
-
-func decrypt(ebps []string, passStr string) {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Encrypted", "Plain"})
-
-	for i, ebp := range ebps {
-		ebpx := strings.TrimPrefix(ebp, pbePrefix)
-
-		p, err := Decrypt(ebpx, passStr, iterations)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "pbe.Decrypt error %v", err)
-			os.Exit(1)
-		}
-
-		t.AppendRow(table.Row{i + 1, ebp, p})
-	}
-
-	t.Render()
+	return pbePwd
 }
