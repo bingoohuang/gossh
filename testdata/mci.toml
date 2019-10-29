@@ -3,8 +3,8 @@ vars = [
 ]
 
 hosts = [
-    "server-1 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
-    "server-2 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
+    "22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
+    "23 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
 ]
 
 cmds = [
@@ -13,7 +13,9 @@ cmds = [
    # "upx ~/go/bin/linux_amd64/mci",
    # "ssh %host rm -fr ./mci",
    # "scp  ./cmd %host:.",
-    "ssh %host rm -fr cmd",
+    "scp  %host-22:./testdir . ",
+   # "cat ./a.txt; rm ./a.txt"
+   # "ssh %host rm -fr cmd",
    # "ssh %host ./mci --checkmc",
 ]
 

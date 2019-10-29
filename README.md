@@ -51,3 +51,7 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --passwor
 1. [A scp client library written in Go. The remote server must have the scp command](https://github.com/hnakamur/go-scp)
 1. [How the SCP protocol works](https://chuacw.ath.cx/blogs/chuacw/archive/2019/02/04/how-the-scp-protocol-works.aspx)
 1. [Golang SFTP Client: Download File, Upload File Example](http://networkbit.ch/golang-sftp-client/)
+1. [package sftp](https://godoc.org/github.com/pkg/sftp)
+1. [sftp/example_test.go](https://github.com/pkg/sftp/blob/master/example_test.go)
+1. [Golang Client Examples](https://golang.hotexamples.com/examples/github.com.pkg.sftp/Client/-/golang-client-class-examples.html)
+1. [go语言使用sftp包上传文件和文件夹到远程服务器](https://blog.csdn.net/fu_qin/article/details/78741854)
