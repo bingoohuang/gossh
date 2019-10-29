@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/spf13/pflag"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/bingoohuang/gossh"
@@ -16,11 +18,18 @@ func main() {
 	pbe.DeclarePflags()
 	defer pbe.DealPflag()
 
+	ver := pflag.BoolP("version", "v", false, "show version")
+
 	cnf.DeclarePflags()
 	cnf.DeclarePflagsByStruct(gossh.Config{})
 
 	if err := cnf.ParsePflags("GOSSH"); err != nil {
 		panic(err)
+	}
+
+	if *ver {
+		fmt.Printf("Version: v0.1.0\n")
+		return
 	}
 
 	var config gossh.Config
