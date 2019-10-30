@@ -1,5 +1,5 @@
 vars = [
-    "passphrase=xxx"
+    #"passphrase=xxx",
 ]
 
 hosts = [
@@ -11,9 +11,9 @@ cmds = [
    # "cd ~/GitHub/docker-compose-mysql-master-master/tool/mci",
    # "env GOOS=linux GOARCH=amd64 go install ./...",
    # "upx ~/go/bin/linux_amd64/mci",
-   # "ssh %host rm -fr ./mci",
-   # "scp  ./cmd %host:.",
-    "scp  %host-22:./testdir . ",
+    "ssh %host rm -fr ./cmd",
+    "scp  ./cmd %host:.",
+   # "scp  %host-22:./testdir . ",
    # "cat ./a.txt; rm ./a.txt"
    # "ssh %host rm -fr cmd",
    # "ssh %host ./mci --checkmc",

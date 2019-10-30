@@ -95,12 +95,12 @@ func parseDirection(from, dest, cmd string) Direction {
 }
 
 // ExecInHosts execute in specified hosts.
-func (s *SCPCmd) ExecInHosts(hosts []*Host) error {
+func (s *SCPCmd) ExecInHosts(gs *GoSSH) error {
 	switch s.direction {
 	case UploadDirection:
-		return s.upload(hosts)
+		return s.upload(gs)
 	case DownloadDirection:
-		return s.download(hosts)
+		return s.download(gs)
 	}
 
 	return nil

@@ -37,7 +37,7 @@ type Cmd interface {
 	// Parse parses the command.
 	Parse()
 	// ExecInHosts execute in specified hosts.
-	ExecInHosts(hosts []*Host) error
+	ExecInHosts(gs *GoSSH) error
 }
 
 // CmdGroup represents the a group of structure of command line with same cmd type in config's cmds.
@@ -63,13 +63,13 @@ func (g *CmdGroup) Exec() {
 		g.execLocal()
 	case cmdtype.SSH:
 		for _, cmd := range g.Cmds {
-			if err := cmd.ExecInHosts(g.gs.Hosts); err != nil {
+			if err := cmd.ExecInHosts(g.gs); err != nil {
 				fmt.Printf("ExecInHosts error %v", err)
 			}
 		}
 	case cmdtype.SCP:
 		for _, cmd := range g.Cmds {
-			if err := cmd.ExecInHosts(g.gs.Hosts); err != nil {
+			if err := cmd.ExecInHosts(g.gs); err != nil {
 				fmt.Printf("ExecInHosts error %v", err)
 			}
 		}
@@ -82,6 +82,13 @@ type GoSSH struct {
 	Hosts     []*Host
 	HostsMap  map[string]*Host
 	CmdGroups []CmdGroup
+
+	sftpClientMap sftpClientMap
+}
+
+// Close closes gossh.
+func (g *GoSSH) Close() {
+	g.sftpClientMap.Close()
 }
 
 // Parse parses the flags or cnf files to GoSSH.
@@ -91,6 +98,7 @@ func (c Config) Parse() GoSSH {
 	gs.Vars = c.parseVars()
 	gs.Hosts, gs.HostsMap = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
+	gs.sftpClientMap = make(sftpClientMap)
 
 	return gs
 }

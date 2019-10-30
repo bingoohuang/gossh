@@ -17,7 +17,7 @@ type LocalCmd struct {
 }
 
 // ExecInHosts execute in specified hosts.
-func (l *LocalCmd) ExecInHosts(_ []*Host) error {
+func (l *LocalCmd) ExecInHosts(_ *GoSSH) error {
 	return nil
 }
 

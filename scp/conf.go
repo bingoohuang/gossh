@@ -25,8 +25,8 @@ func NewConf() *ClientConf {
 }
 
 // CreateClient builds a client with the configuration stored within the ClientConf
-func (c *ClientConf) CreateClient() Client {
-	return Client{
+func (c *ClientConf) CreateClient() *Client {
+	return &Client{
 		Timeout:      c.Timeout,
 		RemoteBinary: c.RemoteBinary,
 	}

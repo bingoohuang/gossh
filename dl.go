@@ -8,19 +8,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/bingoohuang/gossh/gossh"
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
 )
 
-func (s SCPCmd) download(hosts []*Host) error {
+func (s SCPCmd) download(gs *GoSSH) error {
 	re := regexp.MustCompile(`%host(-\w+)?:`)
 	submatch := re.FindStringSubmatch(s.cmd)
 
 	if len(submatch) >= 2 {
 		group0 := submatch[0]
 		name := submatch[1][1:]
-		host := findHost(hosts, name)
+		host := findHost(gs.Hosts, name)
 
 		if host == nil {
 			return fmt.Errorf("unable to find host %s in hosts", name)
@@ -28,11 +27,11 @@ func (s SCPCmd) download(hosts []*Host) error {
 
 		source := s.source[len(group0):]
 
-		return downloadHost(*host, source, s.dest)
+		return downloadHost(gs, *host, source, s.dest)
 	}
 
-	for _, host := range hosts {
-		if err := downloadHost(*host, s.source, s.dest); err != nil {
+	for _, host := range gs.Hosts {
+		if err := downloadHost(nil, *host, s.source, s.dest); err != nil {
 			return err
 		}
 	}
@@ -50,18 +49,11 @@ func findHost(hosts []*Host, name string) *Host {
 	return nil
 }
 
-func downloadHost(h Host, from, to string) error {
-	conn, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password))
+func downloadHost(gs *GoSSH, h Host, from, to string) error {
+	sf, err := gs.sftpClientMap.GetClient(h)
 	if err != nil {
-		return fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)
+		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
 	}
-
-	sf, err := sftp.NewClient(conn)
-	if err != nil {
-		return fmt.Errorf("sftp.NewClient failed: %w", err)
-	}
-
-	defer sf.Close()
 
 	stat, err := sf.Stat(from)
 	if err != nil {

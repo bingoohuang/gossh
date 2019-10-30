@@ -29,16 +29,16 @@ func Pbe(p string) (string, error) {
 
 // Ebp decrypts p by PBEWithMD5AndDES with 19 iterations.
 func Ebp(p string) (string, error) {
+	if !strings.HasPrefix(p, pbePrefix) {
+		return p, nil
+	}
+
 	pwd := GetPbePwd()
 	if pwd == "" {
 		return "", fmt.Errorf("pbepwd is requird")
 	}
 
-	if strings.HasPrefix(p, pbePrefix) {
-		return Decrypt(p[len(pbePrefix):], pwd, iterations)
-	}
-
-	return p, nil
+	return Decrypt(p[len(pbePrefix):], pwd, iterations)
 }
 
 // PrintEncrypt prints the PBE encryption.

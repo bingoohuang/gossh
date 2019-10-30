@@ -20,8 +20,8 @@ type SSHCmd struct {
 func (SSHCmd) Parse() {}
 
 // ExecInHosts execute in specified hosts.
-func (s SSHCmd) ExecInHosts(hosts []*Host) error {
-	for _, host := range hosts {
+func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
+	for _, host := range gs.Hosts {
 		if err := func(h Host, cmd string) error {
 			if err := sshInHost(*host, cmd); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
