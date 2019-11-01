@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func sftpUpload(gs *GoSSH, h Host, _ os.FileInfo, from string, to string) error {
+func sftpUpload(gs *GoSSH, h Host, fromStat os.FileInfo, from string, to string) error {
 	fromFile, _ := os.Open(from)
 	defer fromFile.Close()
 
@@ -28,6 +28,10 @@ func sftpUpload(gs *GoSSH, h Host, _ os.FileInfo, from string, to string) error 
 
 	if _, err := io.Copy(f, fromFile); err != nil {
 		return fmt.Errorf("io.Copy failed: %w", err)
+	}
+
+	if err := sf.Chmod(dest, fromStat.Mode()); err != nil {
+		return fmt.Errorf("sf.Chmo %s failed: %w", dest, err)
 	}
 
 	return nil

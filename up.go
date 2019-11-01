@@ -3,6 +3,7 @@ package gossh
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -34,8 +35,7 @@ func (s *SCPCmd) upload(gs *GoSSH) error {
 }
 
 func (s *SCPCmd) upSCP(gs *GoSSH) error {
-	destBase := strings.TrimPrefix(s.dest, "%host:")
-	if err := s.scpRecursively(destBase, gs); err != nil {
+	if err := s.scpRecursively(s.dest, gs); err != nil {
 		return err
 	}
 
@@ -50,7 +50,8 @@ func (s *SCPCmd) scpRecursively(destBase string, gs *GoSSH) error {
 			}
 
 			if !info.IsDir() {
-				dest := filepath.Join(destBase, path)
+				destPath := strings.TrimPrefix(path, s.source)
+				dest := filepath.Join(destBase, destPath)
 				uploadFile(gs, path, dest)
 			}
 
@@ -73,16 +74,40 @@ func (s *SCPCmd) singleSCP(gs *GoSSH) {
 		dest = filepath.Join(dest, baseFrom)
 	}
 
-	dest = strings.TrimPrefix(dest, "%host:")
 	uploadFile(gs, s.source, dest)
 }
 
 func uploadFile(gs *GoSSH, src, dest string) {
-	var wg sync.WaitGroup
+	hostName := ""
 
-	wg.Add(len(gs.Hosts))
+	if submatchIndex := regexp.MustCompile(`%host(-\w+)?:`).
+		FindStringSubmatchIndex(dest); len(submatchIndex) > 0 {
+		if submatchIndex[2] > 0 {
+			hostName = dest[submatchIndex[2]:submatchIndex[3]]
+		}
+
+		dest = dest[submatchIndex[1]:]
+	}
+
+	hostName = strings.TrimPrefix(hostName, "-")
+
+	targetHosts := make([]*Host, 0, len(gs.Hosts))
 
 	for _, host := range gs.Hosts {
+		if hostName == "" || host.Name == hostName {
+			targetHosts = append(targetHosts, host)
+		}
+	}
+
+	if len(targetHosts) == 0 {
+		logrus.Warnf("there is no host to upload %s", src)
+	}
+
+	var wg sync.WaitGroup
+
+	wg.Add(len(targetHosts))
+
+	for _, host := range targetHosts {
 		go func(h Host, from, to string) {
 			if err := upload(gs, h, from, to); err != nil {
 				logrus.Warnf(" upload %s error %v", from, err)
