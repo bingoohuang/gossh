@@ -36,7 +36,9 @@ func main() {
 
 	cnf.LoadByPflag(&config)
 
-	fmt.Printf("Config%s\n", gossh.JSONPretty(config))
+	if config.PrintConfig {
+		fmt.Printf("Config%s\n", gossh.JSONPretty(config))
+	}
 
 	gs := config.Parse()
 

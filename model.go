@@ -11,9 +11,10 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
-	Vars  []string
-	Hosts []string
-	Cmds  []string
+	PrintConfig bool
+	Vars        []string
+	Hosts       []string
+	Cmds        []string
 }
 
 // Vars alias the map[string]string.

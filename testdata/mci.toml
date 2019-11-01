@@ -1,12 +1,14 @@
+#printConfig = false
+
 vars = [
     #"passphrase=xxx",
 ]
 
 hosts = [
-    "22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
+   # "22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
     #"23 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
-#    "9 192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw",
-#    "18 192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg",
+    "9 192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw",
+    "18 192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg",
 ]
 
 cmds = [
@@ -16,7 +18,9 @@ cmds = [
    # "ssh %host rm -fr ./cmd",
    # "scp  ./cmd %host:.",
    #"scp  %host-22:/bin/mysqldump ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
-   "scp  %host-22:/bin/mysql ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+   #"scp  %host-22:/bin/mysql ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+   #"scp ~/go/bin/linux_amd64/sysinfo %host:./mysqlclusterinit",
+   #"scp ~/GitHub/docker-compose-mysql-master-master/tool/mci/res %host:.",
    # "scp  %host-22:mydir ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
    # "scp ~/bin %host:./mysqlclusterinit",
    # "scp  %host-22:./testdir . ",
@@ -24,6 +28,10 @@ cmds = [
    # "ssh %host rm -fr cmd",
    # "ssh %host ./mci --checkmc",
 
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\\G\"",
+    # "ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('9999')\"",
+    # "ssh %host-18 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('181818')\"",
+    "ssh %host MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"select * from facedb.t_bingoo\"",
     #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"stop slave\"",
     #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\G\"",
     #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' rm *.sql.dump;./mysqlclusterinit/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump; ll *.sql.dump",
