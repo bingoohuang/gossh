@@ -3,6 +3,7 @@ package gossh
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/bingoohuang/gossh/gossh"
@@ -13,7 +14,8 @@ import (
 
 // SSHCmd means SSH command.
 type SSHCmd struct {
-	cmd string
+	cmd  string
+	host string
 }
 
 // Parse parses command.
@@ -21,7 +23,23 @@ func (SSHCmd) Parse() {}
 
 // ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
-	for _, host := range gs.Hosts {
+	hostName := ""
+
+	if submatchIndex := regexp.MustCompile(`%host(-\w+)?`).
+		FindStringSubmatchIndex(s.host); len(submatchIndex) > 0 {
+		if submatchIndex[2] > 0 {
+			hostName = s.host[submatchIndex[2]:submatchIndex[3]]
+		}
+	}
+
+	targetHosts := filterHosts(hostName, gs)
+	if len(targetHosts) == 0 {
+		logrus.Warnf("there is no host to ssh %s", s.cmd)
+	}
+
+	printCmds(targetHosts, s)
+
+	for _, host := range targetHosts {
 		if err := func(h Host, cmd string) error {
 			if err := sshInHost(*host, cmd); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
@@ -36,6 +54,35 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 	return nil
 }
 
+func printCmds(targetHosts []*Host, s SSHCmd) {
+	targetHostnames := filterHostnames(targetHosts)
+
+	fmt.Println("executing ", s.cmd, "on hosts", targetHostnames)
+}
+
+func filterHostnames(targetHosts []*Host) []string {
+	targetHostnames := make([]string, len(targetHosts))
+	for i, t := range targetHosts {
+		targetHostnames[i] = t.Addr
+	}
+
+	return targetHostnames
+}
+
+func filterHosts(hostName string, gs *GoSSH) []*Host {
+	hostName = strings.TrimPrefix(hostName, "-")
+
+	targetHosts := make([]*Host, 0, len(gs.Hosts))
+
+	for _, host := range gs.Hosts {
+		if hostName == "" || host.Name == hostName {
+			targetHosts = append(targetHosts, host)
+		}
+	}
+
+	return targetHosts
+}
+
 func buildSSHCmd(cmd string) *SSHCmd {
 	parts := strings.SplitN(cmd, " ", 3)
 	if len(parts) != 3 {
@@ -43,7 +90,7 @@ func buildSSHCmd(cmd string) *SSHCmd {
 		return nil
 	}
 
-	return &SSHCmd{cmd: parts[2]}
+	return &SSHCmd{host: parts[1], cmd: parts[2]}
 }
 
 // http://networkbit.ch/golang-ssh-client/

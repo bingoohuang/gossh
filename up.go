@@ -1,6 +1,7 @@
 package gossh
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -89,19 +90,12 @@ func uploadFile(gs *GoSSH, src, dest string) {
 		dest = dest[submatchIndex[1]:]
 	}
 
-	hostName = strings.TrimPrefix(hostName, "-")
-
-	targetHosts := make([]*Host, 0, len(gs.Hosts))
-
-	for _, host := range gs.Hosts {
-		if hostName == "" || host.Name == hostName {
-			targetHosts = append(targetHosts, host)
-		}
-	}
-
+	targetHosts := filterHosts(hostName, gs)
 	if len(targetHosts) == 0 {
 		logrus.Warnf("there is no host to upload %s", src)
 	}
+
+	fmt.Println("start to scp upload ", src, "to", dest, "on hosts", filterHostnames(targetHosts))
 
 	var wg sync.WaitGroup
 

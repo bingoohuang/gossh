@@ -15,23 +15,27 @@ import (
 func (s SCPCmd) download(gs *GoSSH) error {
 	re := regexp.MustCompile(`%host(-\w+)?:`)
 	submatch := re.FindStringSubmatch(s.cmd)
+	group0 := submatch[0]
+	name := submatch[1]
+	source := s.source[len(group0):]
 
-	if len(submatch) >= 2 {
-		group0 := submatch[0]
-		name := submatch[1][1:]
+	if name != "" {
+		name = name[1:]
 		host := findHost(gs.Hosts, name)
 
 		if host == nil {
 			return fmt.Errorf("unable to find host %s in hosts", name)
 		}
 
-		source := s.source[len(group0):]
+		fmt.Println("start to scp download ", source, "to", s.dest, "from host", host.Addr)
 
 		return downloadHost(gs, *host, source, s.dest)
 	}
 
+	fmt.Println("start to scp download ", source, "to", s.dest, "from host", filterHostnames(gs.Hosts))
+
 	for _, host := range gs.Hosts {
-		if err := downloadHost(nil, *host, s.source, s.dest); err != nil {
+		if err := downloadHost(gs, *host, s.source, s.dest); err != nil {
 			return err
 		}
 	}
@@ -76,7 +80,13 @@ func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 
 		for _, fi := range fileInfos {
 			src := filepath.Join(from, fi.Name())
-			if err := download(fi, host, to, src, sf); err != nil {
+			to1 := to
+
+			if fi.IsDir() {
+				to1 = filepath.Join(to, fi.Name())
+			}
+
+			if err := download(fi, host, to1, src, sf); err != nil {
 				return err
 			}
 		}
@@ -84,9 +94,9 @@ func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 		return nil
 	}
 
-	dest := filepath.Join(to, from)
+	dest := filepath.Join(to, filepath.Base(from))
 
-	if err := os.MkdirAll(filepath.Dir(dest), 0744); err != nil {
+	if err := os.MkdirAll(to, 0744); err != nil {
 		return fmt.Errorf("MkdirAll %s failed: %w", to, err)
 	}
 

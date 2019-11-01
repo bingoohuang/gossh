@@ -3,10 +3,10 @@ vars = [
 ]
 
 hosts = [
-    #"22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
+    "22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
     #"23 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
-    "9 192.168.136.9:8022 app/app",
-    "18 192.168.136.18:8022 app/app",
+#    "9 192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw",
+#    "18 192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg",
 ]
 
 cmds = [
@@ -15,12 +15,47 @@ cmds = [
    # "upx ~/go/bin/linux_amd64/mci",
    # "ssh %host rm -fr ./cmd",
    # "scp  ./cmd %host:.",
-   # "scp  %host-22:/bin/mysqldump .",
-    "scp ~/bin %host:./mysqlclusterinit",
+   #"scp  %host-22:/bin/mysqldump ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+   "scp  %host-22:/bin/mysql ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+   # "scp  %host-22:mydir ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+   # "scp ~/bin %host:./mysqlclusterinit",
    # "scp  %host-22:./testdir . ",
    # "cat ./a.txt; rm ./a.txt"
    # "ssh %host rm -fr cmd",
    # "ssh %host ./mci --checkmc",
+
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"stop slave\"",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\G\"",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' rm *.sql.dump;./mysqlclusterinit/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump; ll *.sql.dump",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump",
+#    "scp  %host-9:./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump .",
+#    "scp ./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump  %host-18:.",
 ]
 
+#
+#MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv < mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump
+#SET @@GLOBAL.GTID_PURGED='43e9cbe5-b38a-11e9-8570-04d4c439354e:1-111,
+#52226355-ef37-11e9-b21a-40b07690f823:2-15'
+#--------------
+#
+#ERROR 1840 (HY000) at line 24: @@GLOBAL.GTID_PURGED can only be set when @@GLOBAL.GTID_EXECUTED is empty.
+#
+#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e "reset slave all"
+#--------------
+#reset slave all
+#--------------
+#
+#Query OK, 0 rows affected (0.00 sec)
+#
+#Bye
+#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e "reset master"
+#--------------
+#reset master
+#--------------
+#
+#Query OK, 0 rows affected (0.00 sec)
+#
+#Bye
 
+# 开启GTID的情况下导出导入库的注意事项
+# https://docs.lvrui.io/2016/10/28/%E5%BC%80%E5%90%AFGTID%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%AF%BC%E5%87%BA%E5%AF%BC%E5%85%A5%E5%BA%93%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/
