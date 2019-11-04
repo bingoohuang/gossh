@@ -1,14 +1,11 @@
 #printConfig = false
-
-vars = [
-    #"passphrase=xxx",
-]
+#passphrase="xxx"
 
 hosts = [
    # "22 192.168.136.22:8022 root/{PBE}g6ufJrt_w6e-3KqzWMcTWlIyu_zW4DWZ",
     #"23 192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA",
     "9 192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw",
-    "18 192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg",
+    #"18 192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg",
 ]
 
 cmds = [
@@ -19,36 +16,36 @@ cmds = [
    # "scp  ./cmd %host:.",
    #"scp  %host-22:/bin/mysqldump ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
    #"scp  %host-22:/bin/mysql ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
-   #"scp ~/go/bin/linux_amd64/sysinfo %host:./mysqlclusterinit",
+   #"scp ~/go/bin/linux_amd64/mci %host:./mci",
    #"scp ~/GitHub/docker-compose-mysql-master-master/tool/mci/res %host:.",
    # "scp  %host-22:mydir ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
-   # "scp ~/bin %host:./mysqlclusterinit",
+   # "scp ~/bin %host:./mci",
    # "scp  %host-22:./testdir . ",
    # "cat ./a.txt; rm ./a.txt"
    # "ssh %host rm -fr cmd",
-   # "ssh %host ./mci --checkmc",
+   # "ssh %host ./mci/mci --checkmc",
 
-    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\\G\"",
-    # "ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('9999')\"",
-    # "ssh %host-18 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('181818')\"",
-    "ssh %host MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"select * from facedb.t_bingoo\"",
-    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"stop slave\"",
-    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\G\"",
-    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' rm *.sql.dump;./mysqlclusterinit/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump; ll *.sql.dump",
-    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mysqlclusterinit/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\\G\"",
+    # "ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('9999')\"",
+    # "ssh %host-18 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('181818')\"",
+    '''ssh %host MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "select * from facedb.t_bingoo;show slave status\G" ''',
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"stop slave\"",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\G\"",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' rm *.sql.dump;./mci/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump; ll *.sql.dump",
+    #"ssh %host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump",
 #    "scp  %host-9:./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump .",
 #    "scp ./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump  %host-18:.",
 ]
 
 #
-#MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv < mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump
+#MYSQL_PWD='!QAZ2wsx' mci/mysql -u root -h 127.0.0.1 -vvv < mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump
 #SET @@GLOBAL.GTID_PURGED='43e9cbe5-b38a-11e9-8570-04d4c439354e:1-111,
 #52226355-ef37-11e9-b21a-40b07690f823:2-15'
 #--------------
 #
 #ERROR 1840 (HY000) at line 24: @@GLOBAL.GTID_PURGED can only be set when @@GLOBAL.GTID_EXECUTED is empty.
 #
-#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e "reset slave all"
+#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mci/mysql -u root -h 127.0.0.1 -vvv -e "reset slave all"
 #--------------
 #reset slave all
 #--------------
@@ -56,7 +53,7 @@ cmds = [
 #Query OK, 0 rows affected (0.00 sec)
 #
 #Bye
-#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mysqlclusterinit/mysql -u root -h 127.0.0.1 -vvv -e "reset master"
+#[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' mci/mysql -u root -h 127.0.0.1 -vvv -e "reset master"
 #--------------
 #reset master
 #--------------

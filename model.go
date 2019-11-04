@@ -5,20 +5,16 @@ import (
 
 	"github.com/bingoohuang/gossh/cmdtype"
 	"github.com/bingoohuang/gossh/pbe"
-	"github.com/bingoohuang/gou/str"
 	"github.com/spf13/viper"
 )
 
 // Config represents the structure of input toml file structure.
 type Config struct {
 	PrintConfig bool
-	Vars        []string
+	Passphrase  string
 	Hosts       []string
 	Cmds        []string
 }
-
-// Vars alias the map[string]string.
-type Vars map[string]string
 
 // Host represents the structure of remote host information for ssh.
 type Host struct {
@@ -26,7 +22,7 @@ type Host struct {
 	Addr       string
 	User       string
 	Password   string // empty when using public key
-	Properties Vars
+	Properties map[string]string
 }
 
 // CmdExcResult means the detail exec result of cmd
@@ -79,7 +75,7 @@ func (g *CmdGroup) Exec() {
 
 // GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
-	Vars      Vars
+	Vars      Config
 	Hosts     []*Host
 	HostsMap  map[string]*Host
 	CmdGroups []CmdGroup
@@ -96,7 +92,7 @@ func (g *GoSSH) Close() {
 func (c Config) Parse() GoSSH {
 	gs := GoSSH{}
 
-	gs.Vars = c.parseVars()
+	_ = c.parseVars()
 	gs.Hosts, gs.HostsMap = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
 	gs.sftpClientMap = make(sftpClientMap)
@@ -147,20 +143,10 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	return returnGroups
 }
 
-const passphrase = "passphrase"
-
-func (c Config) parseVars() Vars {
-	m := make(Vars)
-
-	for _, v := range c.Vars {
-		for k1, v1 := range str.SplitToMap(v, "=", ",") {
-			m[k1] = v1
-		}
+func (c Config) parseVars() Config {
+	if c.Passphrase != "" {
+		viper.Set(pbe.PbePwd, c.Passphrase)
 	}
 
-	if pp, ok := m[passphrase]; ok {
-		viper.Set(pbe.PbePwd, pp)
-	}
-
-	return m
+	return c
 }

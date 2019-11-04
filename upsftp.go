@@ -17,7 +17,11 @@ func sftpUpload(gs *GoSSH, h Host, fromStat os.FileInfo, from string, to string)
 	}
 
 	dest := to
-	if err := sf.MkdirAll(filepath.Dir(dest)); err != nil {
+	stat, _ := sf.Stat(dest)
+
+	if stat != nil && stat.IsDir() {
+		dest = filepath.Join(dest, filepath.Base(from))
+	} else if err := sf.MkdirAll(filepath.Dir(dest)); err != nil {
 		return fmt.Errorf("sftp MkdirAll %s error %w", dest, err)
 	}
 
