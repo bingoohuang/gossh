@@ -22,12 +22,14 @@ func (c Config) parseHosts() ([]*Host, map[string]*Host) {
 			continue
 		}
 
-		name := fields[0]
-		addr := fields[1]
-		userpass := fields[2]
+		addr := fields[0]
+		userpass := fields[1]
+		id := addr
 
 		if !strings.Contains(addr, ":") {
 			addr += ":22"
+		} else {
+			id = id[0:strings.Index(id, ":")]
 		}
 
 		user, pass := str.Split2(userpass, "/", false, false)
@@ -39,19 +41,26 @@ func (c Config) parseHosts() ([]*Host, map[string]*Host) {
 
 		props := make(map[string]string)
 
-		if len(fields) > 3 {
-			props = str.SplitToMap(fields[3], "=", ",")
+		if len(fields) > 2 {
+			for i := 2; i < len(fields); i++ {
+				k, v := str.Split2(fields[i], "=", true, true)
+				props[k] = v
+			}
+		}
+
+		if customID, ok := props["id"]; ok && customID != "" {
+			id = customID
 		}
 
 		host := &Host{
-			Name:       name,
+			ID:         id,
 			Addr:       addr,
 			User:       user,
 			Password:   pass,
 			Properties: props,
 		}
 		hosts = append(hosts, host)
-		m[name] = host
+		m[id] = host
 	}
 
 	return hosts, m

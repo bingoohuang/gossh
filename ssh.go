@@ -28,7 +28,7 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 	if submatchIndex := regexp.MustCompile(`%host(-\w+)?`).
 		FindStringSubmatchIndex(s.host); len(submatchIndex) > 0 {
 		if submatchIndex[2] > 0 {
-			hostName = s.host[submatchIndex[2]:submatchIndex[3]]
+			hostName = s.host[submatchIndex[2]+1 : submatchIndex[3]]
 		}
 	}
 
@@ -75,7 +75,7 @@ func filterHosts(hostName string, gs *GoSSH) []*Host {
 	targetHosts := make([]*Host, 0, len(gs.Hosts))
 
 	for _, host := range gs.Hosts {
-		if hostName == "" || host.Name == hostName {
+		if hostName == "" || host.ID == hostName {
 			targetHosts = append(targetHosts, host)
 		}
 	}

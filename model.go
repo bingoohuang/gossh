@@ -18,7 +18,7 @@ type Config struct {
 
 // Host represents the structure of remote host information for ssh.
 type Host struct {
-	Name       string
+	ID         string
 	Addr       string
 	User       string
 	Password   string // empty when using public key

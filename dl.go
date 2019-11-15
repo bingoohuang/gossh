@@ -45,7 +45,7 @@ func (s SCPCmd) download(gs *GoSSH) error {
 
 func findHost(hosts []*Host, name string) *Host {
 	for _, h := range hosts {
-		if h.Name == name {
+		if h.ID == name {
 			return h
 		}
 	}

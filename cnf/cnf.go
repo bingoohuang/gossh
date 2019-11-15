@@ -1,6 +1,7 @@
 package cnf
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -63,7 +64,7 @@ func FindFile(cnfFile string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("unable to find cnf file %s", cnfFile)
+	return "", fmt.Errorf("unable to find cnf file %s, error %w", cnfFile, os.ErrNotExist)
 }
 
 // LoadE similar to Load.
@@ -80,7 +81,9 @@ func LoadE(cnfFile string, value interface{}) error {
 // Load loads the cnfFile content and viper bindings to value.
 func Load(cnfFile string, value interface{}) {
 	if err := LoadE(cnfFile, value); err != nil {
-		logrus.Warnf("Load Cnf %s error %v", cnfFile, err)
+		if !errors.Is(err, os.ErrNotExist) {
+			logrus.Warnf("Load Cnf %s error %v", cnfFile, err)
+		}
 	}
 
 	ViperToStruct(value)
