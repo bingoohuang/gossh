@@ -10,8 +10,8 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
-	PrintConfig bool
-	Passphrase  string
+	PrintConfig bool   `usage:"print config before running"`
+	Passphrase  string `usage:"passphrase for decrypt {PBE}Password"`
 	Hosts       []string
 	Cmds        []string
 }
@@ -58,13 +58,7 @@ func (g *CmdGroup) Exec() {
 	switch g.Type {
 	case cmdtype.Local:
 		g.execLocal()
-	case cmdtype.SSH:
-		for _, cmd := range g.Cmds {
-			if err := cmd.ExecInHosts(g.gs); err != nil {
-				fmt.Printf("ExecInHosts error %v", err)
-			}
-		}
-	case cmdtype.SCP:
+	default:
 		for _, cmd := range g.Cmds {
 			if err := cmd.ExecInHosts(g.gs); err != nil {
 				fmt.Printf("ExecInHosts error %v", err)
@@ -108,28 +102,26 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	groups := make([]*CmdGroup, 0)
 
 	for _, cmd := range c.Cmds {
-		cmdType, cmd := cmdtype.Parse(cmd)
+		cmdType, cmdParts := cmdtype.Parse(cmd)
 		if cmdType == cmdtype.Noop {
 			continue
 		}
 
 		if lastCmdType != cmdType {
 			lastCmdType = cmdType
-			group = &CmdGroup{
-				gs:   gs,
-				Type: cmdType,
-				Cmds: make([]Cmd, 0),
-			}
+			group = &CmdGroup{gs: gs, Type: cmdType, Cmds: make([]Cmd, 0)}
 			groups = append(groups, group)
 		}
 
 		switch cmdType {
 		case cmdtype.Local:
 			group.Cmds = append(group.Cmds, &LocalCmd{cmd: cmd})
-		case cmdtype.SCP:
-			group.Cmds = append(group.Cmds, buildSCPCmd(cmd))
+		case cmdtype.Ul:
+			group.Cmds = append(group.Cmds, buildUlCmd(gs, cmdParts, cmd))
+		case cmdtype.Dl:
+			group.Cmds = append(group.Cmds, buildDlCmd(gs, cmdParts, cmd))
 		case cmdtype.SSH:
-			group.Cmds = append(group.Cmds, buildSSHCmd(cmd))
+			group.Cmds = append(group.Cmds, buildSSHCmd(cmdParts, cmd))
 		}
 	}
 

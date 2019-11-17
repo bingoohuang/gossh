@@ -13,16 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *SCPCmd) upload(gs *GoSSH) error {
-	var err error
-	if s.sourceDir == elf.UnknownDirMode {
-		if s.sourceDir, err = elf.GetFileMode(s.source); err != nil {
-			logrus.Warnf("error %v", err)
-			return err
-		}
-	}
-
-	switch s.sourceDir {
+// ExecInHosts executes uploading among hosts.
+func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
+	switch s.localDirMode {
 	case elf.SingleFileMode:
 		s.singleSCP(gs)
 	case elf.DirectoryMode:
@@ -35,30 +28,30 @@ func (s *SCPCmd) upload(gs *GoSSH) error {
 	return nil
 }
 
-func (s *SCPCmd) upSCP(gs *GoSSH) error {
-	if err := s.scpRecursively(s.dest, gs); err != nil {
+func (s *UlCmd) upSCP(gs *GoSSH) error {
+	if err := s.scpRecursively(s.remote, gs); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *SCPCmd) scpRecursively(destBase string, gs *GoSSH) error {
-	if err := filepath.Walk(s.source,
+func (s *UlCmd) scpRecursively(destBase string, gs *GoSSH) error {
+	if err := filepath.Walk(s.local,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
 			if !info.IsDir() {
-				destPath := strings.TrimPrefix(path, s.source)
+				destPath := strings.TrimPrefix(path, s.local)
 				dest := filepath.Join(destBase, destPath)
 				uploadFile(gs, path, dest)
 			}
 
 			return nil
 		}); err != nil {
-		logrus.Warnf(" filepath.Walk %s error %v", s.source, err)
+		logrus.Warnf(" filepath.Walk %s error %v", s.local, err)
 
 		return err
 	}
@@ -66,16 +59,16 @@ func (s *SCPCmd) scpRecursively(destBase string, gs *GoSSH) error {
 	return nil
 }
 
-func (s *SCPCmd) singleSCP(gs *GoSSH) {
-	baseFrom := filepath.Base(s.source)
-	dest := s.dest
+func (s *UlCmd) singleSCP(gs *GoSSH) {
+	baseFrom := filepath.Base(s.local)
+	dest := s.remote
 	baseDest := filepath.Base(dest)
 
 	if baseDest != baseFrom {
 		dest = filepath.Join(dest, baseFrom)
 	}
 
-	uploadFile(gs, s.source, dest)
+	uploadFile(gs, s.local, dest)
 }
 
 func uploadFile(gs *GoSSH, src, dest string) {

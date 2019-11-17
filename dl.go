@@ -5,37 +5,18 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
 )
 
-func (s SCPCmd) download(gs *GoSSH) error {
-	re := regexp.MustCompile(`%host(-\w+)?:`)
-	submatch := re.FindStringSubmatch(s.cmd)
-	group0 := submatch[0]
-	name := submatch[1]
-	source := s.source[len(group0):]
-
-	if name != "" {
-		name = name[1:]
-		host := findHost(gs.Hosts, name)
-
-		if host == nil {
-			return fmt.Errorf("unable to find host %s in hosts", name)
-		}
-
-		fmt.Println("start to scp download ", source, "to", s.dest, "from host", host.Addr)
-
-		return downloadHost(gs, *host, source, s.dest)
-	}
-
-	fmt.Println("start to scp download ", source, "to", s.dest, "from host", filterHostnames(gs.Hosts))
+// ExecInHosts executes downloading among hosts.
+func (s *DlCmd) ExecInHosts(gs *GoSSH) error {
+	fmt.Println("start to scp download ", s.remote, "to", s.local, "from host", filterHostnames(gs.Hosts))
 
 	for _, host := range gs.Hosts {
-		if err := downloadHost(gs, *host, s.source, s.dest); err != nil {
+		if err := downloadHost(gs, *host, s.remote, s.local); err != nil {
 			return err
 		}
 	}

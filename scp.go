@@ -9,99 +9,77 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Direction means scp upload or download
-type Direction int
-
-const (
-	// UnknownDirection means unknown direction.
-	UnknownDirection Direction = iota
-	// UploadDirection means upload direction.
-	UploadDirection
-	// DownloadDirection means download direction.
-	DownloadDirection
-)
-
-// SCPCmd means commands for scp.
-type SCPCmd struct {
-	direction Direction
-	source    string
-	sourceDir elf.DirMode
-	dest      string
-	destDir   elf.DirMode
-	cmd       string
+// UlDl scp...
+type UlDl struct {
+	hosts        []*Host
+	cmd          string
+	remote       string
+	local        string
+	localDirMode elf.DirMode
 }
 
-// Parse parses SCPCmd.
-func (SCPCmd) Parse() {}
+// UlCmd upload cmd structure.
+type UlCmd struct {
+	UlDl
+}
 
-func buildSCPCmd(cmd string) *SCPCmd {
-	fields := strings.Fields(cmd)
-	if len(fields) < 3 {
+// DlCmd download cmd structure.
+type DlCmd struct {
+	UlDl
+}
+
+// Parse parses UlCmd.
+func (UlDl) Parse() {}
+
+func buildUlCmd(gs *GoSSH, fields []string, cmd string) *UlCmd {
+	if len(fields) < 4 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil
 	}
 
-	from := fields[1]
-	dest := fields[2]
+	local := fields[2]
+	remote := fields[3]
+	home, _ := homedir.Dir()
 
-	direction := parseDirection(from, dest, cmd)
-	if direction == UnknownDirection {
+	local = strings.ReplaceAll(local, "~", home)
+	dirMode, _ := elf.GetFileMode(local)
+
+	return &UlCmd{UlDl{hosts: parseHosts(gs, fields[0]),
+		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
+}
+
+func buildDlCmd(gs *GoSSH, fields []string, cmd string) *DlCmd {
+	if len(fields) < 4 {
+		logrus.Warnf("bad format for %s", cmd)
 		return nil
 	}
 
+	local := fields[3]
+	remote := fields[2]
 	home, _ := homedir.Dir()
 
-	switch direction {
-	case UploadDirection:
-		from = strings.ReplaceAll(from, "~", home)
-		dirMode, _ := elf.GetFileMode(from)
+	local = strings.ReplaceAll(local, "~", home)
+	dirMode, _ := elf.GetFileMode(local)
 
-		return &SCPCmd{
-			direction: UploadDirection,
-			source:    from,
-			sourceDir: dirMode,
-			dest:      dest,
-			destDir:   elf.UnknownDirMode,
-			cmd:       cmd,
-		}
-	case DownloadDirection:
-		dest = strings.ReplaceAll(dest, "~", home)
-		dirMode, _ := elf.GetFileMode(dest)
-
-		return &SCPCmd{
-			direction: DownloadDirection,
-			source:    from,
-			sourceDir: elf.UnknownDirMode,
-			dest:      dest,
-			destDir:   dirMode,
-			cmd:       cmd,
-		}
-	}
-
-	return nil
+	return &DlCmd{UlDl{hosts: parseHosts(gs, fields[0]),
+		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
 }
 
-func parseDirection(from, dest, cmd string) Direction {
-	switch {
-	case strings.Contains(from, "%host"):
-		return DownloadDirection
-	case strings.Contains(dest, "%host"):
-		return UploadDirection
-	default:
-		logrus.Warnf("unknown direction for %s", cmd)
+func parseHosts(gs *GoSSH, hostTag string) []*Host {
+	host := hostTag[len(`%host`):]
+
+	if host == "" {
+		return gs.Hosts
 	}
 
-	return UnknownDirection
-}
+	host = strings.TrimPrefix(host, "(")
+	host = strings.TrimPrefix(host, "-")
+	host = strings.TrimSuffix(host, ")")
 
-// ExecInHosts execute in specified hosts.
-func (s *SCPCmd) ExecInHosts(gs *GoSSH) error {
-	switch s.direction {
-	case UploadDirection:
-		return s.upload(gs)
-	case DownloadDirection:
-		return s.download(gs)
+	found := findHost(gs.Hosts, host)
+	if found == nil {
+		return nil
 	}
 
-	return nil
+	return []*Host{found}
 }

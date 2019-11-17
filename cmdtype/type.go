@@ -10,26 +10,33 @@ const (
 	Noop CmdType = iota
 	// Local means the commands will be executed locally.
 	Local
-	// SCP means the commands will scp some files to remote hosts.
-	SCP
+	// Ul uploads.
+	Ul
+	// Dl downloads.
+	Dl
 	// SSH means the ssh commands will executed by ssh in remote hosts.
 	SSH
 )
 
 // Parse parses the type of cmd
-func Parse(cmd string) (CmdType, string) {
+func Parse(cmd string) (CmdType, []string) {
 	cmd = strings.TrimSpace(cmd)
 	if cmd == "" {
-		return Noop, ""
+		return Noop, nil
 	}
 
-	if strings.HasPrefix(cmd, "scp") && strings.Contains(cmd, "%host") {
-		return SCP, cmd
+	fields := strings.Fields(cmd)
+
+	if strings.HasPrefix(fields[0], "%host") {
+		switch fields[1] {
+		case "%ul":
+			return Ul, fields
+		case "%dl":
+			return Dl, fields
+		}
+
+		return SSH, fields
 	}
 
-	if strings.HasPrefix(cmd, "ssh") && strings.Contains(cmd, "%host") {
-		return SSH, cmd
-	}
-
-	return Local, cmd
+	return Local, fields
 }

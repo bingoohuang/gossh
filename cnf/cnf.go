@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bingoohuang/gossh/elf"
+	"github.com/bingoohuang/strcase"
 
 	"github.com/BurntSushi/toml"
 	homedir "github.com/mitchellh/go-homedir"
@@ -19,7 +20,7 @@ import (
 
 // DeclarePflags declares cnf pflags.
 func DeclarePflags() {
-	pflag.StringP("cnf", "", "", "cnf file path")
+	pflag.StringP("cnf", "c", "", "cnf file path")
 }
 
 // LoadByPflag load values to cfgValue from pflag cnf specified path.
@@ -96,21 +97,23 @@ func ViperToStruct(structVar interface{}) {
 			continue
 		}
 
+		name := strcase.ToCamelLower(f.Name())
+
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			if v := viper.GetStringSlice(f.Name()); len(v) > 0 {
+			if v := viper.GetStringSlice(name); len(v) > 0 {
 				setField(f, v)
 			}
 		case string:
-			if v := strings.TrimSpace(viper.GetString(f.Name())); v != "" {
+			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
 				setField(f, v)
 			}
 		case int:
-			if v := viper.GetInt(f.Name()); v != 0 {
+			if v := viper.GetInt(name); v != 0 {
 				setField(f, v)
 			}
 		case bool:
-			if v := viper.GetBool(f.Name()); v {
+			if v := viper.GetBool(name); v {
 				setField(f, v)
 			}
 		}
@@ -130,17 +133,22 @@ func DeclarePflagsByStruct(structVar interface{}) {
 			continue
 		}
 
-		name := f.Name()
+		name := strcase.ToCamelLower(f.Name())
+		usage, _ := f.Tag("usage")
+
+		if usage == "" {
+			usage = name
+		}
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringSliceP(name, "", nil, name)
+			pflag.StringSliceP(name, "", nil, usage)
 		case string:
-			pflag.StringP(name, "", "", name)
+			pflag.StringP(name, "", "", usage)
 		case int:
-			pflag.IntP(name, "", 0, name)
+			pflag.IntP(name, "", 0, usage)
 		case bool:
-			pflag.BoolP(name, "", false, name)
+			pflag.BoolP(name, "", false, usage)
 		}
 	}
 }

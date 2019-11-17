@@ -83,8 +83,7 @@ func filterHosts(hostName string, gs *GoSSH) []*Host {
 	return targetHosts
 }
 
-func buildSSHCmd(cmd string) *SSHCmd {
-	parts := strings.SplitN(cmd, " ", 3)
+func buildSSHCmd(parts []string, cmd string) *SSHCmd {
 	if len(parts) != 3 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil
