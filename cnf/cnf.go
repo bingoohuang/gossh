@@ -101,8 +101,11 @@ func ViperToStruct(structVar interface{}) {
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			if v := viper.GetStringSlice(name); len(v) > 0 {
-				setField(f, v)
+			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
+				vv := strings.Split(v, ",")
+				setField(f, vv)
+			} else if vv := viper.GetStringSlice(name); vv != nil {
+				setField(f, vv)
 			}
 		case string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +45,7 @@ func (s *UlCmd) scpRecursively(destBase string, gs *GoSSH) error {
 			if !info.IsDir() {
 				destPath := strings.TrimPrefix(path, s.local)
 				dest := filepath.Join(destBase, destPath)
-				uploadFile(gs, path, dest)
+				s.uploadFile(gs, path, dest)
 			}
 
 			return nil
@@ -68,22 +67,11 @@ func (s *UlCmd) singleSCP(gs *GoSSH) {
 		dest = filepath.Join(dest, baseFrom)
 	}
 
-	uploadFile(gs, s.local, dest)
+	s.uploadFile(gs, s.local, dest)
 }
 
-func uploadFile(gs *GoSSH, src, dest string) {
-	hostName := ""
-
-	if submatchIndex := regexp.MustCompile(`%host(-\w+)?:`).
-		FindStringSubmatchIndex(dest); len(submatchIndex) > 0 {
-		if submatchIndex[2] > 0 {
-			hostName = dest[submatchIndex[2]:submatchIndex[3]]
-		}
-
-		dest = dest[submatchIndex[1]:]
-	}
-
-	targetHosts := filterHosts(hostName, gs)
+func (s *UlCmd) uploadFile(gs *GoSSH, src, dest string) {
+	targetHosts := s.hosts
 	if len(targetHosts) == 0 {
 		logrus.Warnf("there is no host to upload %s", src)
 	}

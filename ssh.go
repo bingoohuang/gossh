@@ -3,7 +3,6 @@ package gossh
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/bingoohuang/gossh/gossh"
 	"golang.org/x/crypto/ssh"
@@ -42,7 +41,7 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 func printCmds(targetHosts []*Host, s SSHCmd) {
 	targetHostnames := filterHostnames(targetHosts)
 
-	fmt.Println("executing ", s.cmd, "on hosts", targetHostnames)
+	fmt.Println("executing", s.cmd, "on hosts", targetHostnames)
 }
 
 func filterHostnames(targetHosts []*Host) []string {
@@ -52,20 +51,6 @@ func filterHostnames(targetHosts []*Host) []string {
 	}
 
 	return targetHostnames
-}
-
-func filterHosts(hostName string, gs *GoSSH) []*Host {
-	hostName = strings.TrimPrefix(hostName, "-")
-
-	targetHosts := make([]*Host, 0, len(gs.Hosts))
-
-	for _, host := range gs.Hosts {
-		if hostName == "" || host.ID == hostName {
-			targetHosts = append(targetHosts, host)
-		}
-	}
-
-	return targetHosts
 }
 
 func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {

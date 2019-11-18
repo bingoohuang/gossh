@@ -29,6 +29,7 @@ func sftpUpload(gs *GoSSH, h Host, fromStat os.FileInfo, from string, to string)
 	if err != nil {
 		return fmt.Errorf("sftp Create %s error %w", dest, err)
 	}
+	defer f.Close()
 
 	if _, err := io.Copy(f, fromFile); err != nil {
 		return fmt.Errorf("io.Copy failed: %w", err)

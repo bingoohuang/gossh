@@ -15,8 +15,8 @@ import (
 func (s *DlCmd) ExecInHosts(gs *GoSSH) error {
 	fmt.Println("start to scp download ", s.remote, "to", s.local, "from host", filterHostnames(gs.Hosts))
 
-	for _, host := range gs.Hosts {
-		if err := downloadHost(gs, *host, s.remote, s.local); err != nil {
+	for _, host := range s.hosts {
+		if err := s.downloadHost(gs, *host); err != nil {
 			return err
 		}
 	}
@@ -24,28 +24,18 @@ func (s *DlCmd) ExecInHosts(gs *GoSSH) error {
 	return nil
 }
 
-func findHost(hosts []*Host, name string) *Host {
-	for _, h := range hosts {
-		if h.ID == name {
-			return h
-		}
-	}
-
-	return nil
-}
-
-func downloadHost(gs *GoSSH, h Host, from, to string) error {
+func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
 	sf, err := gs.sftpClientMap.GetClient(h)
 	if err != nil {
 		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
 	}
 
-	stat, err := sf.Stat(from)
+	stat, err := sf.Stat(s.remote)
 	if err != nil {
-		return fmt.Errorf("sftp.Stat %s failed: %w", from, err)
+		return fmt.Errorf("sftp.Stat %s failed: %w", s.remote, err)
 	}
 
-	if err := download(stat, h.Addr, to, from, sf); err != nil {
+	if err := download(stat, h.Addr, s.local, s.remote, sf); err != nil {
 		return err
 	}
 

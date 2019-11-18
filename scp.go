@@ -85,3 +85,13 @@ func parseHosts(gs *GoSSH, hostTag string) []*Host {
 
 	return []*Host{found}
 }
+
+func findHost(hosts []*Host, name string) *Host {
+	for _, h := range hosts {
+		if h.ID == name {
+			return h
+		}
+	}
+
+	return nil
+}
