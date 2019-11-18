@@ -69,7 +69,7 @@ Last login: Mon Nov 18 15:06:22 2019 from 192.168.217.48
 ONLY Authorized users only! All accesses logged
 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
 exit
-[app@BJCA-device ~]$ MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
+$ MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
 --------------
 show variables like 'server%'
 --------------
@@ -84,12 +84,12 @@ show variables like 'server%'
 3 rows in set (0.00 sec)
 
 Bye
-[app@BJCA-device ~]$ exit
+$ exit
 登出
 ```
 
 ```bash
-gossh -h="192.168.136.9:8022 app/app id=9,192.168.136.18:8022 app/app id=18" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
-gossh -h="192.168.136.9:8022 app/app id=9,192.168.136.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
-gossh -h="192.168.136.9:8022 app/app id=9,192.168.136.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
+gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
+gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
+gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 %dl ./mci/mci ."
 ```
