@@ -9,59 +9,63 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (c Config) parseHosts() ([]*Host, map[string]*Host) {
-	m := make(map[string]*Host)
+func (c Config) parseHosts() []*Host {
 	hosts := make([]*Host, 0)
-
-	var err error
 
 	for _, host := range c.Hosts {
 		fields := strings.Fields(host)
-		if len(fields) < 3 {
+		if len(fields) < 2 {
 			logrus.Warnf("bad format for host %s", host)
 			continue
 		}
 
-		addr := fields[0]
-		userpass := fields[1]
-		id := addr
+		id, addr := parseHostID(fields[0])
+		user, pass := parseUserPass(fields[1])
+		props := parseProps(fields)
+		id = fixID(props, id)
 
-		if !strings.Contains(addr, ":") {
-			addr += ":22"
-		} else {
-			id = id[0:strings.Index(id, ":")]
-		}
-
-		user, pass := str.Split2(userpass, "/", false, false)
-		if pass != "" {
-			if pass, err = pbe.Ebp(pass); err != nil {
-				panic(err)
-			}
-		}
-
-		props := make(map[string]string)
-
-		if len(fields) > 2 {
-			for i := 2; i < len(fields); i++ {
-				k, v := str.Split2(fields[i], "=", true, true)
-				props[k] = v
-			}
-		}
-
-		if customID, ok := props["id"]; ok && customID != "" {
-			id = customID
-		}
-
-		host := &Host{
-			ID:         id,
-			Addr:       addr,
-			User:       user,
-			Password:   pass,
-			Properties: props,
-		}
+		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
 		hosts = append(hosts, host)
-		m[id] = host
 	}
 
-	return hosts, m
+	return hosts
+}
+
+func fixID(props map[string]string, id string) string {
+	if customID, ok := props["id"]; ok && customID != "" {
+		return customID
+	}
+
+	return id
+}
+
+func parseProps(fields []string) map[string]string {
+	props := make(map[string]string)
+
+	for i := 2; i < len(fields); i++ {
+		k, v := str.Split2(fields[i], "=", true, true)
+		props[k] = v
+	}
+
+	return props
+}
+
+func parseUserPass(userpass string) (string, string) {
+	user, pass := str.Split2(userpass, "/", false, false)
+	if pass != "" {
+		var err error
+		if pass, err = pbe.Ebp(pass); err != nil {
+			panic(err)
+		}
+	}
+
+	return user, pass
+}
+
+func parseHostID(addr string) (string, string) {
+	if !strings.Contains(addr, ":") {
+		return addr, addr + ":22"
+	}
+
+	return addr[0:strings.Index(addr, ":")], addr
 }

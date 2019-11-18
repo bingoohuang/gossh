@@ -71,7 +71,6 @@ func (g *CmdGroup) Exec() {
 type GoSSH struct {
 	Vars      Config
 	Hosts     []*Host
-	HostsMap  map[string]*Host
 	CmdGroups []CmdGroup
 
 	sftpClientMap sftpClientMap
@@ -87,7 +86,7 @@ func (c Config) Parse() GoSSH {
 	gs := GoSSH{}
 
 	_ = c.parseVars()
-	gs.Hosts, gs.HostsMap = c.parseHosts()
+	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
 	gs.sftpClientMap = make(sftpClientMap)
 
