@@ -134,21 +134,28 @@ func DeclarePflagsByStruct(structVar interface{}) {
 		}
 
 		name := strcase.ToCamelLower(f.Name())
-		usage, _ := f.Tag("usage")
+		usage, _ := f.Tag("pflag")
+		tag := elf.DecodeTag(usage)
 
-		if usage == "" {
-			usage = name
+		if tag.Main != "" {
+			usage = tag.Main
+		}
+
+		shorthand := ""
+
+		if sh, ok := tag.Opts["shorthand"]; ok && sh != "" {
+			shorthand = sh
 		}
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringSliceP(name, "", nil, usage)
+			pflag.StringSliceP(name, shorthand, nil, usage)
 		case string:
-			pflag.StringP(name, "", "", usage)
+			pflag.StringP(name, shorthand, "", usage)
 		case int:
-			pflag.IntP(name, "", 0, usage)
+			pflag.IntP(name, shorthand, 0, usage)
 		case bool:
-			pflag.BoolP(name, "", false, usage)
+			pflag.BoolP(name, shorthand, false, usage)
 		}
 	}
 }

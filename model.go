@@ -10,9 +10,9 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
-	PrintConfig bool   `usage:"print config before running"`
-	Passphrase  string `usage:"passphrase for decrypt {PBE}Password"`
-	Hosts       []string
+	PrintConfig bool     `pflag:"print config before running"`
+	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password,shorthand=p"`
+	Hosts       []string `pflag:"shorthand=h"`
 	Cmds        []string
 }
 
@@ -102,7 +102,7 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	groups := make([]*CmdGroup, 0)
 
 	for _, cmd := range c.Cmds {
-		cmdType, cmdParts := cmdtype.Parse(cmd)
+		cmdType, hostPart, realCmd := cmdtype.Parse(cmd)
 		if cmdType == cmdtype.Noop {
 			continue
 		}
@@ -117,11 +117,11 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 		case cmdtype.Local:
 			group.Cmds = append(group.Cmds, &LocalCmd{cmd: cmd})
 		case cmdtype.Ul:
-			group.Cmds = append(group.Cmds, buildUlCmd(gs, cmdParts, cmd))
+			group.Cmds = append(group.Cmds, buildUlCmd(gs, hostPart, realCmd, cmd))
 		case cmdtype.Dl:
-			group.Cmds = append(group.Cmds, buildDlCmd(gs, cmdParts, cmd))
+			group.Cmds = append(group.Cmds, buildDlCmd(gs, hostPart, realCmd, cmd))
 		case cmdtype.SSH:
-			group.Cmds = append(group.Cmds, buildSSHCmd(cmdParts, cmd))
+			group.Cmds = append(group.Cmds, buildSSHCmd(gs, hostPart, realCmd, cmd))
 		}
 	}
 

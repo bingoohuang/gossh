@@ -31,37 +31,39 @@ type DlCmd struct {
 // Parse parses UlCmd.
 func (UlDl) Parse() {}
 
-func buildUlCmd(gs *GoSSH, fields []string, cmd string) *UlCmd {
-	if len(fields) < 4 {
+func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
+	fields := elf.Fields(realCmd, 2)
+	if len(fields) < 2 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil
 	}
 
-	local := fields[2]
-	remote := fields[3]
+	local := fields[0]
+	remote := fields[1]
 	home, _ := homedir.Dir()
 
 	local = strings.ReplaceAll(local, "~", home)
 	dirMode, _ := elf.GetFileMode(local)
 
-	return &UlCmd{UlDl{hosts: parseHosts(gs, fields[0]),
+	return &UlCmd{UlDl{hosts: parseHosts(gs, hostPart),
 		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
 }
 
-func buildDlCmd(gs *GoSSH, fields []string, cmd string) *DlCmd {
-	if len(fields) < 4 {
+func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
+	fields := elf.Fields(realCmd, 2)
+	if len(fields) < 2 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil
 	}
 
-	local := fields[3]
-	remote := fields[2]
+	remote := fields[0]
+	local := fields[1]
 	home, _ := homedir.Dir()
 
 	local = strings.ReplaceAll(local, "~", home)
 	dirMode, _ := elf.GetFileMode(local)
 
-	return &DlCmd{UlDl{hosts: parseHosts(gs, fields[0]),
+	return &DlCmd{UlDl{hosts: parseHosts(gs, hostPart),
 		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
 }
 

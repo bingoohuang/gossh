@@ -3,7 +3,6 @@ package gossh
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/bingoohuang/gossh/gossh"
@@ -14,8 +13,8 @@ import (
 
 // SSHCmd means SSH command.
 type SSHCmd struct {
-	cmd  string
-	host string
+	cmd   string
+	hosts []*Host
 }
 
 // Parse parses command.
@@ -23,23 +22,9 @@ func (SSHCmd) Parse() {}
 
 // ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
-	hostName := ""
+	printCmds(s.hosts, s)
 
-	if submatchIndex := regexp.MustCompile(`%host(-\w+)?`).
-		FindStringSubmatchIndex(s.host); len(submatchIndex) > 0 {
-		if submatchIndex[2] > 0 {
-			hostName = s.host[submatchIndex[2]+1 : submatchIndex[3]]
-		}
-	}
-
-	targetHosts := filterHosts(hostName, gs)
-	if len(targetHosts) == 0 {
-		logrus.Warnf("there is no host to ssh %s", s.cmd)
-	}
-
-	printCmds(targetHosts, s)
-
-	for _, host := range targetHosts {
+	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
 			if err := sshInHost(*host, cmd); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
@@ -83,13 +68,8 @@ func filterHosts(hostName string, gs *GoSSH) []*Host {
 	return targetHosts
 }
 
-func buildSSHCmd(parts []string, cmd string) *SSHCmd {
-	if len(parts) != 3 {
-		logrus.Warnf("bad format for %s", cmd)
-		return nil
-	}
-
-	return &SSHCmd{host: parts[1], cmd: parts[2]}
+func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
+	return &SSHCmd{hosts: parseHosts(gs, hostPart), cmd: realCmd}
 }
 
 // http://networkbit.ch/golang-ssh-client/
