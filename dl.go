@@ -13,8 +13,6 @@ import (
 
 // ExecInHosts executes downloading among hosts.
 func (s *DlCmd) ExecInHosts(gs *GoSSH) error {
-	fmt.Println("start to scp download ", s.remote, "to", s.local, "from host", filterHostnames(gs.Hosts))
-
 	for _, host := range s.hosts {
 		if err := s.downloadHost(gs, *host); err != nil {
 			return err
@@ -96,7 +94,7 @@ func downloadFile(sf *sftp.Client, perm os.FileMode, host, from, to string) erro
 
 	_ = localFile.Sync()
 
-	logrus.Infof("scp download %s:%s to %s cost %s, successfully!", host, from, to, time.Since(startTime).String())
+	logrus.Infof("downloaded %s:%s to %s cost %s, successfully!", host, from, to, time.Since(startTime).String())
 
 	return nil
 }

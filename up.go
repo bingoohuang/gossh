@@ -1,7 +1,6 @@
 package gossh
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,8 +75,6 @@ func (s *UlCmd) uploadFile(gs *GoSSH, src, dest string) {
 		logrus.Warnf("there is no host to upload %s", src)
 	}
 
-	fmt.Println("start to scp upload ", src, "to", dest, "on hosts", filterHostnames(targetHosts))
-
 	var wg sync.WaitGroup
 
 	wg.Add(len(targetHosts))
@@ -106,7 +103,7 @@ func upload(gs *GoSSH, h Host, from, to string) error {
 		return err
 	}
 
-	logrus.Infof("scp upload %s to %s:%s cost %s, successfully!", from, h.Addr, to, time.Since(startTime).String())
+	logrus.Infof("uploaded %s to %s:%s cost %s, successfully!", from, h.Addr, to, time.Since(startTime).String())
 
 	return nil
 }
