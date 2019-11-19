@@ -89,7 +89,7 @@ $ exit
 ```
 
 ```bash
-gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
-gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
-gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 ~ id=18" --cmds="%host-9 %dl ./mci/mci ."
+gossh -h="192.168.136.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
+gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
+gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
 ```

@@ -21,8 +21,6 @@ func (SSHCmd) Parse() {}
 
 // ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
-	printCmds(s.hosts, s)
-
 	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
 			if err := sshInHost(*host, cmd); err != nil {
@@ -38,27 +36,14 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 	return nil
 }
 
-func printCmds(targetHosts []*Host, s SSHCmd) {
-	targetHostnames := filterHostnames(targetHosts)
-
-	fmt.Println("executing", s.cmd, "on hosts", targetHostnames)
-}
-
-func filterHostnames(targetHosts []*Host) []string {
-	targetHostnames := make([]string, len(targetHosts))
-	for i, t := range targetHosts {
-		targetHostnames[i] = t.Addr
-	}
-
-	return targetHostnames
-}
-
 func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 	return &SSHCmd{hosts: parseHosts(gs, hostPart), cmd: realCmd}
 }
 
 // http://networkbit.ch/golang-ssh-client/
 func sshInHost(h Host, cmd string) error {
+	fmt.Println("ssh", cmd, "on hosts", h.Addr)
+
 	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password))
 	if err != nil {
 		return fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)

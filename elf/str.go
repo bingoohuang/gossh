@@ -24,7 +24,7 @@ func Fields(s string, count int) []string {
 
 	if setBits >= utf8.RuneSelf {
 		// Some runes in the input string are not ASCII.
-		return FieldsFunc(s, unicode.IsSpace)
+		return FieldsFunc(s, count, unicode.IsSpace)
 	}
 
 	// ASCII fast path
@@ -67,6 +67,29 @@ func Fields(s string, count int) []string {
 		a[na] = s[fieldStart:]
 	}
 
+	return fixLastField(a)
+}
+
+func fixLastField(a []string) []string {
+	lastIndex := len(a) - 1
+	last := a[lastIndex]
+	stopPos := 0
+
+	for i := 0; i < len(last); i++ {
+		isSep := asciiSpace[last[i]] == 1
+		if isSep {
+			if stopPos == 0 {
+				stopPos = i
+			}
+		} else {
+			stopPos = 0
+		}
+	}
+
+	if stopPos > 0 {
+		a[lastIndex] = last[0:stopPos]
+	}
+
 	return a
 }
 
@@ -76,7 +99,7 @@ func countFields(s string, count int) (int, uint8) {
 	n := 0
 	wasSpace := 1
 
-	for i := 0; i < len(s) && (count < 0 || n < count); i++ {
+	for i := 0; i < len(s); i++ {
 		r := s[i]
 		setBits |= r
 		isSpace := int(asciiSpace[r])
@@ -84,7 +107,11 @@ func countFields(s string, count int) (int, uint8) {
 		wasSpace = isSpace
 	}
 
-	return n, setBits
+	if count < 0 || n < count {
+		return n, setBits
+	}
+
+	return count, setBits
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1} // nolint gochecknoglobals
@@ -94,7 +121,7 @@ var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 // string is empty, an empty slice is returned.
 // FieldsFunc makes no guarantees about the order in which it calls f(c).
 // If f does not return consistent results for a given c, FieldsFunc may crash.
-func FieldsFunc(s string, f func(rune) bool) []string {
+func FieldsFunc(s string, count int, f func(rune) bool) []string {
 	// A span is used to record a slice of s of the form s[start:end].
 	// The start index is inclusive and the end index is exclusive.
 	type span struct {
@@ -107,17 +134,37 @@ func FieldsFunc(s string, f func(rune) bool) []string {
 	// Find the field start and end indices.
 	wasField := false
 	fromIndex := 0
+	ending := false
 
 	for i, rune := range s {
-		if f(rune) {
+		isSep := f(rune)
+
+		if isSep {
 			if wasField {
 				spans = append(spans, span{start: fromIndex, end: i})
 				wasField = false
+
+				if count > 0 && len(spans) == count-1 {
+					ending = true
+				}
 			}
-		} else {
-			if !wasField {
-				fromIndex = i
-				wasField = true
+
+			continue
+		}
+
+		if ending {
+			wasField = true
+			fromIndex = i
+
+			break
+		}
+
+		if !wasField {
+			wasField = true
+			fromIndex = i
+
+			if count == 1 {
+				break
 			}
 		}
 	}
@@ -131,6 +178,29 @@ func FieldsFunc(s string, f func(rune) bool) []string {
 	a := make([]string, len(spans))
 	for i, span := range spans {
 		a[i] = s[span.start:span.end]
+	}
+
+	return fixLastFieldFunc(a, f)
+}
+
+func fixLastFieldFunc(a []string, f func(rune) bool) []string {
+	lastIndex := len(a) - 1
+	last := a[lastIndex]
+	stopPos := 0
+
+	for i, rune := range last {
+		isSep := f(rune)
+		if isSep {
+			if stopPos == 0 {
+				stopPos = i
+			}
+		} else {
+			stopPos = 0
+		}
+	}
+
+	if stopPos > 0 {
+		a[lastIndex] = last[0:stopPos]
 	}
 
 	return a

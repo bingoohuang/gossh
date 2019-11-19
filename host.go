@@ -3,6 +3,8 @@ package gossh
 import (
 	"strings"
 
+	"github.com/bingoohuang/gossh/elf"
+
 	"github.com/bingoohuang/gossh/pbe"
 
 	"github.com/bingoohuang/gou/str"
@@ -13,7 +15,7 @@ func (c Config) parseHosts() []*Host {
 	hosts := make([]*Host, 0)
 
 	for _, host := range c.Hosts {
-		fields := strings.Fields(host)
+		fields := elf.FieldsX(host, "(", ")", -1)
 		if len(fields) < 2 {
 			logrus.Warnf("bad format for host %s", host)
 			continue
@@ -25,7 +27,44 @@ func (c Config) parseHosts() []*Host {
 		id = fixID(props, id)
 
 		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
-		hosts = append(hosts, host)
+		expanded := expandHost(host)
+		hosts = append(hosts, expanded...)
+	}
+
+	return hosts
+}
+
+func expandHost(host *Host) []*Host {
+	ids := MakeExpand(host.ID).MakePart()
+	addrs := MakeExpand(host.Addr).MakePart()
+	users := MakeExpand(host.User).MakePart()
+	passes := MakeExpand(host.Password).MakePart()
+
+	maxExpands := elf.MaxInt(ids.Len(), addrs.Len(), users.Len(), passes.Len())
+
+	expandedProps := make(map[string]Part)
+
+	for k, v := range host.Properties {
+		vv := MakeExpand(v).MakePart()
+		expandedProps[k] = vv
+		maxExpands = elf.MaxInt(maxExpands, vv.Len())
+	}
+
+	hosts := make([]*Host, maxExpands)
+
+	for i := 0; i < maxExpands; i++ {
+		props := make(map[string]string)
+
+		for k, v := range expandedProps {
+			props[k] = v.Part(i)
+		}
+
+		hosts[i] = &Host{
+			ID:         ids.Part(i),
+			Addr:       addrs.Part(i),
+			User:       users.Part(i),
+			Password:   passes.Part(i),
+			Properties: props}
 	}
 
 	return hosts
