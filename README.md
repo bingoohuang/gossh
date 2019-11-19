@@ -62,14 +62,14 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --passwor
 
 ```bash
 $ export em="\!";export sq="'";export dq='"';
-$ export GOSSH_CMDS="%host-9 MYSQL_PWD='${em}QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e ${dq}show variables like 'server%'${dq}"
+$ export GOSSH_CMDS="%host-9 MYSQL_PWD='${em}QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e ${dq}show variables like 'server%'${dq}"
 $ gossh -h="192.168.136.9:8022 app/app id=9" -h="192.168.136.18:8022 app/app id=18"
-executing MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'" on hosts [192.168.136.9:8022]
+executing MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'" on hosts [192.168.136.9:8022]
 Last login: Mon Nov 18 15:06:22 2019 from 192.168.217.48
 ONLY Authorized users only! All accesses logged
-MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
+MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
 exit
-$ MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
+$ MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
 --------------
 show variables like 'server%'
 --------------
@@ -89,7 +89,7 @@ $ exit
 ```
 
 ```bash
-gossh -h="192.168.136.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
+gossh -h="192.168.136.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
 gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
 gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
 ```
