@@ -73,7 +73,7 @@ type GoSSH struct {
 	Hosts     []*Host
 	CmdGroups []CmdGroup
 
-	sftpClientMap sftpClientMap
+	sftpClientMap *sftpClientMap
 }
 
 // Close closes gossh.
@@ -88,7 +88,7 @@ func (c Config) Parse() GoSSH {
 	_ = c.parseVars()
 	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
-	gs.sftpClientMap = make(sftpClientMap)
+	gs.sftpClientMap = makeSftpClientMap()
 
 	return gs
 }

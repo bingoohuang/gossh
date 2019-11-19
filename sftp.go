@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/bingoohuang/gossh/gossh"
 	"github.com/pkg/sftp"
@@ -21,11 +22,23 @@ func makeSftpClient(h Host) (*sftp.Client, error) {
 	return sf, nil
 }
 
-type sftpClientMap map[string]*sftp.Client
+type sftpClientMap struct {
+	m map[string]*sftp.Client
+	sync.Mutex
+}
+
+func makeSftpClientMap() *sftpClientMap {
+	return &sftpClientMap{
+		m: make(map[string]*sftp.Client),
+	}
+}
 
 // GetClient get sftClient by host
 func (m *sftpClientMap) GetClient(h Host) (*sftp.Client, error) {
-	if c, ok := (*m)[h.Addr]; ok {
+	m.Lock()
+	defer m.Unlock()
+
+	if c, ok := m.m[h.Addr]; ok {
 		return c, nil
 	}
 
@@ -34,14 +47,17 @@ func (m *sftpClientMap) GetClient(h Host) (*sftp.Client, error) {
 		return nil, err
 	}
 
-	(*m)[h.Addr] = c
+	m.m[h.Addr] = c
 
 	return c, nil
 }
 
 // Close closes all the sftpClients in map.
 func (m *sftpClientMap) Close() {
-	for _, v := range *m {
+	m.Lock()
+	defer m.Unlock()
+
+	for _, v := range m.m {
 		v.Close()
 	}
 }
