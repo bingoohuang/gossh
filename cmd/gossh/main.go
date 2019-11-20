@@ -42,6 +42,10 @@ func main() {
 
 	gs := config.Parse()
 
+	if len(gs.CmdGroups) == 0 {
+		fmt.Println("There is nothing to do.")
+	}
+
 	for _, group := range gs.CmdGroups {
 		group.Exec()
 	}

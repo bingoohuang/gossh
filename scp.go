@@ -31,6 +31,12 @@ type DlCmd struct {
 // Parse parses UlCmd.
 func (UlDl) Parse() {}
 
+// TargetHosts returns target hosts for the command
+func (u UlDl) TargetHosts() []*Host { return u.hosts }
+
+// RawCmd returns the original raw command
+func (u UlDl) RawCmd() string { return u.cmd }
+
 func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	fields := elf.Fields(realCmd, 2)
 	if len(fields) < 2 {

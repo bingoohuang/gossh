@@ -19,6 +19,12 @@ type SSHCmd struct {
 // Parse parses command.
 func (SSHCmd) Parse() {}
 
+// TargetHosts returns target hosts for the command
+func (s SSHCmd) TargetHosts() []*Host { return s.hosts }
+
+// RawCmd returns the original raw command
+func (s SSHCmd) RawCmd() string { return s.cmd }
+
 // ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 	for _, host := range s.hosts {

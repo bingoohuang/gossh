@@ -29,19 +29,25 @@ type Host struct {
 type CmdExcResult struct {
 }
 
-// Cmd means the executable interface
-type Cmd interface {
+// HostsCmd means the executable interface
+type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
 	// ExecInHosts execute in specified hosts.
 	ExecInHosts(gs *GoSSH) error
+
+	// TargetHosts returns target hosts for the command
+	TargetHosts() []*Host
+
+	// RawCmd returns the original raw command
+	RawCmd() string
 }
 
 // CmdGroup represents the a group of structure of command line with same cmd type in config's cmds.
 type CmdGroup struct {
 	gs      *GoSSH
 	Type    cmdtype.CmdType
-	Cmds    []Cmd
+	Cmds    []HostsCmd
 	Results []CmdExcResult
 }
 
@@ -54,12 +60,23 @@ func (g *CmdGroup) Parse() {
 
 // Exec executes the CmdGroup.
 func (g *CmdGroup) Exec() {
-	g.Results = make([]CmdExcResult, len(g.Cmds))
+	cmdsCount := len(g.Cmds)
+	if cmdsCount == 0 {
+		fmt.Println("There is not commands to execute")
+		return
+	}
+
+	g.Results = make([]CmdExcResult, cmdsCount)
 	switch g.Type {
 	case cmdtype.Local:
 		g.execLocal()
 	default:
 		for _, cmd := range g.Cmds {
+			if len(cmd.TargetHosts()) == 0 {
+				fmt.Printf("There is no target hosts for cmd %s to executed\n", cmd.RawCmd())
+				continue
+			}
+
 			if err := cmd.ExecInHosts(g.gs); err != nil {
 				fmt.Printf("ExecInHosts error %v", err)
 			}
@@ -108,7 +125,7 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 
 		if lastCmdType != cmdType {
 			lastCmdType = cmdType
-			group = &CmdGroup{gs: gs, Type: cmdType, Cmds: make([]Cmd, 0)}
+			group = &CmdGroup{gs: gs, Type: cmdType, Cmds: make([]HostsCmd, 0)}
 			groups = append(groups, group)
 		}
 

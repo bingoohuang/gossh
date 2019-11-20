@@ -16,10 +16,14 @@ type LocalCmd struct {
 	cmd string
 }
 
+// TargetHosts returns target hosts for the command
+func (LocalCmd) TargetHosts() []*Host { return nil }
+
 // ExecInHosts execute in specified hosts.
-func (l *LocalCmd) ExecInHosts(_ *GoSSH) error {
-	return nil
-}
+func (LocalCmd) ExecInHosts(_ *GoSSH) error { return nil }
+
+// RawCmd returns the original raw command
+func (l LocalCmd) RawCmd() string { return l.cmd }
 
 // Parse parses the local cmd
 func (l *LocalCmd) Parse() {
