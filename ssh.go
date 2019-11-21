@@ -37,7 +37,7 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 
 	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
-			if err := sshInHost(*host, cmd, timeout); err != nil {
+			if err := sshInHost(h, cmd, timeout); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
 				return err
 			}
@@ -57,7 +57,7 @@ func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 // http://networkbit.ch/golang-ssh-client/
 func sshInHost(h Host, cmd string, timeout time.Duration) error {
 	fmt.Println()
-	fmt.Println("-- host", h.Addr, "---")
+	fmt.Println("---", h.Addr, "---")
 	fmt.Println()
 
 	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
@@ -82,9 +82,8 @@ func sshScripts(client *ssh.Client, scripts []string) error {
 
 	defer session.Close()
 
-	modes := ssh.TerminalModes{ssh.ECHO: 0, // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400} // input/output speed = 14.4kbaud
-
+	// disable echoing input/output speed = 14.4kbaud
+	modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
 	if err := session.RequestPty("vt100", 800, 400, modes); err != nil {
 		return err
 	}
@@ -96,7 +95,7 @@ func sshScripts(client *ssh.Client, scripts []string) error {
 
 	r, err := session.StdoutPipe()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	session.Stdout = os.Stdout
@@ -116,17 +115,13 @@ func sshScripts(client *ssh.Client, scripts []string) error {
 		rout := <-out
 
 		if i == len(scripts)-1 {
-			fmt.Print(nonLastLine(rout))
-		} else {
-			fmt.Print(rout)
+			rout = nonLastLine(rout)
 		}
+
+		fmt.Print(rout)
 	}
 
 	in <- "exit"
-
-	if err := session.Wait(); err != nil {
-		return err
-	}
 
 	return err
 }
