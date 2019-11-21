@@ -73,6 +73,11 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 		wg.Wait()
 	}()
 
+	if timeout > 0 {
+		<-c
+		return false // completed normally
+	}
+
 	select {
 	case <-c:
 		return false // completed normally

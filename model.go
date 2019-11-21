@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bingoohuang/gossh/cmdtype"
 	"github.com/bingoohuang/gossh/pbe"
@@ -10,11 +11,16 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
+	Separator   string   `pflag:"separator for hosts,cmds,default ,"`
+	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout"`
 	PrintConfig bool     `pflag:"print config before running"`
 	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password,shorthand=p"`
 	Hosts       []string `pflag:"shorthand=h"`
 	Cmds        []string
 }
+
+// GetSeparator get the separator
+func (c Config) GetSeparator() string { return c.Separator }
 
 // Host represents the structure of remote host information for ssh.
 type Host struct {
@@ -67,19 +73,20 @@ func (g *CmdGroup) Exec() {
 	}
 
 	g.Results = make([]CmdExcResult, cmdsCount)
-	switch g.Type {
-	case cmdtype.Local:
-		g.execLocal()
-	default:
-		for _, cmd := range g.Cmds {
-			if len(cmd.TargetHosts()) == 0 {
-				fmt.Printf("There is no target hosts for cmd %s to executed\n", cmd.RawCmd())
-				continue
-			}
 
-			if err := cmd.ExecInHosts(g.gs); err != nil {
-				fmt.Printf("ExecInHosts error %v", err)
-			}
+	if g.Type == cmdtype.Local {
+		g.execLocal()
+		return
+	}
+
+	for _, cmd := range g.Cmds {
+		if len(cmd.TargetHosts()) == 0 {
+			fmt.Printf("There is no target hosts for cmd %s to executed\n", cmd.RawCmd())
+			continue
+		}
+
+		if err := cmd.ExecInHosts(g.gs); err != nil {
+			fmt.Printf("ExecInHosts error %v", err)
 		}
 	}
 }
@@ -105,7 +112,8 @@ func (c Config) Parse() GoSSH {
 	_ = c.parseVars()
 	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
-	gs.sftpClientMap = makeSftpClientMap()
+	timeout := viper.Get("Timeout").(time.Duration)
+	gs.sftpClientMap = makeSftpClientMap(timeout)
 
 	return gs
 }
@@ -154,6 +162,13 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 func (c Config) parseVars() Config {
 	if c.Passphrase != "" {
 		viper.Set(pbe.PbePwd, c.Passphrase)
+	}
+
+	if c.Timeout != "" {
+		duration, _ := time.ParseDuration(c.Timeout)
+		viper.Set("Timeout", duration)
+	} else {
+		viper.Set("Timeout", time.Duration(0))
 	}
 
 	return c

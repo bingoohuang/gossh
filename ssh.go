@@ -3,6 +3,9 @@ package gossh
 import (
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/spf13/viper"
 
 	"github.com/bingoohuang/gossh/gossh"
 	"golang.org/x/crypto/ssh"
@@ -27,9 +30,11 @@ func (s SSHCmd) RawCmd() string { return s.cmd }
 
 // ExecInHosts execute in specified hosts.
 func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
+	timeout := viper.Get("Timeout").(time.Duration)
+
 	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
-			if err := sshInHost(*host, cmd); err != nil {
+			if err := sshInHost(*host, cmd, timeout); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
 				return err
 			}
@@ -47,10 +52,10 @@ func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 }
 
 // http://networkbit.ch/golang-ssh-client/
-func sshInHost(h Host, cmd string) error {
+func sshInHost(h Host, cmd string, timeout time.Duration) error {
 	fmt.Println("ssh", cmd, "on hosts", h.Addr)
 
-	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password))
+	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
 	if err != nil {
 		return fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)
 	}

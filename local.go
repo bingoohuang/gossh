@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/gobars/cmd"
 	"github.com/google/uuid"
 	homedir "github.com/mitchellh/go-homedir"
@@ -35,7 +37,9 @@ func (l *LocalCmd) Parse() {
 func (g CmdGroup) execLocal() {
 	localCmds, uuids := g.buildLocalCmds()
 
-	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: 10 * time.Second}
+	timeout := viper.Get("Timeout").(time.Duration)
+
+	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
 	p := cmd.NewCmdOptions(opts, "/bin/bash", "-c", localCmds)
 	status := p.Start()
 

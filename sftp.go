@@ -3,13 +3,14 @@ package gossh
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/bingoohuang/gossh/gossh"
 	"github.com/pkg/sftp"
 )
 
-func makeSftpClient(h Host) (*sftp.Client, error) {
-	conn, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password))
+func makeSftpClient(h Host, timeout time.Duration) (*sftp.Client, error) {
+	conn, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
 	if err != nil {
 		return nil, fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)
 	}
@@ -25,11 +26,13 @@ func makeSftpClient(h Host) (*sftp.Client, error) {
 type sftpClientMap struct {
 	m map[string]*sftp.Client
 	sync.Mutex
+	timeout time.Duration
 }
 
-func makeSftpClientMap() *sftpClientMap {
+func makeSftpClientMap(timeout time.Duration) *sftpClientMap {
 	return &sftpClientMap{
-		m: make(map[string]*sftp.Client),
+		m:       make(map[string]*sftp.Client),
+		timeout: timeout,
 	}
 }
 
@@ -42,7 +45,7 @@ func (m *sftpClientMap) GetClient(h Host) (*sftp.Client, error) {
 		return c, nil
 	}
 
-	c, err := makeSftpClient(h)
+	c, err := makeSftpClient(h, m.timeout)
 	if err != nil {
 		return nil, err
 	}

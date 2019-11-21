@@ -90,8 +90,16 @@ func Load(cnfFile string, value interface{}) {
 	ViperToStruct(value)
 }
 
+// Separator ...
+type Separator interface {
+	// GetSeparator get the separator
+	GetSeparator() string
+}
+
 // ViperToStruct read viper value to struct
 func ViperToStruct(structVar interface{}) {
+	separator := getSeparator(structVar)
+
 	for _, f := range reflector.New(structVar).Fields() {
 		if !f.IsExported() {
 			continue
@@ -102,7 +110,7 @@ func ViperToStruct(structVar interface{}) {
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				vv := strings.Split(v, ",")
+				vv := strings.Split(v, separator)
 				setField(f, vv)
 			} else if vv := viper.GetStringSlice(name); vv != nil {
 				setField(f, vv)
@@ -121,6 +129,24 @@ func ViperToStruct(structVar interface{}) {
 			}
 		}
 	}
+}
+
+func getSeparator(structVar interface{}) string {
+	separator := ","
+
+	if sep, ok := structVar.(Separator); ok {
+		s := sep.GetSeparator()
+
+		if s != "" {
+			separator = s
+		}
+	}
+
+	if sep := viper.GetString("separator"); sep != "" {
+		separator = sep
+	}
+
+	return separator
 }
 
 func setField(f reflector.ObjField, value interface{}) {
