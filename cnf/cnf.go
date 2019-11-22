@@ -112,8 +112,6 @@ func ViperToStruct(structVar interface{}) {
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
 				vv := strings.Split(v, separator)
 				setField(f, vv)
-			} else if vv := viper.GetStringSlice(name); vv != nil {
-				setField(f, vv)
 			}
 		case string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
@@ -178,7 +176,7 @@ func DeclarePflagsByStruct(structVar interface{}) {
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringSliceP(name, shorthand, nil, usage)
+			pflag.StringP(name, shorthand, "", usage)
 		case string:
 			pflag.StringP(name, shorthand, "", usage)
 		case int:

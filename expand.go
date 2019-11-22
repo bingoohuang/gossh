@@ -1,7 +1,6 @@
 package gossh
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/bingoohuang/gossh/elf"
@@ -46,48 +45,11 @@ func MakeExpandPart(s string) Part {
 	fs := elf.Fields(s, -1)
 
 	for _, f := range fs {
-		items := expandRange(f)
+		items := elf.ExpandRange(f)
 		expanded = append(expanded, items...)
 	}
 
 	return Part{p: expanded}
-}
-
-func expandRange(f string) []string {
-	hyphenPos := strings.Index(f, "-")
-	if hyphenPos <= 0 || hyphenPos == len(f)-1 {
-		return []string{f}
-	}
-
-	from := strings.TrimSpace(f[0:hyphenPos])
-	to := strings.TrimSpace(f[hyphenPos+1:])
-
-	fromI := 0
-	toI := 0
-
-	var err error
-
-	if fromI, err = strconv.Atoi(from); err != nil {
-		return []string{f}
-	}
-
-	if toI, err = strconv.Atoi(to); err != nil {
-		return []string{f}
-	}
-
-	parts := make([]string, 0)
-
-	if fromI < toI {
-		for i := fromI; i <= toI; i++ {
-			parts = append(parts, strconv.Itoa(i))
-		}
-	} else {
-		for i := fromI; i >= toI; i-- {
-			parts = append(parts, strconv.Itoa(i))
-		}
-	}
-
-	return parts
 }
 
 // Expand structured a expandable unit.

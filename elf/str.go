@@ -1,9 +1,49 @@
 package elf
 
 import (
+	"strconv"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
+
+// ExpandRange expands a string like 1-3 to [1,2,3]
+func ExpandRange(f string) []string {
+	hyphenPos := strings.Index(f, "-")
+	if hyphenPos <= 0 || hyphenPos == len(f)-1 {
+		return []string{f}
+	}
+
+	from := strings.TrimSpace(f[0:hyphenPos])
+	to := strings.TrimSpace(f[hyphenPos+1:])
+
+	fromI := 0
+	toI := 0
+
+	var err error
+
+	if fromI, err = strconv.Atoi(from); err != nil {
+		return []string{f}
+	}
+
+	if toI, err = strconv.Atoi(to); err != nil {
+		return []string{f}
+	}
+
+	parts := make([]string, 0)
+
+	if fromI < toI {
+		for i := fromI; i <= toI; i++ {
+			parts = append(parts, strconv.Itoa(i))
+		}
+	} else {
+		for i := fromI; i >= toI; i-- {
+			parts = append(parts, strconv.Itoa(i))
+		}
+	}
+
+	return parts
+}
 
 // Fields splits the string s around each instance of one or more consecutive white space
 // characters, as defined by unicode.IsSpace, returning a slice of substrings of s or an
