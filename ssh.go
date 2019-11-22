@@ -37,7 +37,7 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 
 	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
-			if err := sshInHost(h, cmd, timeout); err != nil {
+			if err := h.SSH([]string{cmd}, timeout); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
 				return err
 			}
@@ -54,11 +54,11 @@ func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 	return &SSHCmd{hosts: parseHosts(gs, hostPart), cmd: realCmd}
 }
 
+// SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func sshInHost(h Host, cmd string, timeout time.Duration) error {
+func (h Host) SSH(cmd []string, timeout time.Duration) error {
 	fmt.Println()
 	fmt.Println("---", h.Addr, "---")
-	fmt.Println()
 
 	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
 	if err != nil {
@@ -67,14 +67,14 @@ func sshInHost(h Host, cmd string, timeout time.Duration) error {
 
 	defer sshClt.Close()
 
-	if err := sshScripts(sshClt, []string{cmd}); err != nil {
+	if err := sshScripts(sshClt, cmd); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
 	}
 
 	return nil
 }
 
-func sshScripts(client *ssh.Client, scripts []string) error {
+func sshScripts(client *ssh.Client, cmd []string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
@@ -107,45 +107,41 @@ func sshScripts(client *ssh.Client, scripts []string) error {
 		return err
 	}
 
-	fmt.Print(lastLine(<-out))
+	mux(cmd, out, in)
 
-	for i, cmd := range scripts {
+	return nil
+}
+
+func mux(cmd []string, out <-chan string, in chan<- string) {
+	fmt.Print(GetLastLine(<-out))
+
+	for i, cmd := range cmd {
 		in <- cmd
 
 		rout := <-out
 
-		if i == len(scripts)-1 {
-			rout = nonLastLine(rout)
+		if i == len(cmd)-1 {
+			rout = StripLastLine(rout)
 		}
 
 		fmt.Print(rout)
 	}
-
-	in <- "exit"
-
-	return err
 }
 
-func nonLastLine(s string) string {
+// StripLastLine strips the last line of s.
+func StripLastLine(s string) string {
 	pos := strings.LastIndex(s, "\n")
-	if pos < 0 {
-		return s
-	}
-
-	if pos == len(s)-1 {
+	if pos < 0 || pos == len(s)-1 {
 		return s
 	}
 
 	return s[0 : pos+1]
 }
 
-func lastLine(s string) string {
+// GetLastLine gets the last line of s.
+func GetLastLine(s string) string {
 	pos := strings.LastIndex(s, "\n")
-	if pos < 0 {
-		return s
-	}
-
-	if pos == len(s)-1 {
+	if pos < 0 || pos == len(s)-1 {
 		return s
 	}
 
@@ -154,8 +150,7 @@ func lastLine(s string) string {
 
 // MuxShell ...
 func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan string) {
-	in := make(chan string, 1)
-	out := make(chan string, 1)
+	in, out := make(chan string, 1), make(chan string, 1)
 
 	var wg sync.WaitGroup
 
@@ -163,10 +158,7 @@ func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan string) {
 
 	go func() {
 		for cmd := range in {
-			if cmd != "exit" {
-				fmt.Println(cmd)
-			}
-
+			fmt.Println(cmd)
 			wg.Add(1)
 			_, _ = w.Write([]byte(cmd + "\n"))
 			wg.Wait()
@@ -187,6 +179,7 @@ func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan string) {
 
 			t += n
 			last := buf[t-2]
+
 			if last == '$' || last == '#' { //assuming the $PS1 == 'sh-4.3$ '
 				out <- string(buf[:t])
 				t = 0

@@ -81,7 +81,7 @@ func (g *CmdGroup) Exec() {
 
 	for _, cmd := range g.Cmds {
 		if len(cmd.TargetHosts()) == 0 {
-			fmt.Printf("There is no target hosts for cmd %s to executed\n", cmd.RawCmd())
+			fmt.Printf("No target hosts for cmd %s to executed\n", cmd.RawCmd())
 			continue
 		}
 
@@ -164,12 +164,8 @@ func (c Config) parseVars() Config {
 		viper.Set(pbe.PbePwd, c.Passphrase)
 	}
 
-	if c.Timeout != "" {
-		duration, _ := time.ParseDuration(c.Timeout)
-		viper.Set("Timeout", duration)
-	} else {
-		viper.Set("Timeout", time.Duration(0))
-	}
+	duration, _ := time.ParseDuration(c.Timeout)
+	viper.Set("Timeout", duration)
 
 	return c
 }
