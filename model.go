@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bingoohuang/gossh/cmdtype"
@@ -11,6 +12,9 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
+	QuoteReplace string `pflag:"replacement for quote letter"`
+	BangReplace  string `pflag:"replacement for bang letter"`
+
 	Separator   string   `pflag:"separator for hosts,cmds,default ,"`
 	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout"`
 	PrintConfig bool     `pflag:"print config before running"`
@@ -106,10 +110,11 @@ func (g *GoSSH) Close() {
 }
 
 // Parse parses the flags or cnf files to GoSSH.
-func (c Config) Parse() GoSSH {
+func (c *Config) Parse() GoSSH {
 	gs := GoSSH{}
 
-	_ = c.parseVars()
+	c.parseVars()
+
 	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
 	timeout := viper.Get("Timeout").(time.Duration)
@@ -118,7 +123,7 @@ func (c Config) Parse() GoSSH {
 	return gs
 }
 
-func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
+func (c *Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	lastCmdType := cmdtype.Noop
 
 	var group *CmdGroup
@@ -159,7 +164,7 @@ func (c Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	return returnGroups
 }
 
-func (c Config) parseVars() Config {
+func (c *Config) parseVars() {
 	if c.Passphrase != "" {
 		viper.Set(pbe.PbePwd, c.Passphrase)
 	}
@@ -167,5 +172,15 @@ func (c Config) parseVars() Config {
 	duration, _ := time.ParseDuration(c.Timeout)
 	viper.Set("Timeout", duration)
 
-	return c
+	if c.QuoteReplace != "" {
+		for i, cmd := range c.Cmds {
+			c.Cmds[i] = strings.ReplaceAll(cmd, c.QuoteReplace, `"`)
+		}
+	}
+
+	if c.BangReplace != "" {
+		for i, cmd := range c.Cmds {
+			c.Cmds[i] = strings.ReplaceAll(cmd, c.BangReplace, `!`)
+		}
+	}
 }

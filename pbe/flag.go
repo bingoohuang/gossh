@@ -22,12 +22,12 @@ func DeclarePflags() {
 }
 
 // DealPflag deals the request by the pflags.
-func DealPflag() {
+func DealPflag() bool {
 	pbes := viper.GetStringSlice("pbe")
 	ebps := viper.GetStringSlice("ebp")
 
 	if len(pbes) == 0 && len(ebps) == 0 {
-		return
+		return false
 	}
 
 	alreadyHasOutput := false
@@ -47,7 +47,7 @@ func DealPflag() {
 		PrintDecrypt(passStr, ebps...)
 	}
 
-	os.Exit(0)
+	return true
 }
 
 var pbePwdOnce sync.Once // nolint

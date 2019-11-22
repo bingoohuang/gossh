@@ -6,14 +6,14 @@ execute shell scripts among multiple ssh servers
 ```bash
 $  uuidgen
 6F948925-429E-4D2C-B551-C9C6D12E5062
-$  gossh --pbe hello,word --password C9C6D12E5062
+$  gossh --pbe hello,word -p C9C6D12E5062
 +---+-------+-----------------------------+
 | # | PLAIN | ENCRYPTED                   |
 +---+-------+-----------------------------+
 | 1 | hello | {PBE}eiRMlsZPLikVYpZMcHicyg |
 | 2 | word  | {PBE}lAHH0UfuqZ0YtV_5VE77uw |
 +---+-------+-----------------------------+
-$  gossh --pbe hello,word --password C9C6D12E5062
+$  gossh --pbe hello,word -p C9C6D12E5062
 +---+-------+-----------------------------+
 | # | PLAIN | ENCRYPTED                   |
 +---+-------+-----------------------------+
@@ -21,14 +21,14 @@ $  gossh --pbe hello,word --password C9C6D12E5062
 | 2 | word  | {PBE}qmPJAysHSmnfQEK-a6JM0A |
 +---+-------+-----------------------------+
 
-$  gossh --ebp 6RGab13x5WfzFP0NpA_suA,qmPJAysHSmnfQEK-a6JM0A --password C9C6D12E5062
+$  gossh --ebp 6RGab13x5WfzFP0NpA_suA,qmPJAysHSmnfQEK-a6JM0A -p C9C6D12E5062
 +---+------------------------+-------+
 | # | ENCRYPTED              | PLAIN |
 +---+------------------------+-------+
 | 1 | 6RGab13x5WfzFP0NpA_suA | hello |
 | 2 | qmPJAysHSmnfQEK-a6JM0A | word  |
 +---+------------------------+-------+
-$  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --password C9C6D12E5062
+$  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D12E5062
 +---+-----------------------------+-------+
 | # | ENCRYPTED                   | PLAIN |
 +---+-----------------------------+-------+
@@ -61,19 +61,10 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw --passwor
 ## Scripts
 
 ```bash
-$ export em="\!";export sq="'";export dq='"';
-$ export GOSSH_CMDS="%host-9 MYSQL_PWD='${em}QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e ${dq}show variables like 'server%'${dq}"
-$ gossh -h="192.168.136.9:8022 app/app id=9" -h="192.168.136.18:8022 app/app id=18"
-executing MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'" on hosts [192.168.136.9:8022]
-Last login: Mon Nov 18 15:06:22 2019 from 192.168.217.48
-ONLY Authorized users only! All accesses logged
-MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
-exit
-$ MYSQL_PWD='!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e "show variables like 'server%'"
---------------
-show variables like 'server%'
---------------
+$ gossh --quoteReplace=%q --bangReplace=%b --hosts="192.168.1.1:8022 app/app" --cmds="%host MYSQL_PWD='%babcdefg' mysql -h127.0.0.1 -uroot -e %qshow variables like 'server%'%q"
 
+--- 192.168.1.1:8022 ---
+$ MYSQL_PWD='!abcdefg' mysql -h127.0.0.1 -uroot -e "show variables like 'server%'"
 +----------------+--------------------------------------+
 | Variable_name  | Value                                |
 +----------------+--------------------------------------+
@@ -81,15 +72,10 @@ show variables like 'server%'
 | server_id_bits | 32                                   |
 | server_uuid    | 43e9cbe5-b38a-11e9-8570-04d4c439354e |
 +----------------+--------------------------------------+
-3 rows in set (0.00 sec)
-
-Bye
-$ exit
-登出
 ```
 
 ```bash
-gossh -h="192.168.136.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!QAZ2wsx' mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
-gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
-gossh -h="192.168.136.9:8022 app/app id=9, 192.168.136.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
+gossh -h="192.168.1.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!abcdefg' mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
+gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
+gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
 ```

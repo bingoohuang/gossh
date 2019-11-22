@@ -16,7 +16,6 @@ func main() {
 	logrus.SetLevel(logrus.InfoLevel)
 
 	pbe.DeclarePflags()
-	defer pbe.DealPflag()
 
 	ver := pflag.BoolP("version", "v", false, "show version")
 
@@ -41,6 +40,10 @@ func main() {
 	}
 
 	gs := config.Parse()
+
+	if pbe.DealPflag() {
+		return
+	}
 
 	if len(gs.CmdGroups) == 0 {
 		fmt.Println("There is nothing to do.")
