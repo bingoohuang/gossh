@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bingoohuang/gou/str"
+
 	"github.com/bingoohuang/gossh/elf"
 	"github.com/bingoohuang/strcase"
 
@@ -90,15 +92,9 @@ func Load(cnfFile string, value interface{}) {
 	ViperToStruct(value)
 }
 
-// Separator ...
-type Separator interface {
-	// GetSeparator get the separator
-	GetSeparator() string
-}
-
 // ViperToStruct read viper value to struct
 func ViperToStruct(structVar interface{}) {
-	separator := getSeparator(structVar)
+	separator := GetSeparator(structVar, ",")
 
 	for _, f := range reflector.New(structVar).Fields() {
 		if !f.IsExported() {
@@ -110,8 +106,7 @@ func ViperToStruct(structVar interface{}) {
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				vv := strings.Split(v, separator)
-				setField(f, vv)
+				setField(f, str.SplitN(v, separator, true, true))
 			}
 		case string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
@@ -129,22 +124,28 @@ func ViperToStruct(structVar interface{}) {
 	}
 }
 
-func getSeparator(structVar interface{}) string {
-	separator := ","
+// Separator ...
+type Separator interface {
+	// GetSeparator get the separator
+	GetSeparator() string
+}
 
-	if sep, ok := structVar.(Separator); ok {
-		s := sep.GetSeparator()
+// GetSeparator get separator from
+// 1. viper's separator
+// 2. v which implements Separator interface
+// 3. or default value
+func GetSeparator(v interface{}, defaultSeparator string) string {
+	if sep := viper.GetString("separator"); sep != "" {
+		return sep
+	}
 
-		if s != "" {
-			separator = s
+	if sep, ok := v.(Separator); ok {
+		if s := sep.GetSeparator(); s != "" {
+			return s
 		}
 	}
 
-	if sep := viper.GetString("separator"); sep != "" {
-		separator = sep
-	}
-
-	return separator
+	return defaultSeparator
 }
 
 func setField(f reflector.ObjField, value interface{}) {
