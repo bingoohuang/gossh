@@ -55,6 +55,7 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [sftp/example_test.go](https://github.com/pkg/sftp/blob/master/example_test.go)
 1. [Golang Client Examples](https://golang.hotexamples.com/examples/github.com.pkg.sftp/Client/-/golang-client-class-examples.html)
 1. [go语言使用sftp包上传文件和文件夹到远程服务器](https://blog.csdn.net/fu_qin/article/details/78741854)
+1. [Implements support for double star (**) matches in golang's path.Match and filepath.Glob.](https://github.com/bmatcuk/doublestar)
 
 
 

@@ -1,6 +1,7 @@
 package gossh
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/bingoohuang/gossh/elf"
@@ -21,20 +22,20 @@ func (c Config) parseHosts() []*Host {
 			continue
 		}
 
-		id, addr := parseHostID(fields[0])
+		_, addr := parseHostID(fields[0])
 		user, pass := parseUserPass(fields[1])
 		props := parseProps(fields)
-		id = fixID(props, id)
+		id := fixID(props, "")
 
 		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
-		expanded := expandHost(host)
+		expanded := expandHost(host, len(hosts))
 		hosts = append(hosts, expanded...)
 	}
 
 	return hosts
 }
 
-func expandHost(host *Host) []*Host {
+func expandHost(host *Host, hostsLen int) []*Host {
 	ids := MakeExpand(host.ID).MakePart()
 	addrs := MakeExpand(host.Addr).MakePart()
 	users := MakeExpand(host.User).MakePart()
@@ -59,8 +60,13 @@ func expandHost(host *Host) []*Host {
 			props[k] = v.Part(i)
 		}
 
+		id := ids.Part(i)
+		if id == "" {
+			id = fmt.Sprintf("%d", i+hostsLen+1)
+		}
+
 		hosts[i] = &Host{
-			ID:         ids.Part(i),
+			ID:         id,
 			Addr:       addrs.Part(i),
 			User:       users.Part(i),
 			Password:   passes.Part(i),

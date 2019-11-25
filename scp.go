@@ -3,6 +3,8 @@ package gossh
 import (
 	"strings"
 
+	"github.com/bingoohuang/gossh/doublestar"
+
 	homedir "github.com/mitchellh/go-homedir"
 
 	"github.com/bingoohuang/gossh/elf"
@@ -11,16 +13,17 @@ import (
 
 // UlDl scp...
 type UlDl struct {
-	hosts        []*Host
-	cmd          string
-	remote       string
-	local        string
-	localDirMode elf.DirMode
+	hosts  []*Host
+	cmd    string
+	remote string
+	local  string
 }
 
 // UlCmd upload cmd structure.
 type UlCmd struct {
 	UlDl
+	basedir    string
+	localFiles []string
 }
 
 // DlCmd download cmd structure.
@@ -49,10 +52,23 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	home, _ := homedir.Dir()
 
 	local = strings.ReplaceAll(local, "~", home)
-	dirMode, _ := elf.GetFileMode(local)
+	localFiles, basedir, err := doublestar.Glob(local)
 
-	return &UlCmd{UlDl{hosts: parseHosts(gs, hostPart),
-		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
+	if err != nil {
+		logrus.Fatalf("doublestar.Glob(local) error %v", err)
+	}
+
+	if len(localFiles) == 0 {
+		logrus.Fatalf("there is no file matched for pattern %s to upload", local)
+	}
+
+	hosts := parseHosts(gs, hostPart)
+
+	return &UlCmd{
+		UlDl:       UlDl{hosts: hosts, cmd: cmd, local: local, remote: remote},
+		localFiles: localFiles,
+		basedir:    basedir,
+	}
 }
 
 func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
@@ -67,10 +83,10 @@ func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
 	home, _ := homedir.Dir()
 
 	local = strings.ReplaceAll(local, "~", home)
-	dirMode, _ := elf.GetFileMode(local)
 
-	return &DlCmd{UlDl{hosts: parseHosts(gs, hostPart),
-		cmd: cmd, local: local, localDirMode: dirMode, remote: remote}}
+	hosts := parseHosts(gs, hostPart)
+
+	return &DlCmd{UlDl: UlDl{hosts: hosts, cmd: cmd, local: local, remote: remote}}
 }
 
 func parseHosts(gs *GoSSH, hostTag string) []*Host {
