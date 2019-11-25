@@ -1,6 +1,7 @@
 package gossh
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/bingoohuang/gossh/doublestar"
@@ -60,6 +61,10 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 
 	if len(localFiles) == 0 {
 		logrus.Fatalf("there is no file matched for pattern %s to upload", local)
+	}
+
+	if len(localFiles) == 1 {
+		basedir = filepath.Dir(localFiles[0])
 	}
 
 	hosts := parseHosts(gs, hostPart)
