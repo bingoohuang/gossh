@@ -56,7 +56,7 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	localFiles, basedir, err := doublestar.Glob(local)
 
 	if err != nil {
-		logrus.Fatalf("doublestar.Glob(local) error %v", err)
+		logrus.Fatalf("doublestar.Glob(%s) error %v", local, err)
 	}
 
 	if len(localFiles) == 0 {

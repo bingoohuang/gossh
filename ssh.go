@@ -112,30 +112,37 @@ func sshScripts(client *ssh.Client, cmd []string) error {
 	return nil
 }
 
-func mux(cmd []string, out <-chan string, in chan<- string) {
-	fmt.Print(GetLastLine(<-out))
+func mux(cmd []string, out <-chan SSHOut, in chan<- string) {
+	fmt.Print(GetLastLine(waitSSHOutComplete(out)))
 
 	for i, cmd := range cmd {
 		in <- cmd
 
-		rout := <-out
+		for s := range out {
+			if s.complete {
+				if i < len(cmd)-1 {
+					fmt.Print(s.out)
+				}
 
-		if i == len(cmd)-1 {
-			rout = StripLastLine(rout)
+				break
+			}
+
+			fmt.Print(s.out)
 		}
-
-		fmt.Print(rout)
 	}
 }
 
-// StripLastLine strips the last line of s.
-func StripLastLine(s string) string {
-	pos := strings.LastIndex(s, "\n")
-	if pos < 0 || pos == len(s)-1 {
-		return s
+func waitSSHOutComplete(out <-chan SSHOut) string {
+	merged := ""
+	for s := range out {
+		merged += s.out
+
+		if s.complete {
+			break
+		}
 	}
 
-	return s[0 : pos+1]
+	return merged
 }
 
 // GetLastLine gets the last line of s.
@@ -148,9 +155,15 @@ func GetLastLine(s string) string {
 	return s[pos+1:]
 }
 
+// SSHOut ...
+type SSHOut struct {
+	out      string
+	complete bool
+}
+
 // MuxShell ...
-func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan string) {
-	in, out := make(chan string, 1), make(chan string, 1)
+func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan SSHOut) {
+	in, out := make(chan string, 1), make(chan SSHOut, 1)
 
 	var wg sync.WaitGroup
 
@@ -167,23 +180,25 @@ func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan string) {
 
 	go func() {
 		var buf [65 * 1024]byte
-		var t int
 
 		for {
-			n, err := r.Read(buf[t:])
+			n, err := r.Read(buf[:])
 			if err != nil {
 				close(in)
 				close(out)
 				return
 			}
 
-			t += n
-			last := buf[t-2]
+			t := n
 
-			if last == '$' || last == '#' { //assuming the $PS1 == 'sh-4.3$ '
-				out <- string(buf[:t])
-				t = 0
+			sbuf := string(buf[:t])
+			last := sbuf[t-2:]
+			switch last {
+			case "$ ", "# ": //assuming the $PS1 == 'sh-4.3$ '
+				out <- SSHOut{out: sbuf, complete: true}
 				wg.Done()
+			default:
+				out <- SSHOut{out: sbuf, complete: false}
 			}
 		}
 	}()
