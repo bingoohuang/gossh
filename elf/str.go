@@ -7,6 +7,11 @@ import (
 	"unicode/utf8"
 )
 
+// IgnoreError ignores the error and returns s
+func IgnoreError(s string, _ error) string {
+	return s
+}
+
 // ExpandRange expands a string like 1-3 to [1,2,3]
 func ExpandRange(f string) []string {
 	hyphenPos := strings.Index(f, "-")

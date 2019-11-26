@@ -1,6 +1,7 @@
 package elf
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -11,32 +12,36 @@ type Tag struct {
 	Opts map[string]string
 }
 
+// GetOpt gets opt's value by its name
+func (t Tag) GetOpt(optName string) string {
+	if opt, ok := t.Opts[optName]; ok && opt != "" {
+		return opt
+	}
+
+	return ""
+}
+
 // DecodeTag decode tag values
 func DecodeTag(rawTag string) Tag {
-	tags := strings.Split(rawTag, ",")
 	opts := make(map[string]string)
-	mainTag := ""
+	mainPart := ""
 
-	for i, tag := range tags {
-		tag = strings.TrimSpace(tag)
-		if tag == "" {
-			continue
-		}
+	re := regexp.MustCompile(`(\w+)\s*=\s*(\w+)`)
+	submatchIndex := re.FindAllStringSubmatchIndex(rawTag, -1)
 
-		kvs := strings.SplitN(tag, "=", 2)
-		k := kvs[0]
+	if submatchIndex == nil {
+		mainPart = rawTag
+	} else {
+		for i, g := range submatchIndex {
+			if i == 0 {
+				mainPart = strings.TrimSpace(rawTag[:g[0]])
+			}
 
-		if len(kvs) == 2 {
-			opts[k] = kvs[1]
-			continue
-		}
-
-		if i == 0 {
-			mainTag = k
-		} else {
-			opts[k] = ""
+			k := rawTag[g[2]:g[3]]
+			v := rawTag[g[4]:g[5]]
+			opts[k] = v
 		}
 	}
 
-	return Tag{Raw: rawTag, Main: mainTag, Opts: opts}
+	return Tag{Raw: rawTag, Main: mainPart, Opts: opts}
 }

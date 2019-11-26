@@ -15,10 +15,10 @@ type Config struct {
 	QuoteReplace string `pflag:"replacement for quote letter"`
 	BangReplace  string `pflag:"replacement for bang letter"`
 
-	Separator   string   `pflag:"separator for hosts,cmds,default ,"`
+	Separator   string   `pflag:"separator for hosts,cmds. default ,"`
 	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout"`
 	PrintConfig bool     `pflag:"print config before running"`
-	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password,shorthand=p"`
+	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password shorthand=p"`
 	Hosts       []string `pflag:"shorthand=h"`
 	Cmds        []string
 }

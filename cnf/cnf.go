@@ -162,18 +162,9 @@ func DeclarePflagsByStruct(structVar interface{}) {
 		}
 
 		name := strcase.ToCamelLower(f.Name())
-		usage, _ := f.Tag("pflag")
-		tag := elf.DecodeTag(usage)
-
-		if tag.Main != "" {
-			usage = tag.Main
-		}
-
-		shorthand := ""
-
-		if sh, ok := tag.Opts["shorthand"]; ok && sh != "" {
-			shorthand = sh
-		}
+		tag := elf.DecodeTag(elf.IgnoreError(f.Tag("pflag")))
+		usage := tag.Main
+		shorthand := tag.GetOpt("shorthand")
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
