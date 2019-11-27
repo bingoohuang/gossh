@@ -3,12 +3,13 @@ package gossh
 import (
 	"bytes"
 	"encoding/json"
+
+	"github.com/bingoohuang/gossh/elf"
 )
 
 // JSONPretty prettify the JSON encoding of data silently
 func JSONPretty(data interface{}) string {
-	p, _ := JSONPrettyE(data)
-	return p
+	return elf.IgnoreError(JSONPrettyE(data))
 }
 
 // JSONPrettyE prettify the JSON encoding of data
