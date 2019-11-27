@@ -13,8 +13,8 @@ type sshpassHelp struct {
 }
 
 func (s *sshpassHelp) declarePlags() {
-	s.sshPlag = pflag.BoolP("ssh", "", false, "create sshpassHelp ssh for hosts")
-	s.scpPlag = pflag.BoolP("scp", "s", false, "create sshpassHelp scp for hosts")
+	s.sshPlag = pflag.BoolP("ssh", "", false, "create sshpass ssh for hosts")
+	s.scpPlag = pflag.BoolP("scp", "", false, "create sshpass scp for hosts")
 }
 
 func (s sshpassHelp) do(gs gossh.GoSSH) {
