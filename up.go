@@ -20,7 +20,7 @@ import (
 func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
 	targetHosts := s.hosts
 	if len(targetHosts) == 0 {
-		logrus.Warnf("there is no host to upload %s", s.local)
+		logrus.Warnf("no host to upload %s", s.local)
 	}
 
 	var wg sync.WaitGroup
@@ -111,8 +111,7 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 	dest := remote
 
 	if !overrideSingleFile {
-		relativePart := strings.TrimPrefix(localFile, basedir)
-		dest = filepath.Join(remote, relativePart)
+		dest = filepath.Join(remote, strings.TrimPrefix(localFile, basedir))
 	}
 
 	f, err := sf.Create(dest)
@@ -129,6 +128,7 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 
 	fmt.Printf("start to upload %s to %s\n", localFile, dest)
 
+	start := time.Now()
 	bar := pb.StartNew(int(fromStat.Size()))
 
 	if _, err := io.Copy(bar.NewProxyWriter(f), fromFile); err != nil {
@@ -136,6 +136,8 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 	}
 
 	bar.Finish()
+
+	fmt.Printf("complete to upload %s to %s, cost %v\n", localFile, dest, time.Since(start))
 
 	if err := sf.Chmod(dest, fromStat.Mode()); err != nil {
 		return fmt.Errorf("sf.Chmo %s failed: %w", dest, err)
