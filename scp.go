@@ -14,7 +14,7 @@ import (
 
 // UlDl scp...
 type UlDl struct {
-	hosts  []*Host
+	hosts  Hosts
 	cmd    string
 	remote string
 	local  string
@@ -36,7 +36,7 @@ type DlCmd struct {
 func (UlDl) Parse() {}
 
 // TargetHosts returns target hosts for the command
-func (u UlDl) TargetHosts() []*Host { return u.hosts }
+func (u UlDl) TargetHosts() Hosts { return u.hosts }
 
 // RawCmd returns the original raw command
 func (u UlDl) RawCmd() string { return u.cmd }
@@ -94,7 +94,7 @@ func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
 	return &DlCmd{UlDl: UlDl{hosts: hosts, cmd: cmd, local: local, remote: remote}}
 }
 
-func parseHosts(gs *GoSSH, hostTag string) []*Host {
+func parseHosts(gs *GoSSH, hostTag string) Hosts {
 	host := hostTag[len(`%host`):]
 
 	if host == "" {
@@ -110,10 +110,10 @@ func parseHosts(gs *GoSSH, hostTag string) []*Host {
 		return nil
 	}
 
-	return []*Host{found}
+	return Hosts{found}
 }
 
-func findHost(hosts []*Host, name string) *Host {
+func findHost(hosts Hosts, name string) *Host {
 	for _, h := range hosts {
 		if h.ID == name {
 			return h

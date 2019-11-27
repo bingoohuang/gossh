@@ -17,8 +17,11 @@ func main() {
 
 	pbe.DeclarePflags()
 
+	var ssh sshpassHelp
+
 	ver := pflag.BoolP("version", "v", false, "show version")
 
+	ssh.declarePlags()
 	cnf.DeclarePflags()
 	cnf.DeclarePflagsByStruct(gossh.Config{})
 
@@ -44,6 +47,8 @@ func main() {
 	if pbe.DealPflag() {
 		return
 	}
+
+	ssh.do(gs)
 
 	if len(gs.CmdGroups) == 0 {
 		fmt.Println("There is nothing to do.")

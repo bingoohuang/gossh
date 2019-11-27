@@ -19,14 +19,14 @@ import (
 // SSHCmd means SSH command.
 type SSHCmd struct {
 	cmd   string
-	hosts []*Host
+	hosts Hosts
 }
 
 // Parse parses command.
 func (SSHCmd) Parse() {}
 
 // TargetHosts returns target hosts for the command
-func (s SSHCmd) TargetHosts() []*Host { return s.hosts }
+func (s SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // RawCmd returns the original raw command
 func (s SSHCmd) RawCmd() string { return s.cmd }

@@ -19,7 +19,7 @@ type LocalCmd struct {
 }
 
 // TargetHosts returns target hosts for the command
-func (LocalCmd) TargetHosts() []*Host { return nil }
+func (LocalCmd) TargetHosts() Hosts { return nil }
 
 // ExecInHosts execute in specified hosts.
 func (LocalCmd) ExecInHosts(_ *GoSSH) error { return nil }

@@ -12,8 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (c Config) parseHosts() []*Host {
-	hosts := make([]*Host, 0)
+func (c Config) parseHosts() Hosts {
+	hosts := make(Hosts, 0)
 
 	for _, host := range c.Hosts {
 		fields := elf.FieldsX(host, "(", ")", -1)
@@ -35,7 +35,7 @@ func (c Config) parseHosts() []*Host {
 	return hosts
 }
 
-func expandHost(host *Host, hostsLen int) []*Host {
+func expandHost(host *Host, hostsLen int) Hosts {
 	ids := MakeExpand(host.ID).MakePart()
 	addrs := MakeExpand(host.Addr).MakePart()
 	users := MakeExpand(host.User).MakePart()
@@ -51,7 +51,7 @@ func expandHost(host *Host, hostsLen int) []*Host {
 		maxExpands = elf.MaxInt(maxExpands, vv.Len())
 	}
 
-	hosts := make([]*Host, maxExpands)
+	hosts := make(Hosts, maxExpands)
 
 	for i := 0; i < maxExpands; i++ {
 		props := make(map[string]string)

@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -35,6 +36,25 @@ type Host struct {
 	Properties map[string]string
 }
 
+const ignoreWarning = "-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+// PrintSSH prints sshpass ssh commands
+func (h Host) PrintSSH() {
+	host, port, _ := net.SplitHostPort(h.Addr)
+
+	sshCmd := fmt.Sprintf("sshpass -p %s ssh -p%s %s %s@%s", h.Password, port, ignoreWarning, h.User, host)
+	fmt.Println(sshCmd)
+}
+
+// PrintSCP prints sshpass scp commands
+func (h Host) PrintSCP() {
+	host, port, _ := net.SplitHostPort(h.Addr)
+
+	// sshpass -p xxx scp -P 9922 root@192.168.205.148:/root/xxx .
+	scpCmd := fmt.Sprintf("sshpass -p %s scp -P%s %s %s@%s:. .", h.Password, port, ignoreWarning, h.User, host)
+	fmt.Println(scpCmd)
+}
+
 // CmdExcResult means the detail exec result of cmd
 type CmdExcResult struct {
 }
@@ -47,7 +67,7 @@ type HostsCmd interface {
 	ExecInHosts(gs *GoSSH) error
 
 	// TargetHosts returns target hosts for the command
-	TargetHosts() []*Host
+	TargetHosts() Hosts
 
 	// RawCmd returns the original raw command
 	RawCmd() string
@@ -95,10 +115,27 @@ func (g *CmdGroup) Exec() {
 	}
 }
 
+// Hosts stands for slice of Host
+type Hosts []*Host
+
+// PrintSSH prints sshpass ssh commands for all hosts
+func (h Hosts) PrintSSH() {
+	for _, h := range h {
+		h.PrintSSH()
+	}
+}
+
+// PrintSCP prints sshpass scp commands for all hosts
+func (h Hosts) PrintSCP() {
+	for _, h := range h {
+		h.PrintSCP()
+	}
+}
+
 // GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
 	Vars      Config
-	Hosts     []*Host
+	Hosts     Hosts
 	CmdGroups []CmdGroup
 
 	sftpClientMap *sftpClientMap
