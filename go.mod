@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/bingoohuang/gou v0.0.0-20190724062522-59c35e658334
 	github.com/bingoohuang/strcase v0.0.0-20190707081139-fae4a99e1218
+	github.com/cheggaaa/pb/v3 v3.0.2
 	github.com/go-openapi/strfmt v0.19.3 // indirect
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
 	github.com/google/uuid v1.1.1

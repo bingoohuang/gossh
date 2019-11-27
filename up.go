@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/sftp"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -121,14 +122,20 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 
 	defer f.Close()
 
-	if _, err := io.Copy(f, fromFile); err != nil {
-		return fmt.Errorf("io.Copy failed: %w", err)
-	}
-
 	fromStat, err := fromFile.Stat()
 	if err != nil {
 		return fmt.Errorf("stat file %s error %w", localFile, err)
 	}
+
+	fmt.Printf("start to upload %s to %s\n", localFile, dest)
+
+	bar := pb.StartNew(int(fromStat.Size()))
+
+	if _, err := io.Copy(bar.NewProxyWriter(f), fromFile); err != nil {
+		return fmt.Errorf("io.Copy failed: %w", err)
+	}
+
+	bar.Finish()
 
 	if err := sf.Chmod(dest, fromStat.Mode()); err != nil {
 		return fmt.Errorf("sf.Chmo %s failed: %w", dest, err)
