@@ -13,15 +13,15 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
-	QuoteReplace string `pflag:"replacement for quote letter"`
-	BangReplace  string `pflag:"replacement for bang letter"`
+	ReplaceQuote string `pflag:"replace for quote(\")."`
+	ReplaceBang  string `pflag:"replace for bang(!)."`
 
-	Separator   string   `pflag:"separator for hosts,cmds. default ,"`
-	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout"`
-	PrintConfig bool     `pflag:"print config before running"`
-	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password shorthand=p"`
-	Hosts       []string `pflag:"shorthand=h"`
-	Cmds        []string
+	Separator   string   `pflag:"separator for hosts, cmds, default comma."`
+	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
+	PrintConfig bool     `pflag:"print config before running."`
+	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
+	Hosts       []string `pflag:"hosts. shorthand=h"`
+	Cmds        []string `pflag:"commands to be executed. shorthand=x"`
 }
 
 // GetSeparator get the separator
@@ -209,15 +209,15 @@ func (c *Config) parseVars() {
 	duration, _ := time.ParseDuration(c.Timeout)
 	viper.Set("Timeout", duration)
 
-	if c.QuoteReplace != "" {
+	if c.ReplaceQuote != "" {
 		for i, cmd := range c.Cmds {
-			c.Cmds[i] = strings.ReplaceAll(cmd, c.QuoteReplace, `"`)
+			c.Cmds[i] = strings.ReplaceAll(cmd, c.ReplaceQuote, `"`)
 		}
 	}
 
-	if c.BangReplace != "" {
+	if c.ReplaceBang != "" {
 		for i, cmd := range c.Cmds {
-			c.Cmds[i] = strings.ReplaceAll(cmd, c.BangReplace, `!`)
+			c.Cmds[i] = strings.ReplaceAll(cmd, c.ReplaceBang, `!`)
 		}
 	}
 }
