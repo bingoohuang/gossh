@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bingoohuang/gou/str"
-
 	"github.com/bingoohuang/gossh/elf"
 	"github.com/bingoohuang/strcase"
 
@@ -106,7 +104,7 @@ func ViperToStruct(structVar interface{}) {
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				setField(f, str.SplitN(v, separator, true, true))
+				setField(f, elf.SplitX(v, separator))
 			}
 		case string:
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
@@ -162,7 +160,7 @@ func DeclarePflagsByStruct(structVar interface{}) {
 		}
 
 		name := strcase.ToCamelLower(f.Name())
-		tag := elf.DecodeTag(elf.IgnoreError(f.Tag("pflag")))
+		tag := elf.DecodeTag(elf.PickFirst(f.Tag("pflag")))
 		usage := tag.Main
 		shorthand := tag.GetOpt("shorthand")
 

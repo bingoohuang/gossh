@@ -7,8 +7,8 @@ import (
 	"unicode/utf8"
 )
 
-// IgnoreError ignores the error and returns s
-func IgnoreError(s string, _ error) string {
+// PickFirst ignores the error and returns s
+func PickFirst(s string, _ interface{}) string {
 	return s
 }
 

@@ -9,7 +9,7 @@ import (
 
 // JSONPretty prettify the JSON encoding of data silently
 func JSONPretty(data interface{}) string {
-	return elf.IgnoreError(JSONPrettyE(data))
+	return elf.PickFirst(JSONPrettyE(data))
 }
 
 // JSONPrettyE prettify the JSON encoding of data

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSplitX(t *testing.T) {
+func TestFieldsX(t *testing.T) {
 	assert.Nil(t, FieldsX("(a b) c", "(", ")", 0))
 	assert.Equal(t, []string{"(a b)  c"}, FieldsX("(a b)  c ", "(", ")", 1))
 	assert.Equal(t, []string{"(a b)", "c"}, FieldsX("(a b)  c", "(", ")", 2))
