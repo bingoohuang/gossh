@@ -11,17 +11,25 @@ type OpenClose struct {
 	Close string
 }
 
+// IsSame tells the open and close is same of not.
+func (o OpenClose) IsSame() bool {
+	return o.Open == o.Close
+}
+
+type rememberOpenClose struct {
+	OpenClose
+	startPos int
+}
+
 // SplitX splits s by separate (not in (),[],{})
 func SplitX(s string, separate string, ocs ...OpenClose) []string {
 	ocs = setDefaultOpenCloses(ocs)
 
 	subs := make([]string, 0)
 
-	quotStart := -1
+	remembers := make([]rememberOpenClose, 0)
 	pos := 0
 	l := len(s)
-
-	lastClose := ""
 
 	for i := 0; i < l; {
 		// w 当前字符宽度
@@ -34,14 +42,19 @@ func SplitX(s string, separate string, ocs ...OpenClose) []string {
 				_, nextWidth := utf8.DecodeRuneInString(s[i+w:])
 				i += nextWidth
 			}
-		case quotStart >= 0:
-			if ch == lastClose {
-				quotStart = -1
+		case len(remembers) > 0:
+			last := remembers[len(remembers)-1]
+			if yes, oc := isOpen(ch, ocs, last.OpenClose); yes {
+				remembers = append(remembers, rememberOpenClose{OpenClose: oc, startPos: i})
+			} else if ch == last.Close {
+				remembers = remembers[0 : len(remembers)-1]
+				if len(remembers) == 0 {
+					remembers = make([]rememberOpenClose, 0)
+				}
 			}
 		default:
-			if yes, close := isOpen(ch, ocs); yes {
-				quotStart = i
-				lastClose = close
+			if yes, oc := isOpen(ch, ocs, OpenClose{}); yes {
+				remembers = append(remembers, rememberOpenClose{OpenClose: oc, startPos: i})
 			} else if ch == separate {
 				subs = tryAddPart(subs, s[pos:i])
 				pos = i + w
@@ -71,14 +84,16 @@ func setDefaultOpenCloses(ocs []OpenClose) []OpenClose {
 	return ocs
 }
 
-func isOpen(open string, ocs []OpenClose) (yes bool, close string) {
+func isOpen(s string, ocs []OpenClose, last OpenClose) (yes bool, oc OpenClose) {
 	for _, oc := range ocs {
-		if open == oc.Open {
-			return true, oc.Close
+		if s == oc.Open {
+			if !oc.IsSame() || s != last.Close {
+				return true, oc
+			}
 		}
 	}
 
-	return false, ""
+	return false, OpenClose{}
 }
 
 func tryAddPart(subs []string, sub string) []string {

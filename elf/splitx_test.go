@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSplitX0(t *testing.T) {
+	assert.Equal(t, []string{"a", "b"}, elf.SplitX("a;b;", ";"))
+	assert.Equal(t, []string{"(a;b;)"}, elf.SplitX("(a;b;)", ";"))
+	assert.Equal(t, []string{"([a;b;])"}, elf.SplitX("([a;b;])", ";"))
+}
+
 func TestSplitSql(t *testing.T) {
 	sql := "create table aaa; drop table aaa;"
 	sqls := elf.SplitX(sql, ";")
