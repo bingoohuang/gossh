@@ -12,6 +12,8 @@ func TestSplitX0(t *testing.T) {
 	assert.Equal(t, []string{"a", "b"}, elf.SplitX("a;b;", ";"))
 	assert.Equal(t, []string{"(a;b;)"}, elf.SplitX("(a;b;)", ";"))
 	assert.Equal(t, []string{"([a;b;])"}, elf.SplitX("([a;b;])", ";"))
+	assert.Equal(t, []string{"([a;b;];)", "abc"}, elf.SplitX("([a;b;];);abc", ";"))
+	assert.Equal(t, []string{`([a;b;];)\;abc`}, elf.SplitX(`([a;b;];)\;abc`, ";"))
 }
 
 func TestSplitSql(t *testing.T) {
