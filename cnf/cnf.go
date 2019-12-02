@@ -18,6 +18,15 @@ import (
 	"github.com/tkrajina/go-reflector/reflector"
 )
 
+// CheckUnknownPFlags checks the pflag and exiting.
+func CheckUnknownPFlags() {
+	if args := pflag.Args(); len(args) > 0 {
+		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
+		pflag.PrintDefaults()
+		os.Exit(1)
+	}
+}
+
 // DeclarePflags declares cnf pflags.
 func DeclarePflags() {
 	pflag.StringP("cnf", "c", "", "cnf file path")
@@ -33,11 +42,7 @@ func LoadByPflag(cfgValue interface{}) {
 func ParsePflags(envPrefix string) error {
 	pflag.Parse()
 
-	if args := pflag.Args(); len(args) > 0 {
-		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
-		pflag.PrintDefaults()
-		os.Exit(1)
-	}
+	CheckUnknownPFlags()
 
 	if envPrefix != "" {
 		viper.SetEnvPrefix(envPrefix)
