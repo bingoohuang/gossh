@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bingoohuang/gossh/doublestar"
+	"github.com/bmatcuk/doublestar"
 
 	homedir "github.com/mitchellh/go-homedir"
 
@@ -53,7 +53,8 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	home, _ := homedir.Dir()
 
 	local = strings.ReplaceAll(local, "~", home)
-	localFiles, basedir, err := doublestar.Glob(local)
+	localFiles, err := doublestar.Glob(local)
+	basedir := elf.BaseDir(localFiles)
 
 	if err != nil {
 		logrus.Fatalf("doublestar.Glob(%s) error %v", local, err)
