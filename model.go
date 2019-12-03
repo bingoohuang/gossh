@@ -16,12 +16,15 @@ type Config struct {
 	ReplaceQuote string `pflag:"replace for quote(\")."`
 	ReplaceBang  string `pflag:"replace for bang(!)."`
 
-	Separator   string   `pflag:"separator for hosts, cmds, default comma."`
-	Timeout     string   `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
-	PrintConfig bool     `pflag:"print config before running."`
-	Passphrase  string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
-	Hosts       []string `pflag:"hosts. shorthand=h"`
-	Cmds        []string `pflag:"commands to be executed. shorthand=x"`
+	Separator string `pflag:"separator for hosts, cmds, default comma."`
+	Timeout   string `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
+
+	SplitSSH    bool `pflag:"split ssh commands by comma or not."`
+	PrintConfig bool `pflag:"print config before running."`
+
+	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
+	Hosts      []string `pflag:"hosts. shorthand=h"`
+	Cmds       []string `pflag:"commands to be executed. shorthand=x"`
 }
 
 // GetSeparator get the separator
@@ -152,6 +155,7 @@ func (c *Config) Parse() GoSSH {
 
 	c.parseVars()
 
+	gs.Vars = *c
 	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
 	timeout := viper.Get("Timeout").(time.Duration)

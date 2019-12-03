@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bingoohuang/gossh/elf"
+
 	"github.com/spf13/viper"
 
 	"github.com/bingoohuang/gossh/gossh"
@@ -37,7 +39,12 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 
 	for _, host := range s.hosts {
 		if err := func(h Host, cmd string) error {
-			if err := h.SSH([]string{cmd}, timeout); err != nil {
+			cmds := []string{cmd}
+			if gs.Vars.SplitSSH {
+				cmds = elf.SplitX(cmd, ";")
+			}
+
+			if err := h.SSH(cmds, timeout); err != nil {
 				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
 				return err
 			}
@@ -182,18 +189,15 @@ func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan SSHOut) {
 		var buf [65 * 1024]byte
 
 		for {
-			n, err := r.Read(buf[:])
+			t, err := r.Read(buf[:])
 			if err != nil {
 				close(in)
 				close(out)
 				return
 			}
 
-			t := n
-
 			sbuf := string(buf[:t])
-			last := sbuf[t-2:]
-			switch last {
+			switch sbuf[t-2:] {
 			case "$ ", "# ": //assuming the $PS1 == 'sh-4.3$ '
 				out <- SSHOut{out: sbuf, complete: true}
 				wg.Done()
