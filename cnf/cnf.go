@@ -166,26 +166,28 @@ func setField(f reflector.ObjField, value interface{}) {
 }
 
 // DeclarePflagsByStruct declares flags from struct fields'name and type
-func DeclarePflagsByStruct(structVar interface{}) {
-	for _, f := range reflector.New(structVar).Fields() {
-		if !f.IsExported() {
-			continue
-		}
+func DeclarePflagsByStruct(structVars ...interface{}) {
+	for _, structVar := range structVars {
+		for _, f := range reflector.New(structVar).Fields() {
+			if !f.IsExported() {
+				continue
+			}
 
-		name := strcase.ToCamelLower(f.Name())
-		tag := elf.DecodeTag(elf.PickFirst(f.Tag("pflag")))
-		usage := tag.Main
-		shorthand := tag.GetOpt("shorthand")
+			name := strcase.ToCamelLower(f.Name())
+			tag := elf.DecodeTag(elf.PickFirst(f.Tag("pflag")))
+			usage := tag.Main
+			shorthand := tag.GetOpt("shorthand")
 
-		switch t, _ := f.Get(); t.(type) {
-		case []string:
-			pflag.StringP(name, shorthand, "", usage)
-		case string:
-			pflag.StringP(name, shorthand, "", usage)
-		case int:
-			pflag.IntP(name, shorthand, 0, usage)
-		case bool:
-			pflag.BoolP(name, shorthand, false, usage)
+			switch t, _ := f.Get(); t.(type) {
+			case []string:
+				pflag.StringP(name, shorthand, "", usage)
+			case string:
+				pflag.StringP(name, shorthand, "", usage)
+			case int:
+				pflag.IntP(name, shorthand, 0, usage)
+			case bool:
+				pflag.BoolP(name, shorthand, false, usage)
+			}
 		}
 	}
 }
