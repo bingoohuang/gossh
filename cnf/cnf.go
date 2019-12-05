@@ -33,9 +33,9 @@ func DeclarePflags() {
 }
 
 // LoadByPflag load values to cfgValue from pflag cnf specified path.
-func LoadByPflag(cfgValue interface{}) {
+func LoadByPflag(cfgValues ...interface{}) {
 	f, _ := homedir.Expand(viper.GetString("cnf"))
-	Load(f, cfgValue)
+	Load(f, cfgValues...)
 }
 
 // ParsePflags parse pflags and bind to viper
@@ -74,54 +74,62 @@ func FindFile(cnfFile string) (string, error) {
 }
 
 // LoadE similar to Load.
-func LoadE(cnfFile string, value interface{}) error {
-	if file, err := FindFile(cnfFile); err != nil {
+func LoadE(cnfFile string, values ...interface{}) error {
+	file, err := FindFile(cnfFile)
+	if err != nil {
 		return fmt.Errorf("FindFile error %w", err)
-	} else if _, err = toml.DecodeFile(file, value); err != nil {
-		return fmt.Errorf("DecodeFile error %w", err)
+	}
+
+	for _, value := range values {
+		if _, err = toml.DecodeFile(file, value); err != nil {
+			return fmt.Errorf("DecodeFile error %w", err)
+		}
 	}
 
 	return nil
 }
 
 // Load loads the cnfFile content and viper bindings to value.
-func Load(cnfFile string, value interface{}) {
-	if err := LoadE(cnfFile, value); err != nil {
+func Load(cnfFile string, values ...interface{}) {
+	if err := LoadE(cnfFile, values...); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			logrus.Warnf("Load Cnf %s error %v", cnfFile, err)
 		}
 	}
 
-	ViperToStruct(value)
+	ViperToStruct(values...)
 }
 
 // ViperToStruct read viper value to struct
-func ViperToStruct(structVar interface{}) {
-	separator := GetSeparator(structVar, ",")
+func ViperToStruct(structVars ...interface{}) {
+	separator := ","
+	for _, structVar := range structVars {
+		separator = GetSeparator(structVar, separator)
 
-	for _, f := range reflector.New(structVar).Fields() {
-		if !f.IsExported() {
-			continue
-		}
+		for _, f := range reflector.New(structVar).Fields() {
+			if !f.IsExported() {
+				continue
+			}
 
-		name := strcase.ToCamelLower(f.Name())
+			name := strcase.ToCamelLower(f.Name())
 
-		switch t, _ := f.Get(); t.(type) {
-		case []string:
-			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				setField(f, elf.SplitX(v, separator))
-			}
-		case string:
-			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				setField(f, v)
-			}
-		case int:
-			if v := viper.GetInt(name); v != 0 {
-				setField(f, v)
-			}
-		case bool:
-			if v := viper.GetBool(name); v {
-				setField(f, v)
+			switch t, _ := f.Get(); t.(type) {
+			case []string:
+				if v := strings.TrimSpace(viper.GetString(name)); v != "" {
+					setField(f, elf.SplitX(v, separator))
+				}
+			case string:
+				if v := strings.TrimSpace(viper.GetString(name)); v != "" {
+					setField(f, v)
+				}
+			case int:
+				if v := viper.GetInt(name); v != 0 {
+					setField(f, v)
+				}
+			case bool:
+				if v := viper.GetBool(name); v {
+					setField(f, v)
+				}
 			}
 		}
 	}
