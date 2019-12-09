@@ -26,6 +26,7 @@ type CaptureConfig struct {
 // Post process line and then POST it out
 type Post struct {
 	PostURL string `pflag:"POST URL"`
+	Other   string
 	CaptureConfig
 
 	_ *http.Client
@@ -46,9 +47,10 @@ func TestDeclarePflagsByStruct(t *testing.T) {
 	viper.Set("Matches", "a,b,c")
 	viper.Set("PostURL", "https://a.b.c")
 
-	p := &Post{}
+	p := &Post{Other: "bingoo"}
 	ViperToStruct(p)
 
 	assert.Equal(t, []string{"a", "b", "c"}, p.Matches)
 	assert.Equal(t, "https://a.b.c", p.PostURL)
+	assert.Equal(t, "bingoo", p.Other)
 }

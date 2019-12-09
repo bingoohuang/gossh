@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/tkrajina/go-reflector/reflector"
+
 	"github.com/bingoohuang/gossh/elf"
 	"github.com/bingoohuang/strcase"
 
@@ -16,7 +18,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/tkrajina/go-reflector/reflector"
 )
 
 // CheckUnknownPFlags checks the pflag and exiting.
@@ -107,38 +108,60 @@ func ViperToStruct(structVars ...interface{}) {
 	for _, structVar := range structVars {
 		separator = GetSeparator(structVar, separator)
 
-		for _, f := range reflector.New(structVar).Fields() {
-			if !f.IsExported() {
-				continue
+		viperObjectFields(structVar, separator)
+	}
+}
+
+func viperObjectFields(pObj interface{}, separator string) {
+	pValue := reflect.ValueOf(pObj)
+
+	viperObjectFieldsValue(pValue, separator)
+}
+
+func viperObjectFieldsValue(pValue reflect.Value, separator string) {
+	if pValue.Kind() != reflect.Ptr {
+		return
+	}
+
+	objVV := pValue.Elem()
+	if objVV.Kind() != reflect.Struct {
+		return
+	}
+
+	objVT := objVV.Type()
+
+	for i := 0; i < objVV.NumField(); i++ {
+		ft := objVT.Field(i)
+		fv := objVV.Field(i)
+
+		if ft.PkgPath != "" { // not exportable
+			continue
+		}
+
+		if ft.Anonymous || ft.Type.Kind() == reflect.Struct {
+			viperObjectFieldsValue(fv.Addr(), separator)
+
+			continue
+		}
+
+		name := strcase.ToCamelLower(ft.Name)
+
+		switch ft.Type.Kind() {
+		case reflect.Slice:
+			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
+				fv.Set(reflect.ValueOf(elf.SplitX(v, separator)))
 			}
-
-			if f.IsAnonymous() || f.Kind() == reflect.Struct {
-				v := reflect.New(f.Type())
-				ViperToStruct(v.Interface())
-				setField(f, v.Elem().Interface())
-
-				continue
+		case reflect.String:
+			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
+				fv.SetString(v)
 			}
-
-			name := strcase.ToCamelLower(f.Name())
-
-			switch t, _ := f.Get(); t.(type) {
-			case []string:
-				if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-					setField(f, elf.SplitX(v, separator))
-				}
-			case string:
-				if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-					setField(f, v)
-				}
-			case int:
-				if v := viper.GetInt(name); v != 0 {
-					setField(f, v)
-				}
-			case bool:
-				if v := viper.GetBool(name); v {
-					setField(f, v)
-				}
+		case reflect.Int:
+			if v := viper.GetInt(name); v != 0 {
+				fv.SetInt(int64(v))
+			}
+		case reflect.Bool:
+			if v := viper.GetBool(name); v {
+				fv.SetBool(v)
 			}
 		}
 	}
@@ -166,12 +189,6 @@ func GetSeparator(v interface{}, defaultSeparator string) string {
 	}
 
 	return defaultSeparator
-}
-
-func setField(f reflector.ObjField, value interface{}) {
-	if err := f.Set(value); err != nil {
-		logrus.Warnf("Fail to set %s to %v, error %v", f.Name(), value, err)
-	}
 }
 
 // DeclarePflagsByStruct declares flags from struct fields'name and type
