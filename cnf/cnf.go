@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/bingoohuang/gossh/elf"
@@ -111,6 +112,14 @@ func ViperToStruct(structVars ...interface{}) {
 				continue
 			}
 
+			if f.IsAnonymous() || f.Kind() == reflect.Struct {
+				v := reflect.New(f.Type())
+				ViperToStruct(v.Interface())
+				setField(f, v.Elem().Interface())
+
+				continue
+			}
+
 			name := strcase.ToCamelLower(f.Name())
 
 			switch t, _ := f.Get(); t.(type) {
@@ -170,6 +179,13 @@ func DeclarePflagsByStruct(structVars ...interface{}) {
 	for _, structVar := range structVars {
 		for _, f := range reflector.New(structVar).Fields() {
 			if !f.IsExported() {
+				continue
+			}
+
+			if f.IsAnonymous() || f.Kind() == reflect.Struct {
+				fv, _ := f.Get()
+				DeclarePflagsByStruct(fv)
+
 				continue
 			}
 
