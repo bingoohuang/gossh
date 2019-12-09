@@ -25,3 +25,35 @@ func JSONPrettyE(data interface{}) (string, error) {
 
 	return buffer.String(), nil
 }
+
+// JSONCompact compact the JSON encoding of data silently
+func JSONCompact(data interface{}) string {
+	return elf.PickFirst(JSONCompactE(data))
+}
+
+// JSONCompactE compact the JSON encoding of data
+func JSONCompactE(data interface{}) (string, error) {
+	switch v := data.(type) {
+	case string:
+		buffer := new(bytes.Buffer)
+		if err := json.Compact(buffer, []byte(v)); err != nil {
+			return "", err
+		}
+
+		return buffer.String(), nil
+	case []byte:
+		buffer := new(bytes.Buffer)
+		if err := json.Compact(buffer, v); err != nil {
+			return "", err
+		}
+
+		return buffer.String(), nil
+	default:
+		b, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+
+		return string(b), nil
+	}
+}
