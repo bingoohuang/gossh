@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gou/pbe"
+
 	"github.com/bingoohuang/gossh/cmdtype"
-	"github.com/bingoohuang/gossh/pbe"
 	"github.com/spf13/viper"
 )
 

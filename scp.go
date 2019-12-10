@@ -4,11 +4,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bingoohuang/gou/file"
+	"github.com/bingoohuang/gou/str"
+
 	"github.com/bmatcuk/doublestar"
 
 	homedir "github.com/mitchellh/go-homedir"
 
-	"github.com/bingoohuang/gossh/elf"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,7 +44,7 @@ func (u UlDl) TargetHosts() Hosts { return u.hosts }
 func (u UlDl) RawCmd() string { return u.cmd }
 
 func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
-	fields := elf.Fields(realCmd, 2)
+	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil
@@ -54,7 +56,7 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 
 	local = strings.ReplaceAll(local, "~", home)
 	localFiles, err := doublestar.Glob(local)
-	basedir := elf.BaseDir(localFiles)
+	basedir := file.BaseDir(localFiles)
 
 	if err != nil {
 		logrus.Fatalf("doublestar.Glob(%s) error %v", local, err)
@@ -78,7 +80,7 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 }
 
 func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
-	fields := elf.Fields(realCmd, 2)
+	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
 		logrus.Warnf("bad format for %s", cmd)
 		return nil

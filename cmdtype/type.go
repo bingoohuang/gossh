@@ -3,7 +3,7 @@ package cmdtype
 import (
 	"strings"
 
-	"github.com/bingoohuang/gossh/elf"
+	"github.com/bingoohuang/gou/str"
 )
 
 // CmdType represents the cmd types.
@@ -29,10 +29,10 @@ func Parse(cmd string) (CmdType, string, string) {
 		return Noop, "", ""
 	}
 
-	fields := elf.Fields(cmd, 2)
+	fields := str.Fields(cmd, 2)
 
 	if strings.HasPrefix(fields[0], "%host") {
-		fields2 := elf.Fields(fields[1], 2)
+		fields2 := str.Fields(fields[1], 2)
 		switch fields2[0] {
 		case "%ul":
 			return Ul, fields[0], fields2[1]

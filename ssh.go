@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bingoohuang/gossh/elf"
+	"github.com/bingoohuang/gou/str"
 
 	"github.com/spf13/viper"
 
@@ -41,7 +41,7 @@ func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
 		if err := func(h Host, cmd string) error {
 			cmds := []string{cmd}
 			if gs.Vars.SplitSSH {
-				cmds = elf.SplitX(cmd, ";")
+				cmds = str.SplitX(cmd, ";")
 			}
 
 			if err := h.SSH(cmds, timeout); err != nil {
@@ -67,14 +67,13 @@ func (h Host) SSH(cmd []string, timeout time.Duration) error {
 	fmt.Println()
 	fmt.Println("---", h.Addr, "---")
 
-	sshClt, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
-	if err != nil {
-		return fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)
+	gc := &gossh.Connect{}
+	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
+		return fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
 	}
+	defer gc.Close()
 
-	defer sshClt.Close()
-
-	if err := sshScripts(sshClt, cmd); err != nil {
+	if err := sshScripts(gc.Client, cmd); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
 	}
 

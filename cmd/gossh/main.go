@@ -3,13 +3,15 @@ package main
 import (
 	"fmt"
 
+	"github.com/bingoohuang/gou/enc"
+
 	"github.com/spf13/pflag"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/bingoohuang/gossh"
-	"github.com/bingoohuang/gossh/cnf"
-	"github.com/bingoohuang/gossh/pbe"
+	"github.com/bingoohuang/gou/cnf"
+	"github.com/bingoohuang/gou/pbe"
 )
 
 func main() {
@@ -39,7 +41,7 @@ func main() {
 	cnf.LoadByPflag(&config)
 
 	if config.PrintConfig {
-		fmt.Printf("Config%s\n", gossh.JSONPretty(config))
+		fmt.Printf("Config%s\n", enc.JSONPretty(config))
 	}
 
 	gs := config.Parse()

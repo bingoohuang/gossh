@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bingoohuang/gossh/elf"
-
-	"github.com/bingoohuang/gossh/pbe"
+	"github.com/bingoohuang/gou/mat"
+	"github.com/bingoohuang/gou/pbe"
 
 	"github.com/bingoohuang/gou/str"
 	"github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ func (c Config) parseHosts() Hosts {
 	hosts := make(Hosts, 0)
 
 	for _, host := range c.Hosts {
-		fields := elf.FieldsX(host, "(", ")", -1)
+		fields := str.FieldsX(host, "(", ")", -1)
 		if len(fields) < 2 {
 			logrus.Warnf("bad format for host %s", host)
 			continue
@@ -36,19 +35,19 @@ func (c Config) parseHosts() Hosts {
 }
 
 func expandHost(host *Host, hostsLen int) Hosts {
-	ids := MakeExpand(host.ID).MakePart()
-	addrs := MakeExpand(host.Addr).MakePart()
-	users := MakeExpand(host.User).MakePart()
-	passes := MakeExpand(host.Password).MakePart()
+	ids := str.MakeExpand(host.ID).MakePart()
+	addrs := str.MakeExpand(host.Addr).MakePart()
+	users := str.MakeExpand(host.User).MakePart()
+	passes := str.MakeExpand(host.Password).MakePart()
 
-	maxExpands := elf.MaxInt(ids.Len(), addrs.Len(), users.Len(), passes.Len())
+	maxExpands := mat.MaxInt(ids.Len(), addrs.Len(), users.Len(), passes.Len())
 
-	expandedProps := make(map[string]Part)
+	expandedProps := make(map[string]str.Part)
 
 	for k, v := range host.Properties {
-		vv := MakeExpand(v).MakePart()
+		vv := str.MakeExpand(v).MakePart()
 		expandedProps[k] = vv
-		maxExpands = elf.MaxInt(maxExpands, vv.Len())
+		maxExpands = mat.MaxInt(maxExpands, vv.Len())
 	}
 
 	hosts := make(Hosts, maxExpands)

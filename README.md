@@ -56,8 +56,10 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [Golang Client Examples](https://golang.hotexamples.com/examples/github.com.pkg.sftp/Client/-/golang-client-class-examples.html)
 1. [go语言使用sftp包上传文件和文件夹到远程服务器](https://blog.csdn.net/fu_qin/article/details/78741854)
 1. [Implements support for double star (**) matches in golang's path.Match and filepath.Glob.](https://github.com/bmatcuk/doublestar)
-
-
+1. [easyssh-proxy provides a simple implementation of some SSH protocol features in Go](https://github.com/appleboy/easyssh-proxy)
+1. [List selection type alternative ssh/scp/sftp client. Pure Go.](https://github.com/blacknon/lssh)
+1. [A library to handle ssh easily with Golang.It can do multiple proxy, x11 forwarding, etc.](https://github.com/blacknon/go-sshlib), [go-sshlib doc](https://godoc.org/github.com/blacknon/go-sshlib)
+1. [An auditing / logging SSH relay for a jump box / bastion host.](https://github.com/iamacarpet/ssh-bastion)
 
 ## Scripts
 

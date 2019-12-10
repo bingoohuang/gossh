@@ -10,12 +10,12 @@ import (
 )
 
 func makeSftpClient(h Host, timeout time.Duration) (*sftp.Client, error) {
-	conn, err := gossh.DialTCP(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout))
-	if err != nil {
-		return nil, fmt.Errorf("ssh.Dial(%q) failed: %w", h.Addr, err)
+	gc := &gossh.Connect{}
+	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
+		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
 	}
 
-	sf, err := sftp.NewClient(conn)
+	sf, err := sftp.NewClient(gc.Client)
 	if err != nil {
 		return nil, fmt.Errorf("sftp.NewClient failed: %w", err)
 	}
