@@ -3,6 +3,7 @@ package gossh
 import (
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -194,6 +195,33 @@ func (hosts Hosts) FixProxy() {
 			} else {
 				logrus.Panicf("unable to fine proxy host by ID %s", proxy)
 			}
+		}
+	}
+
+	// 检测proxy的环
+	for _, h := range hosts {
+		if h.Proxy == nil {
+			continue
+		}
+
+		m := make(map[string]bool)
+		m[h.ID] = true
+
+		h = h.Proxy
+		i := 0
+
+		for ; i < 10 && h != nil; i++ {
+			if _, ok := m[h.ID]; ok {
+				logrus.Errorf("proxy circled!")
+				os.Exit(1)
+			}
+
+			m[h.ID] = true
+			h = h.Proxy
+		}
+
+		if i == 10 {
+			logrus.Errorf("proxy chain can not exceed 10!")
 		}
 	}
 }
