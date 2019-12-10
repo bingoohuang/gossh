@@ -2,17 +2,12 @@ package gossh
 
 import (
 	"fmt"
-	"io"
-	"os"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/bingoohuang/gou/str"
 
 	"github.com/spf13/viper"
 
-	"github.com/bingoohuang/gossh/gossh"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/sirupsen/logrus"
@@ -67,11 +62,11 @@ func (h Host) SSH(cmd []string, timeout time.Duration) error {
 	fmt.Println()
 	fmt.Println("---", h.Addr, "---")
 
-	gc := &gossh.Connect{}
-	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
-		return fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
+	gc, err := h.GetGosshConnect(timeout)
+	if err != nil {
+		return err
 	}
-	defer gc.Close()
+	//defer gc.Close()
 
 	if err := sshScripts(gc.Client, cmd); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
@@ -86,7 +81,7 @@ func sshScripts(client *ssh.Client, cmd []string) error {
 		return err
 	}
 
-	defer session.Close()
+	//defer session.Close()
 
 	// disable echoing input/output speed = 14.4kbaud
 	modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
@@ -104,107 +99,11 @@ func sshScripts(client *ssh.Client, cmd []string) error {
 		return err
 	}
 
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stdin
-
-	in, out := MuxShell(w, r)
-
 	if err := session.Shell(); err != nil {
 		return err
 	}
 
-	mux(cmd, out, in)
+	mux(cmd, w, r)
 
 	return nil
-}
-
-func mux(cmd []string, out <-chan SSHOut, in chan<- string) {
-	fmt.Print(GetLastLine(waitSSHOutComplete(out)))
-
-	for i, cmd := range cmd {
-		in <- cmd
-
-		for s := range out {
-			if s.complete {
-				if i < len(cmd)-1 {
-					fmt.Print(s.out)
-				}
-
-				break
-			}
-
-			fmt.Print(s.out)
-		}
-	}
-}
-
-func waitSSHOutComplete(out <-chan SSHOut) string {
-	merged := ""
-	for s := range out {
-		merged += s.out
-
-		if s.complete {
-			break
-		}
-	}
-
-	return merged
-}
-
-// GetLastLine gets the last line of s.
-func GetLastLine(s string) string {
-	pos := strings.LastIndex(s, "\n")
-	if pos < 0 || pos == len(s)-1 {
-		return s
-	}
-
-	return s[pos+1:]
-}
-
-// SSHOut ...
-type SSHOut struct {
-	out      string
-	complete bool
-}
-
-// MuxShell ...
-func MuxShell(w io.Writer, r io.Reader) (chan<- string, <-chan SSHOut) {
-	in, out := make(chan string, 1), make(chan SSHOut, 1)
-
-	var wg sync.WaitGroup
-
-	wg.Add(1) //for the shell itself
-
-	go func() {
-		for cmd := range in {
-			fmt.Println(cmd)
-			wg.Add(1)
-			_, _ = w.Write([]byte(cmd + "\n"))
-			wg.Wait()
-		}
-	}()
-
-	go func() {
-		var buf [65 * 1024]byte
-
-		for {
-			t, err := r.Read(buf[:])
-			if err != nil {
-				close(in)
-				close(out)
-				return
-			}
-
-			sbuf := string(buf[:t])
-			switch sbuf[t-2:] {
-			case "$ ", "# ": //assuming the $PS1 == 'sh-4.3$ '
-				out <- SSHOut{out: sbuf, complete: true}
-				wg.Done()
-			default:
-				out <- SSHOut{out: sbuf, complete: false}
-			}
-		}
-	}()
-
-	return in, out
 }

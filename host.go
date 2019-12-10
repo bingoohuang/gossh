@@ -1,7 +1,6 @@
 package gossh
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/bingoohuang/gou/mat"
@@ -24,17 +23,20 @@ func (c Config) parseHosts() Hosts {
 		_, addr := parseHostID(fields[0])
 		user, pass := parseUserPass(fields[1])
 		props := parseProps(fields)
-		id := fixID(props, "")
+		id := fixID(props)
 
 		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
-		expanded := expandHost(host, len(hosts))
+		expanded := expandHost(host)
 		hosts = append(hosts, expanded...)
 	}
+
+	hosts.FixHostID()
+	hosts.FixProxy()
 
 	return hosts
 }
 
-func expandHost(host *Host, hostsLen int) Hosts {
+func expandHost(host *Host) Hosts {
 	ids := str.MakeExpand(host.ID).MakePart()
 	addrs := str.MakeExpand(host.Addr).MakePart()
 	users := str.MakeExpand(host.User).MakePart()
@@ -59,13 +61,8 @@ func expandHost(host *Host, hostsLen int) Hosts {
 			props[k] = v.Part(i)
 		}
 
-		id := ids.Part(i)
-		if id == "" {
-			id = fmt.Sprintf("%d", i+hostsLen+1)
-		}
-
 		hosts[i] = &Host{
-			ID:         id,
+			ID:         ids.Part(i),
 			Addr:       addrs.Part(i),
 			User:       users.Part(i),
 			Password:   passes.Part(i),
@@ -75,12 +72,12 @@ func expandHost(host *Host, hostsLen int) Hosts {
 	return hosts
 }
 
-func fixID(props map[string]string, id string) string {
-	if customID, ok := props["id"]; ok && customID != "" {
-		return customID
+func fixID(props map[string]string) string {
+	if v, ok := props["id"]; ok {
+		return v
 	}
 
-	return id
+	return ""
 }
 
 func parseProps(fields []string) map[string]string {

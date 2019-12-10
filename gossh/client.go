@@ -1,6 +1,8 @@
 package gossh
 
 import (
+	"io"
+
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 )
@@ -10,22 +12,19 @@ type Connect struct {
 	// Client *ssh.Client
 	Client *ssh.Client
 
-	// Session
-	Session *ssh.Session
-
 	// ProxyDialer
 	ProxyDialer proxy.Dialer
 }
 
 // CreateClient connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server
 func (c *Connect) CreateClient(addr string, clientConfig *ssh.ClientConfig) error {
-	// check Dialer
-	if c.ProxyDialer == nil {
-		c.ProxyDialer = proxy.Direct
+	dialer := c.ProxyDialer
+	if dialer == nil {
+		dialer = proxy.Direct
 	}
 
 	// Dial to host:port
-	netConn, err := c.ProxyDialer.Dial("tcp", addr)
+	netConn, err := dialer.Dial("tcp", addr)
 	if err != nil {
 		return err
 	}
@@ -39,13 +38,6 @@ func (c *Connect) CreateClient(addr string, clientConfig *ssh.ClientConfig) erro
 	// Create *ssh.Client
 	c.Client = ssh.NewClient(sshCon, channel, req)
 
-	sess, err := c.Client.NewSession()
-	if err != nil {
-		return err
-	}
-
-	c.Session = sess
-
 	return nil
 }
 
@@ -58,10 +50,11 @@ func (c *Connect) Close() error {
 		return client.Close()
 	}
 
-	return nil
-}
+	if c.ProxyDialer != nil {
+		if closer, ok := c.ProxyDialer.(io.Closer); ok {
+			_ = closer.Close()
+		}
+	}
 
-// CreateSession create a session.
-func (c *Connect) CreateSession() (*ssh.Session, error) {
-	return c.Client.NewSession()
+	return nil
 }

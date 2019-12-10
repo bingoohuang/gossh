@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gossh/gossh"
+
+	"github.com/sirupsen/logrus"
+
 	"github.com/bingoohuang/gou/pbe"
 
 	"github.com/bingoohuang/gossh/cmdtype"
@@ -38,6 +42,28 @@ type Host struct {
 	User       string
 	Password   string // empty when using public key
 	Properties map[string]string
+
+	Proxy *Host
+}
+
+// GetGosshConnect get gossh Connect
+func (h Host) GetGosshConnect(timeout time.Duration) (*gossh.Connect, error) {
+	gc := &gossh.Connect{}
+
+	if h.Proxy != nil {
+		pc, err := h.Proxy.GetGosshConnect(timeout)
+		if err != nil {
+			return nil, err
+		}
+
+		gc.ProxyDialer = pc.Client
+	}
+
+	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
+		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
+	}
+
+	return gc, nil
 }
 
 const ignoreWarning = "-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
@@ -57,6 +83,15 @@ func (h Host) PrintSCP() {
 	// sshpass -p xxx scp -P 9922 root@192.168.205.148:/root/xxx .
 	scpCmd := fmt.Sprintf("sshpass -p %s scp -P%s %s %s@%s:. .", h.Password, port, ignoreWarning, h.User, host)
 	fmt.Println(scpCmd)
+}
+
+// Prop finds property by name
+func (h Host) Prop(name string) string {
+	if v, ok := h.Properties[name]; ok {
+		return v
+	}
+
+	return ""
 }
 
 // CmdExcResult means the detail exec result of cmd
@@ -123,16 +158,43 @@ func (g *CmdGroup) Exec() {
 type Hosts []*Host
 
 // PrintSSH prints sshpass ssh commands for all hosts
-func (h Hosts) PrintSSH() {
-	for _, h := range h {
+func (hosts Hosts) PrintSSH() {
+	for _, h := range hosts {
 		h.PrintSSH()
 	}
 }
 
+// FixHostID fix the host ID by sequence if it is blank.
+func (hosts Hosts) FixHostID() {
+	for i, h := range hosts {
+		if h.ID == "" {
+			h.ID = fmt.Sprintf("%d", i+1)
+		}
+	}
+}
+
 // PrintSCP prints sshpass scp commands for all hosts
-func (h Hosts) PrintSCP() {
-	for _, h := range h {
+func (hosts Hosts) PrintSCP() {
+	for _, h := range hosts {
 		h.PrintSCP()
+	}
+}
+
+// FixProxy fix proxy
+func (hosts Hosts) FixProxy() {
+	m := make(map[string]*Host)
+	for _, h := range hosts {
+		m[h.ID] = h
+	}
+
+	for _, h := range hosts {
+		if proxy := h.Prop("proxy"); proxy != "" && proxy != "-" {
+			if proxyHost, ok := m[proxy]; ok {
+				h.Proxy = proxyHost
+			} else {
+				logrus.Panicf("unable to fine proxy host by ID %s", proxy)
+			}
+		}
 	}
 }
 

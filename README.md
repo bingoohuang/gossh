@@ -82,3 +82,10 @@ gossh -h="192.168.1.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!
 gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
 gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
 ```
+
+proxy supported:
+
+```bash
+gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 %dl 1.log 10.log"
+gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 cat 1.log"
+```

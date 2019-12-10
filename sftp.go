@@ -5,14 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bingoohuang/gossh/gossh"
 	"github.com/pkg/sftp"
 )
 
 func makeSftpClient(h Host, timeout time.Duration) (*sftp.Client, error) {
-	gc := &gossh.Connect{}
-	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
-		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
+	gc, err := h.GetGosshConnect(timeout)
+	if err != nil {
+		return nil, err
 	}
 
 	sf, err := sftp.NewClient(gc.Client)
