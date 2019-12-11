@@ -15,6 +15,8 @@ func mux(cmd []string, w io.Writer, r io.Reader) {
 	for {
 		t, err := r.Read(buf[:])
 		if err != nil {
+			fmt.Print(last)
+
 			if err != io.EOF {
 				fmt.Println(err)
 			}
@@ -40,13 +42,13 @@ func mux(cmd []string, w io.Writer, r io.Reader) {
 
 			last = ""
 
-			if len(cmd) > 0 {
-				lastCmd = cmd[0]
-				_, _ = w.Write([]byte(lastCmd + "\n"))
-				cmd = cmd[1:]
-			} else {
+			if len(cmd) == 0 {
 				return
 			}
+
+			lastCmd = cmd[0]
+			_, _ = w.Write([]byte(lastCmd + "\n"))
+			cmd = cmd[1:]
 		default:
 			last += sbuf
 		}

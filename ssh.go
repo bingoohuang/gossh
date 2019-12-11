@@ -66,7 +66,8 @@ func (h Host) SSH(cmd []string, timeout time.Duration) error {
 	if err != nil {
 		return err
 	}
-	//defer gc.Close()
+
+	defer gc.Close()
 
 	if err := sshScripts(gc.Client, cmd); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
@@ -81,7 +82,7 @@ func sshScripts(client *ssh.Client, cmd []string) error {
 		return err
 	}
 
-	//defer session.Close()
+	defer session.Close()
 
 	// disable echoing input/output speed = 14.4kbaud
 	modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
