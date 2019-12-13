@@ -19,18 +19,18 @@ import (
 
 // Config represents the structure of input toml file structure.
 type Config struct {
-	ReplaceQuote string `pflag:"replace for quote(\")."`
-	ReplaceBang  string `pflag:"replace for bang(!)."`
+	ReplaceQuote string `pflag:"replace for quote(\"). shorthand=q"`
+	ReplaceBang  string `pflag:"replace for bang(!). shorthand=b"`
 
-	Separator string `pflag:"separator for hosts, cmds, default comma."`
-	Timeout   string `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
+	Separator string `pflag:"separator for hosts, cmds, default comma. shorthand=s"`
+	Timeout   string `pflag:"timeout(eg. 15s, 3m), empty for no timeout. shorthand=t"`
 
-	SplitSSH    bool `pflag:"split ssh commands by comma or not."`
-	PrintConfig bool `pflag:"print config before running."`
+	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
+	PrintConfig bool `pflag:"print config before running. shorthand=P"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
-	Hosts      []string `pflag:"hosts. shorthand=h"`
-	Cmds       []string `pflag:"commands to be executed. shorthand=x"`
+	Hosts      []string `pflag:"hosts. shorthand=H"`
+	Cmds       []string `pflag:"commands to be executed. shorthand=C"`
 }
 
 // GetSeparator get the separator
