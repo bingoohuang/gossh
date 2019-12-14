@@ -18,8 +18,9 @@ github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+Ce
 github.com/bingoohuang/gonet v0.0.0-20190716021716-fd516efe8b31/go.mod h1:lSe5gMXAiQESg/xTshM6sByKvDkMGdDffZSXt0d64JI=
 github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd h1:horohKpjOxu/ZiHUzDhMbfoUgthbXoiCEI2SvWkOVL4=
 github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd/go.mod h1:rga5AtVf7Npiv04XZxTsd8LC4/VyEHr+sn4Vt1jWPNE=
-github.com/bingoohuang/gou v0.0.0-20191210032910-89ce8fa94fa2 h1:YQ8xefMHQm86B2v1H4xmflZXhF6NBNHyqEWpsGy/iqQ=
-github.com/bingoohuang/gou v0.0.0-20191210032910-89ce8fa94fa2/go.mod h1:6RGOXbUtXTFZJ8g7HgvqsBGtavxdi4leGCF1+MFxYvA=
+github.com/bingoohuang/gou v0.0.0-20191214155546-78cc687ca18e h1:qqITCGui7A+QsZhaQkPaIP1/VUYP3Q1EBvdQMtJV0JM=
+github.com/bingoohuang/gou v0.0.0-20191214155546-78cc687ca18e/go.mod h1:jyyu/57Psqg6/btyBwAT6E9dTgs5lfoHdqcQwD96uVU=
+github.com/bingoohuang/now v0.0.0-20190715150822-ba8e4a91e3d9/go.mod h1:SZou0n15kP/Z3Vq8lyuH59ML96lepeGzInZw0+KCFw4=
 github.com/bingoohuang/strcase v0.0.0-20190707081139-fae4a99e1218 h1:7Ku6SM7mXEOq+lUrjebiW94aED5tCTifP56HTNrWN3M=
 github.com/bingoohuang/strcase v0.0.0-20190707081139-fae4a99e1218/go.mod h1:WYrcjWhT2QgbWZcYzfYqWxaxut2hPFa6if/zYwEEEio=
 github.com/bmatcuk/doublestar v1.2.1 h1:eetYiv8DDYOZcBADY+pRvRytf3Dlz1FhnpvL2FsClBc=
@@ -127,6 +128,7 @@ github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m
 github.com/mattn/go-runewidth v0.0.7 h1:Ei8KR0497xHyKJPAv59M1dkC+rOZCMBJ+t3fZ+twI54=
 github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
+github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQzvN1EDeE=
@@ -209,6 +211,7 @@ github.com/tkrajina/go-reflector v0.5.1 h1:lr92wbd6ULg/OtXbkzgG8sjWO9f1CXgbwRBWB
 github.com/tkrajina/go-reflector v0.5.1/go.mod h1:9PyLgEOzc78ey/JmQQHbW8cQJ1oucLlNQsg8yFvkVk8=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
+github.com/x-cray/logrus-prefixed-formatter v0.5.2/go.mod h1:2duySbKsL6M18s5GU7VPsoEPHyzalCE06qoARUCeBBE=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

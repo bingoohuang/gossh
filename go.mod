@@ -3,13 +3,12 @@ module github.com/bingoohuang/gossh
 go 1.13
 
 require (
-	github.com/bingoohuang/gou v0.0.0-20191210032910-89ce8fa94fa2
+	github.com/bingoohuang/gou v0.0.0-20191214155546-78cc687ca18e
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
 	github.com/google/uuid v1.1.1
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/sftp v1.10.1
