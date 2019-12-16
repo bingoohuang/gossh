@@ -1,0 +1,379 @@
+
+
+系统巡检脚本：Version 2016.08.09
+
+
+############################ 系统检查 ############################
+     系统：GNU/Linux
+ 发行版本：CentOS Linux release 7.4.1708 (Core) 
+     内核：3.10.0-693.el7.x86_64
+   主机名：tencent-beta17
+  SELinux：disabled
+语言/编码：en_US.utf8
+ 当前时间：2019-12-16 17:33:34
+ 最后启动：2019-12-11 10:41
+ 运行时间：5 days
+
+
+############################ CPU检查 #############################
+物理CPU个数:1
+逻辑CPU个数:4
+每CPU核心数:4
+    CPU型号:Intel(R) Xeon(R) CPU E5-26xx v4
+    CPU架构:x86_64
+
+
+############################ 内存检查 ############################
+              total        used        free      shared  buff/cache   available
+Mem:            15G        7.2G        727M         12M        7.6G        7.8G
+Swap:            0B          0B          0B
+
+
+############################ 磁盘检查 ############################
+Filesystem  Type      |  Size  Used  Avail  Use%  |  Inodes  IUsed  IFree  IUse%  |  Mounted
+/dev/vda1   ext4      |  197G  43G   146G   23%   |  13M     345K   13M    3%     |  /
+devtmpfs    devtmpfs  |  7.8G  0     7.8G   0%    |  2.0M    335    2.0M   1%     |  /dev
+tmpfs       tmpfs     |  7.8G  28K   7.8G   1%    |  2.0M    8      2.0M   1%     |  /dev/shm
+tmpfs       tmpfs     |  7.8G  28K   7.8G   1%    |  2.0M    436    2.0M   1%     |  /run
+tmpfs       tmpfs     |  7.8G  28K   7.8G   1%    |  2.0M    16     2.0M   1%     |  /sys/fs/cgroup
+tmpfs       tmpfs     |  7.8G  28K   7.8G   1%    |  2.0M    1      2.0M   1%     |  /run/user/0
+tmpfs       tmpfs     |  7.8G  28K   7.8G   1%    |  2.0M    1      2.0M   1%     |  /run/user/1001
+tmpfs       tmpfs     |  7.8G  472K  7.8G   1%    |  2.0M    8      2.0M   1%     |  /dev/shm
+tmpfs       tmpfs     |  7.8G  472K  7.8G   1%    |  2.0M    436    2.0M   1%     |  /run
+tmpfs       tmpfs     |  7.8G  472K  7.8G   1%    |  2.0M    16     2.0M   1%     |  /sys/fs/cgroup
+tmpfs       tmpfs     |  7.8G  472K  7.8G   1%    |  2.0M    1      2.0M   1%     |  /run/user/0
+tmpfs       tmpfs     |  7.8G  472K  7.8G   1%    |  2.0M    1      2.0M   1%     |  /run/user/1001
+tmpfs       tmpfs     |  7.8G  0     7.8G   0%    |  2.0M    8      2.0M   1%     |  /dev/shm
+tmpfs       tmpfs     |  7.8G  0     7.8G   0%    |  2.0M    436    2.0M   1%     |  /run
+tmpfs       tmpfs     |  7.8G  0     7.8G   0%    |  2.0M    16     2.0M   1%     |  /sys/fs/cgroup
+tmpfs       tmpfs     |  7.8G  0     7.8G   0%    |  2.0M    1      2.0M   1%     |  /run/user/0
+tmpfs       tmpfs     |  7.8G  0     7.8G   0%    |  2.0M    1      2.0M   1%     |  /run/user/1001
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    8      2.0M   1%     |  /dev/shm
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    436    2.0M   1%     |  /run
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    16     2.0M   1%     |  /sys/fs/cgroup
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    1      2.0M   1%     |  /run/user/0
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    1      2.0M   1%     |  /run/user/1001
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    8      2.0M   1%     |  /dev/shm
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    436    2.0M   1%     |  /run
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    16     2.0M   1%     |  /sys/fs/cgroup
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    1      2.0M   1%     |  /run/user/0
+tmpfs       tmpfs     |  1.6G  0     1.6G   0%    |  2.0M    1      2.0M   1%     |  /run/user/1001
+
+
+############################ 网络检查 ############################
+eth0: 192.168.108.7/24 192.168.108.17/32 
+br-8983f91a1c88: 172.18.0.1/16 
+docker0: 172.17.0.1/16 
+
+网关：192.168.108.1 
+ DNS：183.60.83.19,183.60.82.98
+
+
+############################ 监听检查 ############################
+Netid  State   Recv-Q  Send-Q  Local               Address:Port  Peer  Address:Port
+udp    UNCONN  0       0       192.168.108.17:123  *:*
+udp    UNCONN  0       0       172.17.0.1:123      *:*
+udp    UNCONN  0       0       172.18.0.1:123      *:*
+udp    UNCONN  0       0       192.168.108.7:123   *:*
+udp    UNCONN  0       0       127.0.0.1:123       *:*
+udp    UNCONN  0       0       *:123               *:*
+udp    UNCONN  0       0       :::123              :::*
+tcp    LISTEN  0       128     127.0.0.1:6060      *:*
+tcp    LISTEN  0       128     *:111               *:*
+tcp    LISTEN  0       128     *:8081              *:*
+tcp    LISTEN  0       128     127.0.0.1:9201      *:*
+tcp    LISTEN  0       128     *:11090             *:*
+tcp    LISTEN  0       128     *:10005             *:*
+tcp    LISTEN  0       128     127.0.0.1:9301      *:*
+tcp    LISTEN  0       128     *:22                *:*
+tcp    LISTEN  0       128     *:11800             *:*
+tcp    LISTEN  0       128     127.0.0.1:5432      *:*
+tcp    LISTEN  0       128     127.0.0.1:13306     *:*
+tcp    LISTEN  0       50      *:12800             *:*
+tcp    LISTEN  0       128     *:10017             *:*
+tcp    LISTEN  0       100     *:10050             *:*
+tcp    LISTEN  0       128     *:11080             *:*
+tcp    LISTEN  0       128     127.0.0.1:23306     *:*
+tcp    LISTEN  0       128     :::10023            :::*
+tcp    LISTEN  0       80      :::3306             :::*
+
+
+############################ 进程检查 ############################
+
+内存占用TOP10
+-------------
+PID   %MEM  RSS      COMMAND
+986   30.1  4908500  /bin/java
+3301  3.6   588788   /home/footstone/jdk1.8.0_161/bin/java
+2764  3.3   543468   /home/footstone/jdk1.8.0_161/bin/java
+5157  2.7   449100   /home/footstone/jdk1.8.0_161/bin/java
+5412  2.6   432064   /home/footstone/jdk1.8.0_161/bin/java
+1466  2.0   328916   /usr/sbin/mysqld
+653   1.0   167248   /usr/local/qcloud/YunJing/YDEyes/YDService
+1235  0.4   66336    ./jarvis-agent
+983   0.3   51340    /usr/bin/dockerd
+1387  0.1   30112    docker-containerd
+
+CPU占用TOP10
+------------
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 5157 footsto+  20   0 4293608 449100  15996 S  13.3  2.8 652:06.24 java
+    1 root      20   0   43400   3452   2200 S   0.0  0.0   0:19.55 systemd
+    2 root      20   0       0      0      0 S   0.0  0.0   0:00.00 kthreadd
+    3 root      20   0       0      0      0 S   0.0  0.0   0:05.25 ksoftirqd/0
+    5 root       0 -20       0      0      0 S   0.0  0.0   0:00.00 kworker/0:0H
+    6 root      20   0       0      0      0 S   0.0  0.0   0:00.00 kworker/u8:0
+    7 root      rt   0       0      0      0 S   0.0  0.0   0:08.49 migration/0
+    8 root      20   0       0      0      0 S   0.0  0.0   0:00.00 rcu_bh
+    9 root      20   0       0      0      0 S   0.0  0.0   4:12.68 rcu_sched
+   10 root      rt   0       0      0      0 S   0.0  0.0   0:01.22 watchdog/0
+
+
+############################ 服务检查 ############################
+
+服务配置
+--------
+acpid.service                      enabled
+atd.service                        enabled
+auditd.service                     enabled
+autovt@.service                    enabled
+cloud-config.service               enabled
+cloud-final.service                enabled
+cloud-init-local.service           enabled
+cloud-init.service                 enabled
+crond.service                      enabled
+docker.service                     enabled
+elasticsearch.service              enabled
+getty@.service                     enabled
+haproxy.service                    enabled
+jarvis-agent.service               enabled
+kdump.service                      enabled
+libstoragemgmt.service             enabled
+lm_sensors.service                 enabled
+lvm2-monitor.service               enabled
+mysqld.service                     enabled
+node1_elasticsearch.service        enabled
+ntpd.service                       enabled
+postfix.service                    enabled
+postgresql-9.5.service             enabled
+qemu-guest-agent.service           enabled
+rsyslog.service                    enabled
+sshd.service                       enabled
+systemd-readahead-collect.service  enabled
+systemd-readahead-drop.service     enabled
+systemd-readahead-replay.service   enabled
+telegraf.service                   enabled
+tuned.service                      enabled
+YDService.service                  enabled
+
+正在运行的服务
+--------------
+acpid.service               loaded active running ACPI Event Daemon
+atd.service                 loaded active running Job spooling tools
+auditd.service              loaded active running Security Auditing Service
+crond.service               loaded active running Command Scheduler
+dbus.service                loaded active running D-Bus System Message Bus
+docker.service              loaded active running Docker Application Container Engine
+getty@tty1.service          loaded active running Getty on tty1
+haproxy.service             loaded active running HAProxy Load Balancer
+jarvis-agent.service        loaded active running ops-jarvis-agent
+keepalived.service          loaded active running LVS and VRRP High Availability Monitor
+libstoragemgmt.service      loaded active running libstoragemgmt plug-in server daemon
+lvm2-lvmetad.service        loaded active running LVM2 metadata daemon
+mysqld.service              loaded active running MySQL Server
+node1_elasticsearch.service loaded active running Elasticsearch-node1
+ntpd.service                loaded active running Network Time Service
+polkit.service              loaded active running Authorization Manager
+postgresql-9.5.service      loaded active running PostgreSQL 9.5 database server
+rsyslog.service             loaded active running System Logging Service
+serial-getty@ttyS0.service  loaded active running Serial Getty on ttyS0
+sshd.service                loaded active running OpenSSH server daemon
+systemd-journald.service    loaded active running Journal Service
+systemd-logind.service      loaded active running Login Service
+systemd-udevd.service       loaded active running udev Kernel Device Manager
+telegraf.service            loaded active running The plugin-driven server agent for reporting metrics into InfluxDB
+tuned.service               loaded active running Dynamic System Tuning Daemon
+YDService.service           loaded active running YDService
+
+
+############################ 自启动检查 ##########################
+touch /var/lock/subsys/local
+/usr/local/qcloud/rps/set_rps.sh >/tmp/setRps.log 2>&1
+/usr/local/qcloud/irq/net_smp_affinity.sh >/tmp/net_affinity.log 2>&1
+/usr/local/qcloud/gpu/nv_gpu_conf.sh >/tmp/nv_gpu_conf.log 2>&1
+
+
+############################ 登录检查 ############################
+root     pts/1        60.247.93.190    Mon Dec 16 16:46   still logged in   
+root     pts/1        60.247.93.190    Mon Dec 16 16:40 - 16:43  (00:03)    
+footston pts/0        60.247.93.190    Mon Dec 16 15:04   still logged in   
+root     pts/0        60.247.93.190    Mon Dec 16 09:19 - 09:19  (00:00)    
+root     pts/0        60.247.93.190    Fri Dec 13 18:02 - 18:04  (00:01)    
+root     pts/0        60.247.93.190    Fri Dec 13 18:01 - 18:02  (00:00)    
+root     pts/0        60.247.93.190    Fri Dec 13 17:46 - 17:46  (00:00)    
+root     pts/0        60.247.93.190    Fri Dec 13 17:45 - 17:46  (00:00)    
+root     pts/0        60.247.93.190    Fri Dec 13 15:43 - 15:46  (00:03)    
+root     pts/0        60.247.93.190    Fri Dec 13 13:33 - 13:33  (00:00)    
+
+
+############################ 计划任务检查 ########################
+root
+--------
+*/1 * * * * /usr/local/qcloud/stargate/admin/start.sh > /dev/null 2>&1 &
+0 0 * * * /usr/local/qcloud/YunJing/YDCrontab.sh > /dev/null 2>&1 &
+
+footstone
+--------
+15 2 * * * /bin/sh /home/footstone/elasticsearch-5.5.3/bin/clean.sh >> /home/footstone/elasticsearch-5.5.3/logs/es_clean_cron.log  2>&1
+
+-rw-r--r--.  1  root  root  128  Aug  3   2017  /etc/cron.d/0hourly
+-rwxr-xr-x.  1  root  root  618  Mar  18  2014  /etc/cron.daily/man-db.cron
+-rwx------.  1  root  root  219  Aug  2   2017  /etc/cron.daily/logrotate
+-rwx------.  1  root  root  208  Nov  5   2016  /etc/cron.daily/mlocate
+-rw-------.  1  root  root  0    Aug  3   2017  /etc/cron.deny
+-rwxr-xr-x.  1  root  root  392  Aug  3   2017  /etc/cron.hourly/0anacron
+-rw-r--r--.  1  root  root  451  Jun  10  2014  /etc/crontab
+
+
+############################ 用户检查 ############################
+/etc/passwd 最后修改时间：2019-12-09 10:06:52 (7 天 7 小时前)
+
+特权用户
+--------
+root
+
+用户列表
+--------
+用户名     UID   GID   HOME             SHELL      最后一次登录
+root       0     0     /root            /bin/bash  2019-12-16_16:46:00
+centos     1000  1000  /home/centos     /bin/bash  从未登录过
+footstone  1001  1001  /home/footstone  /bin/bash  从未登录过
+postgres   26    26    /var/lib/pgsql   /bin/bash  从未登录过
+kong       1002  1002  /home/kong       /bin/bash  从未登录过
+
+空密码用户
+----------
+centos
+kong
+
+相同ID的用户
+------------
+
+
+############################ 密码检查 ############################
+
+密码过期检查
+------------
+root            永不过期
+centos          永不过期
+footstone       永不过期
+postgres        永不过期
+kong            永不过期
+
+密码策略检查
+------------
+PASS_MAX_DAYS	99999
+PASS_MIN_DAYS	0
+PASS_MIN_LEN    8
+PASS_WARN_AGE	7
+
+
+############################ Sudoers检查 #########################
+root	ALL=(ALL) 	ALL
+%wheel	ALL=(ALL)	ALL
+
+
+
+############################ JDK检查 #############################
+java version "1.8.0_191"
+Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
+Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
+JAVA_HOME="/usr/java/jdk1.8.0_191"
+
+
+############################ 防火墙检查 ##########################
+iptables: inactive
+
+/etc/sysconfig/iptables
+-----------------------
+
+
+############################ SSH检查 #############################
+服务状态：active
+SSH协议版本：
+
+信任主机
+--------
+footstone 授权 "footstone@tencent-beta17,footstone@tencent-beta19,footstone@tencent-beta18,footstone@tencent-beta08" 无密码访问
+
+是否允许ROOT远程登录
+--------------------
+PermitRootLogin yes
+
+/etc/ssh/sshd_config
+--------------------
+AddressFamily inet
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+SyslogFacility AUTHPRIV
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication yes
+ChallengeResponseAuthentication no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+UsePAM yes
+X11Forwarding yes
+UseDNS no
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+Subsystem sftp	/usr/libexec/openssh/sftp-server
+
+
+############################ syslog检查 ##########################
+服务状态：active
+
+/etc/rsyslog.conf
+-----------------
+*.info;mail.none;authpriv.none;cron.none  /var/log/messages
+authpriv.*                                /var/log/secure
+mail.*                                    -/var/log/maillog
+cron.*                                    /var/log/cron
+*.emerg                                   :omusrmsg:*
+uucp,news.crit                            /var/log/spooler
+local7.*                                  /var/log/boot.log
+
+
+############################ SNMP检查 ############################
+服务状态：unknown
+
+
+
+############################ NTP检查 #############################
+服务状态：active
+
+/etc/ntp.conf
+-------------
+driftfile /var/lib/ntp/drift
+restrict default kod nomodify notrap nopeer noquery
+restrict -6 default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1 
+restrict -6 ::1
+server ntpupdate.tencentyun.com iburst
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+
+
+############################ 软件检查 ############################
+perl-TermReadKey-2.30-20.el7.x86_64         Fri  13  Dec  2019  09:51:48  AM  CST
+perl-Digest-MD5-2.52-3.el7.x86_64           Fri  13  Dec  2019  09:38:14  AM  CST
+perl-Digest-1.17-245.el7.noarch             Fri  13  Dec  2019  09:38:14  AM  CST
+perl-DBI-1.627-4.el7.x86_64                 Fri  13  Dec  2019  09:37:41  AM  CST
+perl-DBD-MySQL-4.023-6.el7.x86_64           Fri  13  Dec  2019  09:37:41  AM  CST
+perl-PlRPC-0.2020-14.el7.noarch             Fri  13  Dec  2019  09:37:40  AM  CST
+perl-Net-Daemon-0.48-5.el7.noarch           Fri  13  Dec  2019  09:37:40  AM  CST
+perl-IO-Compress-2.061-2.el7.noarch         Fri  13  Dec  2019  09:37:40  AM  CST
+perl-Compress-Raw-Zlib-2.061-4.el7.x86_64   Fri  13  Dec  2019  09:37:40  AM  CST
+perl-Compress-Raw-Bzip2-2.061-3.el7.x86_64  Fri  13  Dec  2019  09:37:40  AM  CST
