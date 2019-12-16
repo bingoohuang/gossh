@@ -3,6 +3,7 @@ package gossh
 import (
 	"io"
 
+	"github.com/bingoohuang/gonet"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 )
@@ -17,10 +18,10 @@ type Connect struct {
 }
 
 // CreateClient connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server
-func (c *Connect) CreateClient(addr string, clientConfig *ssh.ClientConfig) error {
+func (c *Connect) CreateClient(addr string, cc *ssh.ClientConfig) error {
 	dialer := c.ProxyDialer
 	if dialer == nil {
-		dialer = proxy.Direct
+		dialer = gonet.DialerTimeoutBean{ConnTimeout: cc.Timeout, ReadWriteTimeout: cc.Timeout}
 	}
 
 	// Dial to host:port
@@ -30,7 +31,7 @@ func (c *Connect) CreateClient(addr string, clientConfig *ssh.ClientConfig) erro
 	}
 
 	// Create new ssh connect
-	sshCon, channel, req, err := ssh.NewClientConn(netConn, addr, clientConfig)
+	sshCon, channel, req, err := ssh.NewClientConn(netConn, addr, cc)
 	if err != nil {
 		return err
 	}
