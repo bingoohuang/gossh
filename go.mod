@@ -3,7 +3,7 @@ module github.com/bingoohuang/gossh
 go 1.13
 
 require (
-	github.com/bingoohuang/gou v0.0.0-20191214155546-78cc687ca18e
+	github.com/bingoohuang/gou v0.0.0-20191216011523-dcadae688cd5
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
