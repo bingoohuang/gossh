@@ -20,8 +20,8 @@ github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8 h1:yJyBZE6ahC8F1
 github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8/go.mod h1:X6KsZUI8jGvpmIFAtQS9IKyyDcdSzSi/0Gcjf5bvI2k=
 github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd h1:horohKpjOxu/ZiHUzDhMbfoUgthbXoiCEI2SvWkOVL4=
 github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd/go.mod h1:rga5AtVf7Npiv04XZxTsd8LC4/VyEHr+sn4Vt1jWPNE=
-github.com/bingoohuang/gou v0.0.0-20191216011523-dcadae688cd5 h1:nUYzpQiytwzcvledmTNGKUgR5Z1rc4aTKcSHhDiV6cA=
-github.com/bingoohuang/gou v0.0.0-20191216011523-dcadae688cd5/go.mod h1:jyyu/57Psqg6/btyBwAT6E9dTgs5lfoHdqcQwD96uVU=
+github.com/bingoohuang/gou v0.0.0-20191216150455-0937261aa98a h1:K5YeqqLEmar5laGa0Iqsccf8ir6h4HTLYuE2HvkTmdk=
+github.com/bingoohuang/gou v0.0.0-20191216150455-0937261aa98a/go.mod h1:jyyu/57Psqg6/btyBwAT6E9dTgs5lfoHdqcQwD96uVU=
 github.com/bingoohuang/now v0.0.0-20190715150822-ba8e4a91e3d9/go.mod h1:SZou0n15kP/Z3Vq8lyuH59ML96lepeGzInZw0+KCFw4=
 github.com/bingoohuang/strcase v0.0.0-20190707081139-fae4a99e1218 h1:7Ku6SM7mXEOq+lUrjebiW94aED5tCTifP56HTNrWN3M=
 github.com/bingoohuang/strcase v0.0.0-20190707081139-fae4a99e1218/go.mod h1:WYrcjWhT2QgbWZcYzfYqWxaxut2hPFa6if/zYwEEEio=
