@@ -104,24 +104,23 @@ func parseHosts(gs *GoSSH, hostTag string) Hosts {
 		return gs.Hosts
 	}
 
-	host = strings.TrimPrefix(host, "(")
 	host = strings.TrimPrefix(host, "-")
-	host = strings.TrimSuffix(host, ")")
 
 	found := findHost(gs.Hosts, host)
-	if found == nil {
-		return nil
-	}
 
-	return Hosts{found}
+	return found
 }
 
-func findHost(hosts Hosts, name string) *Host {
-	for _, h := range hosts {
-		if h.ID == name {
-			return h
+func findHost(hosts Hosts, name string) Hosts {
+	targetHosts := make(Hosts, 0)
+
+	for _, part := range str.MakeExpand(name).MakeExpand() {
+		for _, h := range hosts {
+			if h.ID == part {
+				targetHosts = append(targetHosts, h)
+			}
 		}
 	}
 
-	return nil
+	return targetHosts
 }
