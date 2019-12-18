@@ -106,6 +106,10 @@ func parseHosts(gs *GoSSH, hostTag string) Hosts {
 
 	host = strings.TrimPrefix(host, "-")
 
+	if host == "" {
+		return gs.Hosts
+	}
+
 	found := findHost(gs.Hosts, host)
 
 	return found
@@ -113,12 +117,24 @@ func parseHosts(gs *GoSSH, hostTag string) Hosts {
 
 func findHost(hosts Hosts, name string) Hosts {
 	targetHosts := make(Hosts, 0)
+	tm := make(map[string]bool)
 
-	for _, part := range str.MakeExpand(name).MakeExpand() {
-		for _, h := range hosts {
-			if h.ID == part {
-				targetHosts = append(targetHosts, h)
-			}
+	m := make(map[string]*Host)
+	for _, h := range hosts {
+		m[h.ID] = h
+	}
+
+	for _, id := range str.MakeExpand(name).MakeExpand() {
+		if _, yes := tm[id]; yes {
+			logrus.Warnf("ignored duplicate host ID %s", id)
+			continue
+		}
+
+		if v, ok := m[id]; ok {
+			targetHosts = append(targetHosts, v)
+			tm[id] = true
+		} else {
+			logrus.Warnf("unknown host ID %s", id)
 		}
 	}
 
