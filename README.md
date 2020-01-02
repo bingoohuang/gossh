@@ -60,6 +60,7 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [List selection type alternative ssh/scp/sftp client. Pure Go.](https://github.com/blacknon/lssh)
 1. [A library to handle ssh easily with Golang.It can do multiple proxy, x11 forwarding, etc.](https://github.com/blacknon/go-sshlib), [go-sshlib doc](https://godoc.org/github.com/blacknon/go-sshlib)
 1. [An auditing / logging SSH relay for a jump box / bastion host.](https://github.com/iamacarpet/ssh-bastion)
+1. [A curated list of SSH resources.](https://github.com/moul/awesome-ssh)
 
 ## Scripts
 
