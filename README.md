@@ -97,3 +97,21 @@ proxy supported:
 gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 %dl 1.log 10.log"
 gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 cat 1.log"
 ```
+
+
+```bash
+gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y5VaKfj-vxSJ5JUHL0R-CBtZTkR2UR"
+```
+
+```text
+# hosts.txt
+13.26.15.12:(1061-1063)
+13.26.15.13:222
+13.26.15.14
+```
+
+```text
+# cmds.txt
+%host pwd
+%host hostname -I
+```

@@ -45,7 +45,7 @@ func (c Config) parseHostFile() Hosts {
 	lines := strings.Split(string(file), "\n")
 	for _, line := range lines {
 		hostLine := strings.TrimSpace(line)
-		if hostLine != "" {
+		if hostLine != "" && !strings.HasPrefix(hostLine, "#") {
 			hosts = append(hosts, c.parseHost(hostLine)...)
 		}
 	}

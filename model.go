@@ -333,7 +333,7 @@ func (c *Config) parseCmdsFile() {
 
 	lines := strings.Split(string(file), "\n")
 	for _, line := range lines {
-		if l := strings.TrimSpace(line); l != "" {
+		if l := strings.TrimSpace(line); l != "" && !strings.HasPrefix(l, "#") {
 			c.Cmds = append(c.Cmds, l)
 		}
 	}
