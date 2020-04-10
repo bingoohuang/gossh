@@ -7,7 +7,6 @@ import (
 	"github.com/bingoohuang/gou/pbe"
 
 	"github.com/bingoohuang/gou/str"
-	"github.com/sirupsen/logrus"
 )
 
 func (c Config) parseHosts() Hosts {
@@ -15,18 +14,19 @@ func (c Config) parseHosts() Hosts {
 
 	for _, host := range c.Hosts {
 		fields := str.FieldsX(host, "(", ")", -1)
-		if len(fields) < 2 {
-			logrus.Warnf("bad format for host %s", host)
-			continue
-		}
+		//if len(fields) < 2 && {
+		//	logrus.Warnf("bad format for host %s", host)
+		//	continue
+		//}
 
 		_, addr := parseHostID(fields[0])
-		user, pass := parseUserPass(fields[1])
+
+		user, pass := parseUserPass(fields, 1)
 		props := parseProps(fields)
 		id := fixID(props)
 
 		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
-		expanded := expandHost(host)
+		expanded := c.expandHost(host)
 		hosts = append(hosts, expanded...)
 	}
 
@@ -36,14 +36,12 @@ func (c Config) parseHosts() Hosts {
 	return hosts
 }
 
-func expandHost(host *Host) Hosts {
+func (c Config) expandHost(host *Host) Hosts {
 	ids := str.MakeExpand(host.ID).MakePart()
 	addrs := str.MakeExpand(host.Addr).MakePart()
 	users := str.MakeExpand(host.User).MakePart()
 	passes := str.MakeExpand(host.Password).MakePart()
-
 	maxExpands := mat.MaxInt(ids.Len(), addrs.Len(), users.Len(), passes.Len())
-
 	expandedProps := make(map[string]str.Part)
 
 	for k, v := range host.Properties {
@@ -67,6 +65,14 @@ func expandHost(host *Host) Hosts {
 			User:       users.Part(i),
 			Password:   passes.Part(i),
 			Properties: props}
+
+		if hosts[i].User == "" {
+			hosts[i].User = c.User
+		}
+
+		if hosts[i].Password == "" {
+			hosts[i].Password = c.Pass
+		}
 	}
 
 	return hosts
@@ -91,7 +97,12 @@ func parseProps(fields []string) map[string]string {
 	return props
 }
 
-func parseUserPass(userpass string) (string, string) {
+func parseUserPass(fields []string, index int) (string, string) {
+	if index >= len(fields) {
+		return "", ""
+	}
+
+	userpass := fields[index]
 	user, pass := str.Split2(userpass, "/", false, false)
 	if pass != "" {
 		var err error

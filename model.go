@@ -31,6 +31,9 @@ type Config struct {
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`
 	Cmds       []string `pflag:"commands to be executed. shorthand=C"`
+
+	User string `pflag:"user. shorthand=u"`
+	Pass string `pflag:"pass."`
 }
 
 // GetSeparator get the separator
