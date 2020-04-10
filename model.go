@@ -32,8 +32,10 @@ type Config struct {
 	Hosts      []string `pflag:"hosts. shorthand=H"`
 	Cmds       []string `pflag:"commands to be executed. shorthand=C"`
 
-	User string `pflag:"user. shorthand=u"`
-	Pass string `pflag:"pass."`
+	User      string `pflag:"user. shorthand=u"`
+	Pass      string `pflag:"pass."`
+	HostsFile string `pflag:"hosts file. shorthand=f"`
+	CmdsFile  string `pflag:"cmds file."`
 }
 
 // GetSeparator get the separator

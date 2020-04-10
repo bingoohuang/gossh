@@ -1,6 +1,8 @@
 package gossh
 
 import (
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"strings"
 
 	"github.com/bingoohuang/gou/mat"
@@ -28,6 +30,18 @@ func (c Config) parseHosts() Hosts {
 		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
 		expanded := c.expandHost(host)
 		hosts = append(hosts, expanded...)
+	}
+
+	if c.HostsFile != "" {
+		file, err := ioutil.ReadFile(c.HostsFile)
+		if err != nil {
+			logrus.Warnf("failed to read hosts file %s: %v", c.HostsFile, err)
+		} else {
+			lines := strings.Split(string(file), "\n")
+			for _, line := range lines {
+
+			}
+		}
 	}
 
 	hosts.FixHostID()
