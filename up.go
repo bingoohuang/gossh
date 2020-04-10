@@ -31,6 +31,7 @@ func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
 			if err := s.upload(gs, h); err != nil {
 				logrus.Warnf(" upload %s error %v", s.local, err)
 			}
+
 			wg.Done()
 		}(*host)
 	}

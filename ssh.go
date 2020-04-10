@@ -76,6 +76,7 @@ func (h Host) SSH(cmd []string, timeout time.Duration) error {
 	return nil
 }
 
+// nolint gomnd
 func sshScripts(client *ssh.Client, cmd []string) error {
 	session, err := client.NewSession()
 	if err != nil {

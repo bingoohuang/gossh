@@ -43,6 +43,7 @@ func (u UlDl) TargetHosts() Hosts { return u.hosts }
 // RawCmd returns the original raw command
 func (u UlDl) RawCmd() string { return u.cmd }
 
+// nolint gomnd
 func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
@@ -79,6 +80,7 @@ func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
 	}
 }
 
+// nolint gomnd
 func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {

@@ -65,6 +65,7 @@ func GetLastLine(s string) string {
 	return s[pos+1:]
 }
 
+// nolint gomnd
 func parseBuf(t int, buf []byte) (sbuf, lastTwo string) {
 	if t > 0 {
 		sbuf = string(buf[:t])

@@ -1,0 +1,18 @@
+language: go
+
+# You don't need to test on very old versions of the Go compiler. It's the user's
+# responsibility to keep their compiler up to date.
+go:
+  - 1.14.x
+
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+script:
+  # Vet examines Go source code and reports suspicious construct
+  - go vet ./...
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

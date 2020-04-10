@@ -1,9 +1,12 @@
 package gossh
 
 import (
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strings"
+
+	homedir "github.com/mitchellh/go-homedir"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/bingoohuang/gou/mat"
 	"github.com/bingoohuang/gou/pbe"
@@ -15,39 +18,55 @@ func (c Config) parseHosts() Hosts {
 	hosts := make(Hosts, 0)
 
 	for _, host := range c.Hosts {
-		fields := str.FieldsX(host, "(", ")", -1)
-		//if len(fields) < 2 && {
-		//	logrus.Warnf("bad format for host %s", host)
-		//	continue
-		//}
-
-		_, addr := parseHostID(fields[0])
-
-		user, pass := parseUserPass(fields, 1)
-		props := parseProps(fields)
-		id := fixID(props)
-
-		host := &Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props}
-		expanded := c.expandHost(host)
-		hosts = append(hosts, expanded...)
+		hosts = append(hosts, c.parseHost(host)...)
 	}
 
 	if c.HostsFile != "" {
-		file, err := ioutil.ReadFile(c.HostsFile)
-		if err != nil {
-			logrus.Warnf("failed to read hosts file %s: %v", c.HostsFile, err)
-		} else {
-			lines := strings.Split(string(file), "\n")
-			for _, line := range lines {
-
-			}
-		}
+		hosts = append(hosts, c.parseHostFile()...)
 	}
 
 	hosts.FixHostID()
 	hosts.FixProxy()
 
 	return hosts
+}
+
+func (c Config) parseHostFile() Hosts {
+	hosts := make([]*Host, 0)
+
+	hostsFile, _ := homedir.Expand(c.HostsFile)
+	file, err := ioutil.ReadFile(hostsFile)
+
+	if err != nil {
+		logrus.Warnf("failed to read hosts file %s: %v", c.HostsFile, err)
+		return hosts
+	}
+
+	lines := strings.Split(string(file), "\n")
+	for _, line := range lines {
+		hostLine := strings.TrimSpace(line)
+		if hostLine != "" {
+			hosts = append(hosts, c.parseHost(hostLine)...)
+		}
+	}
+
+	return hosts
+}
+
+func (c Config) parseHost(host string) Hosts {
+	fields := str.FieldsX(host, "(", ")", -1)
+	//if len(fields) < 2 && {
+	//	logrus.Warnf("bad format for host %s", host)
+	//	continue
+	//}
+
+	_, addr := parseHostID(fields[0])
+
+	user, pass := parseUserPass(fields, 1)
+	props := parseProps(fields)
+	id := fixID(props)
+
+	return c.expandHost(&Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props})
 }
 
 func (c Config) expandHost(host *Host) Hosts {
@@ -118,6 +137,7 @@ func parseUserPass(fields []string, index int) (string, string) {
 
 	userpass := fields[index]
 	user, pass := str.Split2(userpass, "/", false, false)
+
 	if pass != "" {
 		var err error
 		if pass, err = pbe.Ebp(pass); err != nil {

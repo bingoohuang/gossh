@@ -1,4 +1,11 @@
 # gossh
+
+[![Travis CI](https://img.shields.io/travis/bingoohuang/gossh/master.svg?style=flat-square)](https://travis-ci.com/bingoohuang/gossh)
+[![Software License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://github.com/bingoohuang/gossh/blob/master/LICENSE.md)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/bingoohuang/gossh)
+[![Coverage Status](http://codecov.io/github/bingoohuang/gossh/coverage.svg?branch=master)](http://codecov.io/github/bingoohuang/gossh?branch=master)
+[![goreport](https://www.goreportcard.com/badge/github.com/bingoohuang/gossh)](https://www.goreportcard.com/report/github.com/bingoohuang/gossh)
+
 execute shell scripts among multiple ssh servers
 
 ## usage

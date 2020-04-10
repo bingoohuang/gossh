@@ -2,12 +2,14 @@ package gossh
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/bingoohuang/gossh/gossh"
+	homedir "github.com/mitchellh/go-homedir"
 
 	"github.com/sirupsen/logrus"
 
@@ -225,7 +227,7 @@ func (hosts Hosts) FixProxy() {
 			h = h.Proxy
 		}
 
-		if i == 10 {
+		if i == 10 { // nolint gomnd
 			logrus.Errorf("proxy chain can not exceed 10!")
 		}
 	}
@@ -249,7 +251,10 @@ func (g *GoSSH) Close() {
 func (c *Config) Parse() GoSSH {
 	gs := GoSSH{}
 
+	c.parseCmdsFile()
 	c.parseVars()
+
+	c.fixPass()
 
 	gs.Vars = *c
 	gs.Hosts = c.parseHosts()
@@ -258,6 +263,18 @@ func (c *Config) Parse() GoSSH {
 	gs.sftpClientMap = makeSftpClientMap(timeout)
 
 	return gs
+}
+
+func (c *Config) fixPass() {
+	if c.Pass == "" {
+		return
+	}
+
+	var err error
+
+	if c.Pass, err = pbe.Ebp(c.Pass); err != nil {
+		panic(err)
+	}
 }
 
 func (c *Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
@@ -299,6 +316,27 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 	}
 
 	return returnGroups
+}
+
+func (c *Config) parseCmdsFile() {
+	if c.CmdsFile == "" {
+		return
+	}
+
+	cmdsFile, _ := homedir.Expand(c.CmdsFile)
+	file, err := ioutil.ReadFile(cmdsFile)
+
+	if err != nil {
+		logrus.Warnf("failed to read cmds file %s: %v", c.CmdsFile, err)
+		return
+	}
+
+	lines := strings.Split(string(file), "\n")
+	for _, line := range lines {
+		if l := strings.TrimSpace(line); l != "" {
+			c.Cmds = append(c.Cmds, l)
+		}
+	}
 }
 
 func (c *Config) parseVars() {

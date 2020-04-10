@@ -33,11 +33,7 @@ func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
 		return fmt.Errorf("sftp.Stat %s failed: %w", s.remote, err)
 	}
 
-	if err := download(stat, h.Addr, s.local, s.remote, sf); err != nil {
-		return err
-	}
-
-	return nil
+	return download(stat, h.Addr, s.local, s.remote, sf)
 }
 
 func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
