@@ -29,6 +29,7 @@ type Config struct {
 
 	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
 	PrintConfig bool `pflag:"print config before running. shorthand=P"`
+	Goroutines  bool `pflag:"goroutines. shorthand=g"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`

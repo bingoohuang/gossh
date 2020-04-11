@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/bingoohuang/gou/str"
@@ -20,36 +21,52 @@ type SSHCmd struct {
 }
 
 // Parse parses command.
-func (SSHCmd) Parse() {}
+func (*SSHCmd) Parse() {}
 
 // TargetHosts returns target hosts for the command
-func (s SSHCmd) TargetHosts() Hosts { return s.hosts }
+func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // RawCmd returns the original raw command
-func (s SSHCmd) RawCmd() string { return s.cmd }
+func (s *SSHCmd) RawCmd() string { return s.cmd }
 
 // ExecInHosts execute in specified hosts.
-func (s SSHCmd) ExecInHosts(gs *GoSSH) error {
+func (s *SSHCmd) ExecInHosts(gs *GoSSH) error {
 	timeout := viper.Get("Timeout").(time.Duration)
 
-	for _, host := range s.hosts {
-		if err := func(h Host, cmd string) error {
-			cmds := []string{cmd}
-			if gs.Vars.SplitSSH {
-				cmds = str.SplitX(cmd, ";")
-			}
-
-			if err := h.SSH(cmds, timeout); err != nil {
-				logrus.Warnf("ssh in host %s error %v", h.Addr, err)
-				return err
-			}
-			return nil
-		}(*host, s.cmd); err != nil {
-			return err
+	if !gs.Vars.Goroutines {
+		for _, host := range s.hosts {
+			s.do(gs, *host, timeout, nil)
 		}
+
+		return nil
 	}
 
+	wg := sync.WaitGroup{}
+	wg.Add(len(s.hosts))
+
+	for _, host := range s.hosts {
+		go s.do(gs, *host, timeout, &wg)
+	}
+
+	wg.Wait()
+
 	return nil
+}
+
+func (s *SSHCmd) do(gs *GoSSH, h Host, timeout time.Duration, wg *sync.WaitGroup) {
+	cmds := []string{s.cmd}
+	if gs.Vars.SplitSSH {
+		cmds = str.SplitX(s.cmd, ";")
+	}
+
+	err := h.SSH(cmds, timeout)
+	if err != nil {
+		logrus.Warnf("ssh in host %s error %v", h.Addr, err)
+	}
+
+	if wg != nil {
+		wg.Done()
+	}
 }
 
 func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {

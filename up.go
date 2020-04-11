@@ -18,27 +18,34 @@ import (
 
 // ExecInHosts executes uploading among hosts.
 func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
-	if len(s.hosts) == 0 {
-		logrus.Warnf("no host to upload %s", s.local)
+	if !gs.Vars.Goroutines {
+		for _, host := range s.hosts {
+			s.do(gs, *host, nil)
+		}
+
+		return nil
 	}
 
-	var wg sync.WaitGroup
-
+	wg := sync.WaitGroup{}
 	wg.Add(len(s.hosts))
 
 	for _, host := range s.hosts {
-		go func(h Host) {
-			if err := s.upload(gs, h); err != nil {
-				logrus.Warnf(" upload %s error %v", s.local, err)
-			}
-
-			wg.Done()
-		}(*host)
+		go s.do(gs, *host, &wg)
 	}
 
 	wg.Wait()
 
 	return nil
+}
+
+func (s *UlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
+	if err := s.upload(gs, h); err != nil {
+		logrus.Warnf(" upload %s error %v", s.local, err)
+	}
+
+	if wg != nil {
+		wg.Done()
+	}
 }
 
 func (s *UlCmd) upload(gs *GoSSH, h Host) error {

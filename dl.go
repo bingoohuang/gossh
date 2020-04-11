@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -13,13 +14,34 @@ import (
 
 // ExecInHosts executes downloading among hosts.
 func (s *DlCmd) ExecInHosts(gs *GoSSH) error {
-	for _, host := range s.hosts {
-		if err := s.downloadHost(gs, *host); err != nil {
-			return err
+	if !gs.Vars.Goroutines {
+		for _, host := range s.hosts {
+			s.do(gs, *host, nil)
 		}
+
+		return nil
 	}
 
+	wg := sync.WaitGroup{}
+	wg.Add(len(s.hosts))
+
+	for _, host := range s.hosts {
+		go s.do(gs, *host, &wg)
+	}
+
+	wg.Wait()
+
 	return nil
+}
+
+func (s *DlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
+	if err := s.downloadHost(gs, h); err != nil {
+		logrus.Warnf("download %s error %v", s.remote, err)
+	}
+
+	if wg != nil {
+		wg.Done()
+	}
 }
 
 func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
