@@ -42,8 +42,7 @@ func (c Config) parseHostFile() Hosts {
 		return hosts
 	}
 
-	lines := strings.Split(string(file), "\n")
-	for _, line := range lines {
+	for _, line := range strings.Split(string(file), "\n") {
 		hostLine := strings.TrimSpace(line)
 		if hostLine != "" && !strings.HasPrefix(hostLine, "#") {
 			hosts = append(hosts, c.parseHost(hostLine)...)
@@ -54,14 +53,18 @@ func (c Config) parseHostFile() Hosts {
 }
 
 func (c Config) parseHost(host string) Hosts {
+	host = strings.TrimSpace(host)
+	if host == "" {
+		return Hosts{}
+	}
+
 	fields := str.FieldsX(host, "(", ")", -1)
 	//if len(fields) < 2 && {
 	//	logrus.Warnf("bad format for host %s", host)
 	//	continue
 	//}
 
-	_, addr := parseHostID(fields[0])
-
+	addr := parseHostID(fields[0])
 	user, pass := parseUserPass(fields, 1)
 	props := parseProps(fields)
 	id := fixID(props)
@@ -93,10 +96,8 @@ func (c Config) expandHost(host *Host) Hosts {
 		}
 
 		hosts[i] = &Host{
-			ID:         ids.Part(i),
-			Addr:       addrs.Part(i),
-			User:       users.Part(i),
-			Password:   passes.Part(i),
+			ID: ids.Part(i), Addr: addrs.Part(i),
+			User: users.Part(i), Password: passes.Part(i),
 			Properties: props}
 
 		if hosts[i].User == "" {
@@ -148,10 +149,10 @@ func parseUserPass(fields []string, index int) (string, string) {
 	return user, pass
 }
 
-func parseHostID(addr string) (string, string) {
-	if !strings.Contains(addr, ":") {
-		return addr, addr + ":22"
+func parseHostID(addr string) string {
+	if strings.Contains(addr, ":") {
+		return addr
 	}
 
-	return addr[0:strings.Index(addr, ":")], addr
+	return addr + ":22"
 }

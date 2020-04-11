@@ -112,10 +112,8 @@ type HostsCmd interface {
 	Parse()
 	// ExecInHosts execute in specified hosts.
 	ExecInHosts(gs *GoSSH) error
-
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
-
 	// RawCmd returns the original raw command
 	RawCmd() string
 }
@@ -331,8 +329,7 @@ func (c *Config) parseCmdsFile() {
 		return
 	}
 
-	lines := strings.Split(string(file), "\n")
-	for _, line := range lines {
+	for _, line := range strings.Split(string(file), "\n") {
 		if l := strings.TrimSpace(line); l != "" && !strings.HasPrefix(l, "#") {
 			c.Cmds = append(c.Cmds, l)
 		}
