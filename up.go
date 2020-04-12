@@ -17,8 +17,8 @@ import (
 )
 
 // ExecInHosts executes uploading among hosts.
-func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
-	if !gs.Vars.Goroutines {
+func (s *UlCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
+	if gs.Vars.Goroutines == Off {
 		for _, host := range s.hosts {
 			s.do(gs, *host, nil)
 		}
@@ -26,14 +26,19 @@ func (s *UlCmd) ExecInHosts(gs *GoSSH) error {
 		return nil
 	}
 
-	wg := sync.WaitGroup{}
+	if gs.Vars.Goroutines == CmdScope {
+		wg = &sync.WaitGroup{}
+	}
+
 	wg.Add(len(s.hosts))
 
 	for _, host := range s.hosts {
-		go s.do(gs, *host, &wg)
+		go s.do(gs, *host, wg)
 	}
 
-	wg.Wait()
+	if gs.Vars.Goroutines == CmdScope {
+		wg.Wait()
+	}
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -22,7 +23,7 @@ type LocalCmd struct {
 func (LocalCmd) TargetHosts() Hosts { return nil }
 
 // ExecInHosts execute in specified hosts.
-func (LocalCmd) ExecInHosts(_ *GoSSH) error { return nil }
+func (LocalCmd) ExecInHosts(_ *GoSSH, _ *sync.WaitGroup) error { return nil }
 
 // RawCmd returns the original raw command
 func (l LocalCmd) RawCmd() string { return l.cmd }

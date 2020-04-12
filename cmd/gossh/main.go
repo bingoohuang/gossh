@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/bingoohuang/gou/enc"
 
@@ -56,7 +57,17 @@ func main() {
 		fmt.Println("There is nothing to do.")
 	}
 
+	var golbalWg *sync.WaitGroup
+
+	if config.Goroutines == gossh.GlobalScope {
+		golbalWg = &sync.WaitGroup{}
+	}
+
 	for _, group := range gs.CmdGroups {
-		group.Exec()
+		group.Exec(golbalWg)
+	}
+
+	if golbalWg != nil {
+		golbalWg.Wait()
 	}
 }

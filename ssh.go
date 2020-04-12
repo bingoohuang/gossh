@@ -30,10 +30,10 @@ func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 func (s *SSHCmd) RawCmd() string { return s.cmd }
 
 // ExecInHosts execute in specified hosts.
-func (s *SSHCmd) ExecInHosts(gs *GoSSH) error {
+func (s *SSHCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
 	timeout := viper.Get("Timeout").(time.Duration)
 
-	if !gs.Vars.Goroutines {
+	if gs.Vars.Goroutines == Off {
 		for _, host := range s.hosts {
 			s.do(gs, *host, timeout, nil)
 		}
@@ -41,14 +41,19 @@ func (s *SSHCmd) ExecInHosts(gs *GoSSH) error {
 		return nil
 	}
 
-	wg := sync.WaitGroup{}
+	if gs.Vars.Goroutines == CmdScope {
+		wg = &sync.WaitGroup{}
+	}
+
 	wg.Add(len(s.hosts))
 
 	for _, host := range s.hosts {
-		go s.do(gs, *host, timeout, &wg)
+		go s.do(gs, *host, timeout, wg)
 	}
 
-	wg.Wait()
+	if gs.Vars.Goroutines == CmdScope {
+		wg.Wait()
+	}
 
 	return nil
 }
@@ -59,7 +64,7 @@ func (s *SSHCmd) do(gs *GoSSH, h Host, timeout time.Duration, wg *sync.WaitGroup
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
-	err := h.SSH(cmds, timeout)
+	err := h.SSH(gs, cmds, timeout)
 	if err != nil {
 		logrus.Warnf("ssh in host %s error %v", h.Addr, err)
 	}
@@ -75,9 +80,11 @@ func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func (h Host) SSH(cmd []string, timeout time.Duration) error {
-	fmt.Println()
-	fmt.Println("---", h.Addr, "---")
+func (h Host) SSH(gs *GoSSH, cmd []string, timeout time.Duration) error {
+	if gs.Vars.Goroutines == Off {
+		fmt.Println()
+		fmt.Println("---", h.Addr, "---")
+	}
 
 	gc, err := h.GetGosshConnect(timeout)
 	if err != nil {

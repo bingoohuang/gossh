@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bingoohuang/gossh/gossh"
@@ -29,7 +30,6 @@ type Config struct {
 
 	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
 	PrintConfig bool `pflag:"print config before running. shorthand=P"`
-	Goroutines  bool `pflag:"goroutines. shorthand=g"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`
@@ -39,7 +39,18 @@ type Config struct {
 	Pass      string `pflag:"pass."`
 	HostsFile string `pflag:"hosts file. shorthand=f"`
 	CmdsFile  string `pflag:"cmds file."`
+
+	Goroutines int `pflag:"goroutines(0 off, 1 cmd scope, 2 global scope). shorthand=g"`
 }
+
+const (
+	// Off means no goroutines for the execution of commands.
+	Off int = iota
+	// CmdScope means goroutines for each single command among hosts.
+	CmdScope
+	// GlobalScope means goroutines for the whole commands execution.
+	GlobalScope
+)
 
 // GetSeparator get the separator
 func (c Config) GetSeparator() string { return c.Separator }
@@ -112,7 +123,7 @@ type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
 	// ExecInHosts execute in specified hosts.
-	ExecInHosts(gs *GoSSH) error
+	ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
 	// RawCmd returns the original raw command
@@ -135,7 +146,7 @@ func (g *CmdGroup) Parse() {
 }
 
 // Exec executes the CmdGroup.
-func (g *CmdGroup) Exec() {
+func (g *CmdGroup) Exec(wg *sync.WaitGroup) {
 	cmdsCount := len(g.Cmds)
 	if cmdsCount == 0 {
 		fmt.Println("There is not commands to execute")
@@ -155,7 +166,7 @@ func (g *CmdGroup) Exec() {
 			continue
 		}
 
-		if err := cmd.ExecInHosts(g.gs); err != nil {
+		if err := cmd.ExecInHosts(g.gs, wg); err != nil {
 			fmt.Printf("ExecInHosts error %v", err)
 		}
 	}
