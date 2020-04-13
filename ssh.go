@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -10,8 +11,6 @@ import (
 	"github.com/spf13/viper"
 
 	"golang.org/x/crypto/ssh"
-
-	"github.com/sirupsen/logrus"
 )
 
 // SSHCmd means SSH command.
@@ -66,7 +65,7 @@ func (s *SSHCmd) do(gs *GoSSH, h Host, timeout time.Duration, wg *sync.WaitGroup
 
 	err := h.SSH(gs, cmds, timeout)
 	if err != nil {
-		logrus.Warnf("ssh in host %s error %v", h.Addr, err)
+		gs.Vars.log.Printf("ssh in host %s error %v\n", h.Addr, err)
 	}
 
 	if wg != nil {
@@ -81,9 +80,10 @@ func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
 func (h Host) SSH(gs *GoSSH, cmd []string, timeout time.Duration) error {
+	logger := gs.Vars.log
+
 	if gs.Vars.Goroutines == Off {
-		fmt.Println()
-		fmt.Println("---", h.Addr, "---")
+		logger.Printf("\n---%s---\n", h.Addr)
 	}
 
 	gc, err := h.GetGosshConnect(timeout)
@@ -93,7 +93,7 @@ func (h Host) SSH(gs *GoSSH, cmd []string, timeout time.Duration) error {
 
 	defer gc.Close()
 
-	if err := sshScripts(gc.Client, cmd); err != nil {
+	if err := sshScripts(logger, gc.Client, cmd); err != nil {
 		return fmt.Errorf("exec cmd %s failed: %w", cmd, err)
 	}
 
@@ -101,7 +101,7 @@ func (h Host) SSH(gs *GoSSH, cmd []string, timeout time.Duration) error {
 }
 
 // nolint gomnd
-func sshScripts(client *ssh.Client, cmd []string) error {
+func sshScripts(logger *log.Logger, client *ssh.Client, cmd []string) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func sshScripts(client *ssh.Client, cmd []string) error {
 		return err
 	}
 
-	mux(cmd, w, r)
+	mux(logger, cmd, w, r)
 
 	return nil
 }

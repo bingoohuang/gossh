@@ -3,13 +3,13 @@ package gossh
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/pkg/sftp"
-	"github.com/sirupsen/logrus"
 )
 
 // ExecInHosts executes downloading among hosts.
@@ -41,7 +41,7 @@ func (s *DlCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
 
 func (s *DlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
 	if err := s.downloadHost(gs, h); err != nil {
-		logrus.Warnf("download %s error %v", s.remote, err)
+		gs.Vars.log.Printf("download %s error %v\n", s.remote, err)
 	}
 
 	if wg != nil {
@@ -60,10 +60,10 @@ func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
 		return fmt.Errorf("sftp.Stat %s failed: %w", s.remote, err)
 	}
 
-	return download(stat, h.Addr, s.local, s.remote, sf)
+	return download(gs.Vars.log, stat, h.Addr, s.local, s.remote, sf)
 }
 
-func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
+func download(logger *log.Logger, stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 	if stat.IsDir() {
 		fileInfos, err := sf.ReadDir(from)
 		if err != nil {
@@ -78,7 +78,7 @@ func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 				to1 = filepath.Join(to, fi.Name())
 			}
 
-			if err := download(fi, host, to1, src, sf); err != nil {
+			if err := download(nil, fi, host, to1, src, sf); err != nil {
 				return err
 			}
 		}
@@ -92,10 +92,10 @@ func download(stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 		return fmt.Errorf("MkdirAll %s failed: %w", to, err)
 	}
 
-	return downloadFile(sf, stat.Mode(), host, from, dest)
+	return downloadFile(logger, sf, stat.Mode(), host, from, dest)
 }
 
-func downloadFile(sf *sftp.Client, perm os.FileMode, host, from, to string) error {
+func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, from, to string) error {
 	startTime := time.Now()
 
 	remoteFile, err := sf.Open(from)
@@ -117,7 +117,7 @@ func downloadFile(sf *sftp.Client, perm os.FileMode, host, from, to string) erro
 
 	_ = localFile.Sync()
 
-	logrus.Infof("downloaded %s:%s to %s cost %s, successfully!", host, from, to, time.Since(startTime).String())
+	logger.Printf("downloaded %s:%s to %s cost %s, successfully!\n", host, from, to, time.Since(startTime).String())
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/pkg/sftp"
 
 	"github.com/cheggaaa/pb/v3"
-	"github.com/sirupsen/logrus"
 )
 
 // ExecInHosts executes uploading among hosts.
@@ -45,7 +45,7 @@ func (s *UlCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
 
 func (s *UlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
 	if err := s.upload(gs, h); err != nil {
-		logrus.Warnf(" upload %s error %v", s.local, err)
+		gs.Vars.log.Printf(" upload %s error %v\n", s.local, err)
 	}
 
 	if wg != nil {
@@ -60,7 +60,8 @@ func (s *UlCmd) upload(gs *GoSSH, h Host) error {
 		return err
 	}
 
-	logrus.Infof("uploaded %s to %s:%s cost %s, successfully!", s.local, h.Addr, s.remote, time.Since(startTime).String())
+	gs.Vars.log.Printf("uploaded %s to %s:%s cost %s, successfully!\n",
+		s.local, h.Addr, s.remote, time.Since(startTime).String())
 
 	return nil
 }
@@ -108,7 +109,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h Host) error {
 	}
 
 	for _, localFile := range s.localFiles {
-		if err := uploadSingleOne(sf, s.basedir, localFile, remote, overrideSingleFile); err != nil {
+		if err := uploadSingleOne(gs.Vars.log, sf, s.basedir, localFile, remote, overrideSingleFile); err != nil {
 			return fmt.Errorf("uploadSingleOne %s to %s error %w", localFile, remote, err)
 		}
 	}
@@ -116,7 +117,8 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h Host) error {
 	return nil
 }
 
-func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrideSingleFile bool) error {
+func uploadSingleOne(logger *log.Logger, sf *sftp.Client,
+	basedir, localFile, remote string, overrideSingleFile bool) error {
 	fromFile, _ := os.Open(localFile)
 	defer fromFile.Close()
 
@@ -138,7 +140,7 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 		return fmt.Errorf("stat file %s error %w", localFile, err)
 	}
 
-	fmt.Printf("start to upload %s to %s\n", localFile, dest)
+	logger.Printf("start to upload %s to %s\n", localFile, dest)
 
 	start := time.Now()
 	bar := pb.StartNew(int(fromStat.Size()))
@@ -149,7 +151,7 @@ func uploadSingleOne(sf *sftp.Client, basedir, localFile, remote string, overrid
 
 	bar.Finish()
 
-	fmt.Printf("complete to upload %s to %s, cost %v\n", localFile, dest, time.Since(start))
+	logger.Printf("complete to upload %s to %s, cost %v\n", localFile, dest, time.Since(start))
 
 	if err := sf.Chmod(dest, fromStat.Mode()); err != nil {
 		return fmt.Errorf("sf.Chmo %s failed: %w", dest, err)

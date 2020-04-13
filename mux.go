@@ -1,12 +1,12 @@
 package gossh
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"strings"
 )
 
-func mux(cmd []string, w io.Writer, r io.Reader) {
+func mux(logger *log.Logger, cmd []string, w io.Writer, r io.Reader) {
 	var buf [65 * 1024]byte
 
 	lastCmd := ""
@@ -15,10 +15,10 @@ func mux(cmd []string, w io.Writer, r io.Reader) {
 	for {
 		t, err := r.Read(buf[:])
 		if err != nil {
-			fmt.Print(last)
+			logger.Print(last)
 
 			if err != io.EOF {
-				fmt.Println(err)
+				logger.Println(err)
 			}
 
 			return
@@ -29,15 +29,15 @@ func mux(cmd []string, w io.Writer, r io.Reader) {
 		case "$ ", "# ":
 			if lastCmd == "" {
 				a := GetLastLine(last + sbuf)
-				fmt.Print(a)
+				logger.Print(a)
 			} else {
 				lastCmdOut := last + sbuf
 
 				if !strings.Contains(lastCmdOut, lastCmd+"\r\n") {
-					fmt.Println(lastCmd)
+					logger.Println(lastCmd)
 				}
 
-				fmt.Print(lastCmdOut)
+				logger.Print(lastCmdOut)
 			}
 
 			last = ""

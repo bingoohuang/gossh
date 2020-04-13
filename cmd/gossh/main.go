@@ -57,17 +57,17 @@ func main() {
 		fmt.Println("There is nothing to do.")
 	}
 
-	var golbalWg *sync.WaitGroup
+	var globalWg *sync.WaitGroup
 
 	if config.Goroutines == gossh.GlobalScope {
-		golbalWg = &sync.WaitGroup{}
+		globalWg = &sync.WaitGroup{}
 	}
 
 	for _, group := range gs.CmdGroups {
-		group.Exec(golbalWg)
+		group.Exec(globalWg)
 	}
 
-	if golbalWg != nil {
-		golbalWg.Wait()
+	if globalWg != nil {
+		globalWg.Wait()
 	}
 }

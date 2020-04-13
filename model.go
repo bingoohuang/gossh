@@ -3,6 +3,7 @@ package gossh
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -41,6 +42,7 @@ type Config struct {
 	CmdsFile  string `pflag:"cmds file."`
 
 	Goroutines int `pflag:"goroutines(0 off, 1 cmd scope, 2 global scope). shorthand=g"`
+	log        *log.Logger
 }
 
 const (
@@ -162,12 +164,12 @@ func (g *CmdGroup) Exec(wg *sync.WaitGroup) {
 
 	for _, cmd := range g.Cmds {
 		if len(cmd.TargetHosts()) == 0 {
-			fmt.Printf("No target hosts for cmd %s to executed\n", cmd.RawCmd())
+			g.gs.Vars.log.Printf("No target hosts for cmd %s to executed\n", cmd.RawCmd())
 			continue
 		}
 
 		if err := cmd.ExecInHosts(g.gs, wg); err != nil {
-			fmt.Printf("ExecInHosts error %v", err)
+			g.gs.Vars.log.Printf("ExecInHosts error %v\n", err)
 		}
 	}
 }
@@ -245,7 +247,7 @@ func (hosts Hosts) FixProxy() {
 
 // GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
-	Vars      Config
+	Vars      *Config
 	Hosts     Hosts
 	CmdGroups []CmdGroup
 
@@ -266,7 +268,9 @@ func (c *Config) Parse() GoSSH {
 
 	c.fixPass()
 
-	gs.Vars = *c
+	c.log = log.New(os.Stdout, "", 0)
+
+	gs.Vars = c
 	gs.Hosts = c.parseHosts()
 	gs.CmdGroups = c.parseCmdGroups(&gs)
 	timeout := viper.Get("Timeout").(time.Duration)
