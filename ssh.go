@@ -98,6 +98,8 @@ func (h *Host) waitCmdExecuted(cmd string) {
 		case <-ticker.C:
 			_ = h.Close()
 
+			time.AfterFunc(1*time.Second, func() { close(h.executedChan) })
+
 			for executed := range h.executedChan {
 				if _, ok := executed.(error); ok {
 					break

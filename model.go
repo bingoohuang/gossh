@@ -15,6 +15,7 @@ import (
 
 	"github.com/bingoohuang/gossh/gossh"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/sftp"
 
 	"github.com/sirupsen/logrus"
 
@@ -77,6 +78,8 @@ type Host struct {
 	r            io.Reader
 	cmdChan      chan string
 	executedChan chan interface{}
+
+	sftpClient *sftp.Client
 }
 
 // Close closes the resource associated to the host.
@@ -97,6 +100,12 @@ func (h *Host) Close() error {
 
 	if c := h.client; c != nil {
 		h.client = nil
+
+		g.Go(c.Close)
+	}
+
+	if c := h.sftpClient; c != nil {
+		h.sftpClient = nil
 
 		g.Go(c.Close)
 	}
@@ -255,14 +264,12 @@ type GoSSH struct {
 	Vars  *Config
 	Hosts Hosts
 
-	sftpClientMap *sftpClientMap
-
 	Cmds []HostsCmd
 }
 
 // Close closes gossh.
-func (g *GoSSH) Close() {
-	g.sftpClientMap.Close()
+func (g *GoSSH) Close() error {
+	return g.Hosts.Close()
 }
 
 // LogPrintf calls l.Output to print to the logger.
@@ -285,7 +292,6 @@ func (c *Config) Parse() GoSSH {
 	gs.Vars = c
 	gs.Hosts = c.parseHosts()
 	gs.Cmds = c.parseCmdGroups(&gs)
-	gs.sftpClientMap = makeSftpClientMap()
 
 	return gs
 }

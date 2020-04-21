@@ -74,5 +74,5 @@ func main() {
 		}
 	}
 
-	_ = gs.Hosts.Close()
+	_ = gs.Close()
 }

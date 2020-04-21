@@ -2,61 +2,36 @@ package gossh
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/pkg/sftp"
 )
 
-func makeSftpClient(h Host) (*sftp.Client, error) {
+func (h *Host) makeSftpClient() error {
+	if h.sftpClient != nil {
+		return nil
+	}
+
 	gc, err := h.GetGosshConnect()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sf, err := sftp.NewClient(gc.Client)
 	if err != nil {
-		return nil, fmt.Errorf("sftp.NewClient failed: %w", err)
+		return fmt.Errorf("sftp.NewClient failed: %w", err)
 	}
 
-	return sf, nil
-}
+	h.sftpClient = sf
 
-type sftpClientMap struct {
-	m map[string]*sftp.Client
-	sync.Mutex
-}
-
-func makeSftpClientMap() *sftpClientMap {
-	return &sftpClientMap{
-		m: make(map[string]*sftp.Client),
-	}
+	return nil
 }
 
 // GetClient get sftClient by host
-func (m *sftpClientMap) GetClient(h Host) (*sftp.Client, error) {
-	m.Lock()
-	defer m.Unlock()
-
-	if c, ok := m.m[h.Addr]; ok {
-		return c, nil
-	}
-
-	c, err := makeSftpClient(h)
+func (h *Host) GetClient() (*sftp.Client, error) {
+	err := h.makeSftpClient()
 	if err != nil {
 		return nil, err
 	}
 
-	m.m[h.Addr] = c
-
-	return c, nil
-}
-
-// Close closes all the sftpClients in map.
-func (m *sftpClientMap) Close() {
-	m.Lock()
-	defer m.Unlock()
-
-	for _, v := range m.m {
-		v.Close()
-	}
+	return h.sftpClient, nil
 }

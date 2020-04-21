@@ -19,20 +19,20 @@ import (
 func (s *UlCmd) ExecInHosts(gs *GoSSH, target *Host) error {
 	for _, host := range s.hosts {
 		if target == nil || target == host {
-			s.do(gs, *host)
+			s.do(gs, host)
 		}
 	}
 
 	return nil
 }
 
-func (s *UlCmd) do(gs *GoSSH, h Host) {
+func (s *UlCmd) do(gs *GoSSH, h *Host) {
 	if err := s.upload(gs, h); err != nil {
-		gs.Vars.log.Printf(" upload %s error %v\n", s.local, err)
+		gs.Vars.log.Printf("upload %s error %v\n", s.local, err)
 	}
 }
 
-func (s *UlCmd) upload(gs *GoSSH, h Host) error {
+func (s *UlCmd) upload(gs *GoSSH, h *Host) error {
 	startTime := time.Now()
 
 	if err := s.sftpUpload(gs, h); err != nil {
@@ -45,8 +45,8 @@ func (s *UlCmd) upload(gs *GoSSH, h Host) error {
 	return nil
 }
 
-func (s *UlCmd) sftpUpload(gs *GoSSH, h Host) error {
-	sf, err := gs.sftpClientMap.GetClient(h)
+func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
+	sf, err := h.GetClient()
 	if err != nil {
 		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
 	}

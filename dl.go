@@ -29,7 +29,7 @@ func (s *DlCmd) do(gs *GoSSH, h Host) {
 }
 
 func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
-	sf, err := gs.sftpClientMap.GetClient(h)
+	sf, err := h.GetClient()
 	if err != nil {
 		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
 	}
