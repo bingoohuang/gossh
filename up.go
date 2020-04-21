@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -17,39 +16,19 @@ import (
 )
 
 // ExecInHosts executes uploading among hosts.
-func (s *UlCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
-	if gs.Vars.Goroutines == Off {
-		for _, host := range s.hosts {
-			s.do(gs, *host, nil)
-		}
-
-		return nil
-	}
-
-	if gs.Vars.Goroutines == CmdScope {
-		wg = &sync.WaitGroup{}
-	}
-
-	wg.Add(len(s.hosts))
-
+func (s *UlCmd) ExecInHosts(gs *GoSSH, target *Host) error {
 	for _, host := range s.hosts {
-		go s.do(gs, *host, wg)
-	}
-
-	if gs.Vars.Goroutines == CmdScope {
-		wg.Wait()
+		if target == nil || target == host {
+			s.do(gs, *host)
+		}
 	}
 
 	return nil
 }
 
-func (s *UlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
+func (s *UlCmd) do(gs *GoSSH, h Host) {
 	if err := s.upload(gs, h); err != nil {
 		gs.Vars.log.Printf(" upload %s error %v\n", s.local, err)
-	}
-
-	if wg != nil {
-		wg.Done()
 	}
 }
 

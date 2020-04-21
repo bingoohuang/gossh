@@ -2,13 +2,16 @@ package gossh
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
-	"sync"
 	"time"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/bingoohuang/gossh/gossh"
 	homedir "github.com/mitchellh/go-homedir"
@@ -26,32 +29,33 @@ type Config struct {
 	ReplaceQuote string `pflag:"replace for quote(\"). shorthand=q"`
 	ReplaceBang  string `pflag:"replace for bang(!). shorthand=b"`
 
-	Separator string `pflag:"separator for hosts, cmds, default comma. shorthand=s"`
-	Timeout   string `pflag:"timeout(eg. 15s, 3m), empty for no timeout. shorthand=t"`
+	Separator  string `pflag:"separator for hosts, cmds, default comma. shorthand=s"`
+	NetTimeout string `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
+	CmdTimeout string `pflag:"timeout(eg. 15s, 3m), default 15m."`
 
 	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
 	PrintConfig bool `pflag:"print config before running. shorthand=P"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`
-	Cmds       []string `pflag:"commands to be executed. shorthand=C"`
+	Cmds       []string `pflag:"commands to be executedChan. shorthand=C"`
 
 	User      string `pflag:"user. shorthand=u"`
 	Pass      string `pflag:"pass."`
 	HostsFile string `pflag:"hosts file. shorthand=f"`
 	CmdsFile  string `pflag:"cmds file."`
 
-	Goroutines int `pflag:"goroutines(0 off, 1 cmd scope, 2 global scope). shorthand=g"`
-	log        *log.Logger
+	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
+	log      *log.Logger
 }
 
 const (
-	// Off means no goroutines for the execution of commands.
-	Off int = iota
-	// CmdScope means goroutines for each single command among hosts.
-	CmdScope
-	// GlobalScope means goroutines for the whole commands execution.
-	GlobalScope
+	// ExecModeCmdByCmd means execute a command in all relative hosts and then continue to next command
+	// eg. cmd1: host1,host2, cmd2:host1, host2
+	ExecModeCmdByCmd int = iota
+	// ExecModeHostByHost means execute a host relative commands and the continue to next host.
+	// eg .host1: cmd1,cmd2, host2:cmd1, cmd2
+	ExecModeHostByHost
 )
 
 // GetSeparator get the separator
@@ -66,14 +70,46 @@ type Host struct {
 	Properties map[string]string
 
 	Proxy *Host
+
+	client       *gossh.Connect
+	session      *ssh.Session
+	w            io.WriteCloser
+	r            io.Reader
+	cmdChan      chan string
+	executedChan chan interface{}
+}
+
+// Close closes the resource associated to the host.
+func (h *Host) Close() error {
+	var g errgroup.Group
+
+	if h.cmdChan != nil {
+		close(h.cmdChan)
+
+		h.cmdChan = nil
+	}
+
+	if s := h.session; s != nil {
+		h.session = nil
+
+		g.Go(s.Close)
+	}
+
+	if c := h.client; c != nil {
+		h.client = nil
+
+		g.Go(c.Close)
+	}
+
+	return g.Wait()
 }
 
 // GetGosshConnect get gossh Connect
-func (h Host) GetGosshConnect(timeout time.Duration) (*gossh.Connect, error) {
+func (h *Host) GetGosshConnect() (*gossh.Connect, error) {
 	gc := &gossh.Connect{}
 
 	if h.Proxy != nil {
-		pc, err := h.Proxy.GetGosshConnect(timeout)
+		pc, err := h.Proxy.GetGosshConnect()
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +117,7 @@ func (h Host) GetGosshConnect(timeout time.Duration) (*gossh.Connect, error) {
 		gc.ProxyDialer = pc.Client
 	}
 
-	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password, timeout)); err != nil {
+	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password)); err != nil {
 		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
 	}
 
@@ -91,7 +127,7 @@ func (h Host) GetGosshConnect(timeout time.Duration) (*gossh.Connect, error) {
 const ignoreWarning = "-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 // PrintSSH prints sshpass ssh commands
-func (h Host) PrintSSH() {
+func (h *Host) PrintSSH() {
 	host, port, _ := net.SplitHostPort(h.Addr)
 
 	sshCmd := fmt.Sprintf("sshpass -p %s ssh -p%s %s %s@%s", h.Password, port, ignoreWarning, h.User, host)
@@ -108,7 +144,7 @@ func (h Host) PrintSCP() {
 }
 
 // Prop finds property by name
-func (h Host) Prop(name string) string {
+func (h *Host) Prop(name string) string {
 	if v, ok := h.Properties[name]; ok {
 		return v
 	}
@@ -125,57 +161,26 @@ type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
 	// ExecInHosts execute in specified hosts.
-	ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error
+	ExecInHosts(gs *GoSSH, host *Host) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
 	// RawCmd returns the original raw command
 	RawCmd() string
 }
 
-// CmdGroup represents the a group of structure of command line with same cmd type in config's cmds.
-type CmdGroup struct {
-	gs      *GoSSH
-	Type    cmdtype.CmdType
-	Cmds    []HostsCmd
-	Results []CmdExcResult
-}
-
-// Parse parses the CmdGroup's data.
-func (g *CmdGroup) Parse() {
-	for _, cmd := range g.Cmds {
-		cmd.Parse()
-	}
-}
-
-// Exec executes the CmdGroup.
-func (g *CmdGroup) Exec(wg *sync.WaitGroup) {
-	cmdsCount := len(g.Cmds)
-	if cmdsCount == 0 {
-		fmt.Println("There is not commands to execute")
-		return
-	}
-
-	g.Results = make([]CmdExcResult, cmdsCount)
-
-	if g.Type == cmdtype.Local {
-		g.execLocal()
-		return
-	}
-
-	for _, cmd := range g.Cmds {
-		if len(cmd.TargetHosts()) == 0 {
-			g.gs.Vars.log.Printf("No target hosts for cmd %s to executed\n", cmd.RawCmd())
-			continue
-		}
-
-		if err := cmd.ExecInHosts(g.gs, wg); err != nil {
-			g.gs.Vars.log.Printf("ExecInHosts error %v\n", err)
-		}
-	}
-}
-
 // Hosts stands for slice of Host
 type Hosts []*Host
+
+// Close closes all the host related resources.
+func (hosts Hosts) Close() error {
+	var g errgroup.Group
+
+	for _, host := range hosts {
+		g.Go(host.Close)
+	}
+
+	return g.Wait()
+}
 
 // PrintSSH prints sshpass ssh commands for all hosts
 func (hosts Hosts) PrintSSH() {
@@ -247,16 +252,23 @@ func (hosts Hosts) FixProxy() {
 
 // GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
-	Vars      *Config
-	Hosts     Hosts
-	CmdGroups []CmdGroup
+	Vars  *Config
+	Hosts Hosts
 
 	sftpClientMap *sftpClientMap
+
+	Cmds []HostsCmd
 }
 
 // Close closes gossh.
 func (g *GoSSH) Close() {
 	g.sftpClientMap.Close()
+}
+
+// LogPrintf calls l.Output to print to the logger.
+// Arguments are handled in the manner of fmt.Printf.
+func (g *GoSSH) LogPrintf(format string, v ...interface{}) {
+	g.Vars.log.Printf(format, v...)
 }
 
 // Parse parses the flags or cnf files to GoSSH.
@@ -272,9 +284,8 @@ func (c *Config) Parse() GoSSH {
 
 	gs.Vars = c
 	gs.Hosts = c.parseHosts()
-	gs.CmdGroups = c.parseCmdGroups(&gs)
-	timeout := viper.Get("Timeout").(time.Duration)
-	gs.sftpClientMap = makeSftpClientMap(timeout)
+	gs.Cmds = c.parseCmdGroups(&gs)
+	gs.sftpClientMap = makeSftpClientMap()
 
 	return gs
 }
@@ -291,12 +302,8 @@ func (c *Config) fixPass() {
 	}
 }
 
-func (c *Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
-	lastCmdType := cmdtype.Noop
-
-	var group *CmdGroup
-
-	groups := make([]*CmdGroup, 0)
+func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
+	cmds := make([]HostsCmd, 0)
 
 	for _, cmd := range c.Cmds {
 		cmdType, hostPart, realCmd := cmdtype.Parse(cmd)
@@ -304,32 +311,26 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []CmdGroup {
 			continue
 		}
 
-		if lastCmdType != cmdType {
-			lastCmdType = cmdType
-			group = &CmdGroup{gs: gs, Type: cmdType, Cmds: make([]HostsCmd, 0)}
-			groups = append(groups, group)
-		}
+		var hostCmd HostsCmd
 
 		switch cmdType {
 		case cmdtype.Local:
-			group.Cmds = append(group.Cmds, &LocalCmd{cmd: cmd})
+			hostCmd = &LocalCmd{cmd: cmd}
 		case cmdtype.Ul:
-			group.Cmds = append(group.Cmds, buildUlCmd(gs, hostPart, realCmd, cmd))
+			hostCmd = buildUlCmd(gs, hostPart, realCmd, cmd)
 		case cmdtype.Dl:
-			group.Cmds = append(group.Cmds, buildDlCmd(gs, hostPart, realCmd, cmd))
+			hostCmd = buildDlCmd(gs, hostPart, realCmd, cmd)
 		case cmdtype.SSH:
-			group.Cmds = append(group.Cmds, buildSSHCmd(gs, hostPart, realCmd, cmd))
+			hostCmd = buildSSHCmd(gs, hostPart, realCmd, cmd)
+		default:
+			continue
 		}
+
+		hostCmd.Parse()
+		cmds = append(cmds, hostCmd)
 	}
 
-	returnGroups := make([]CmdGroup, len(groups))
-
-	for i, group := range groups {
-		group.Parse()
-		returnGroups[i] = *group
-	}
-
-	return returnGroups
+	return cmds
 }
 
 func (c *Config) parseCmdsFile() {
@@ -357,8 +358,15 @@ func (c *Config) parseVars() {
 		viper.Set(pbe.PbePwd, c.Passphrase)
 	}
 
-	duration, _ := time.ParseDuration(c.Timeout)
-	viper.Set("Timeout", duration)
+	netTimeout, _ := time.ParseDuration(c.NetTimeout)
+	viper.Set("NetTimeout", netTimeout)
+
+	cmdTimeout, _ := time.ParseDuration(c.CmdTimeout)
+	if cmdTimeout == 0 {
+		cmdTimeout = 15 * time.Minute // nolint
+	}
+
+	viper.Set("CmdTimeout", cmdTimeout)
 
 	if c.ReplaceQuote != "" {
 		for i, cmd := range c.Cmds {

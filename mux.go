@@ -1,25 +1,32 @@
 package gossh
 
 import (
+	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
-func mux(logger *log.Logger, cmd []string, w io.Writer, r io.Reader) {
-	var buf [65 * 1024]byte
+// CmdChanClosed represents the cmd channel closed event.
+type CmdChanClosed struct{}
 
-	lastCmd := ""
-	last := ""
+func mux(cmdsChan chan string, executed chan interface{}, w io.Writer, r io.Reader) {
+	var (
+		ok      bool
+		lastCmd string
+		last    string
+		buf     [65 * 1024]byte
+	)
 
 	for {
 		t, err := r.Read(buf[:])
 		if err != nil {
-			logger.Print(last)
+			fmt.Print(last)
 
 			if err != io.EOF {
-				logger.Println(err)
+				fmt.Println(err.Error())
 			}
+
+			executed <- err
 
 			return
 		}
@@ -27,28 +34,25 @@ func mux(logger *log.Logger, cmd []string, w io.Writer, r io.Reader) {
 		sbuf, lastTwo := parseBuf(t, buf[:])
 		switch lastTwo {
 		case "$ ", "# ":
-			if lastCmd == "" {
-				a := GetLastLine(last + sbuf)
-				logger.Print(a)
-			} else {
-				lastCmdOut := last + sbuf
-
-				if !strings.Contains(lastCmdOut, lastCmd+"\r\n") {
-					logger.Println(lastCmd)
-				}
-
-				logger.Print(lastCmdOut)
+			preLines, curLine := GetLastLine(last + sbuf)
+			if preLines != "" {
+				fmt.Print(preLines)
 			}
 
-			last = ""
+			if lastCmd != "" {
+				executed <- lastCmd
+			}
 
-			if len(cmd) == 0 {
+			last = curLine
+
+			lastCmd, ok = <-cmdsChan
+			if !ok {
+				executed <- CmdChanClosed{}
+
 				return
 			}
 
-			lastCmd = cmd[0]
 			_, _ = w.Write([]byte(lastCmd + "\n"))
-			cmd = cmd[1:]
 		default:
 			last += sbuf
 		}
@@ -56,13 +60,16 @@ func mux(logger *log.Logger, cmd []string, w io.Writer, r io.Reader) {
 }
 
 // GetLastLine gets the last line of s.
-func GetLastLine(s string) string {
+func GetLastLine(s string) (preLines, curLine string) {
 	pos := strings.LastIndex(s, "\n")
 	if pos < 0 || pos == len(s)-1 {
-		return s
+		curLine = s
+	} else {
+		preLines = s[:pos+1]
+		curLine = s[pos+1:]
 	}
 
-	return s[pos+1:]
+	return preLines, curLine
 }
 
 // nolint gomnd

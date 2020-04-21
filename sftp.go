@@ -3,13 +3,12 @@ package gossh
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/pkg/sftp"
 )
 
-func makeSftpClient(h Host, timeout time.Duration) (*sftp.Client, error) {
-	gc, err := h.GetGosshConnect(timeout)
+func makeSftpClient(h Host) (*sftp.Client, error) {
+	gc, err := h.GetGosshConnect()
 	if err != nil {
 		return nil, err
 	}
@@ -25,13 +24,11 @@ func makeSftpClient(h Host, timeout time.Duration) (*sftp.Client, error) {
 type sftpClientMap struct {
 	m map[string]*sftp.Client
 	sync.Mutex
-	timeout time.Duration
 }
 
-func makeSftpClientMap(timeout time.Duration) *sftpClientMap {
+func makeSftpClientMap() *sftpClientMap {
 	return &sftpClientMap{
-		m:       make(map[string]*sftp.Client),
-		timeout: timeout,
+		m: make(map[string]*sftp.Client),
 	}
 }
 
@@ -44,7 +41,7 @@ func (m *sftpClientMap) GetClient(h Host) (*sftp.Client, error) {
 		return c, nil
 	}
 
-	c, err := makeSftpClient(h, m.timeout)
+	c, err := makeSftpClient(h)
 	if err != nil {
 		return nil, err
 	}

@@ -4,11 +4,13 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"golang.org/x/crypto/ssh"
 )
 
 // PrivateKey loads a public key from "path" and returns a SSH ClientConfig to authenticate with the server.
-func PrivateKey(username, path string, timeout time.Duration) (*ssh.ClientConfig, error) {
+func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
 	privateKey, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -21,11 +23,11 @@ func PrivateKey(username, path string, timeout time.Duration) (*ssh.ClientConfig
 
 	auth := []ssh.AuthMethod{ssh.PublicKeys(signer)}
 
-	return MakeClientConfig(username, auth, timeout), nil
+	return MakeClientConfig(username, auth), nil
 }
 
 // PrivateKeyPassphrase returns the ssh.ClientConfig based on specified username, passphrase and path.
-func PrivateKeyPassphrase(username, passphrase, path string, timeout time.Duration) (*ssh.ClientConfig, error) {
+func PrivateKeyPassphrase(username, passphrase, path string) (*ssh.ClientConfig, error) {
 	privateKey, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -38,18 +40,20 @@ func PrivateKeyPassphrase(username, passphrase, path string, timeout time.Durati
 
 	auth := []ssh.AuthMethod{ssh.PublicKeys(signer)}
 
-	return MakeClientConfig(username, auth, timeout), nil
+	return MakeClientConfig(username, auth), nil
 }
 
 // PasswordKey returns the ssh.ClientConfig based on specified username and password.
-func PasswordKey(username, password string, timeout time.Duration) *ssh.ClientConfig {
+func PasswordKey(username, password string) *ssh.ClientConfig {
 	auth := []ssh.AuthMethod{ssh.Password(password)}
 
-	return MakeClientConfig(username, auth, timeout)
+	return MakeClientConfig(username, auth)
 }
 
 // MakeClientConfig makes a new ssh.ClientConfig
-func MakeClientConfig(username string, auth []ssh.AuthMethod, timeout time.Duration) *ssh.ClientConfig {
+func MakeClientConfig(username string, auth []ssh.AuthMethod) *ssh.ClientConfig {
+	timeout := viper.Get("NetTimeout").(time.Duration)
+
 	return &ssh.ClientConfig{
 		User:            username,
 		Auth:            auth,
