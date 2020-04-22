@@ -25,34 +25,13 @@ func (*SSHCmd) Parse() {}
 // TargetHosts returns target hosts for the command
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
-// RawCmd returns the original raw command
-func (s *SSHCmd) RawCmd() string { return s.cmd }
-
-// ExecInHosts execute in specified hosts.
-func (s *SSHCmd) ExecInHosts(gs *GoSSH, target *Host) error {
-	for _, host := range s.hosts {
-		if target == nil || target == host {
-			if target == nil || host.client == nil {
-				fmt.Printf("\n--- %s--- \n\n", host.Addr)
-			}
-
-			s.do(gs, host)
-		}
-	}
-
-	return nil
-}
-
-func (s *SSHCmd) do(gs *GoSSH, h *Host) {
+func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
 	cmds := []string{s.cmd}
 	if gs.Vars.SplitSSH {
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
-	err := h.SSH(cmds)
-	if err != nil {
-		gs.Vars.log.Printf("ssh in host %s error %v\n", h.Addr, err)
-	}
+	return h.SSH(cmds)
 }
 
 func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {

@@ -11,24 +11,8 @@ import (
 	"github.com/pkg/sftp"
 )
 
-// ExecInHosts executes downloading among hosts.
-func (s *DlCmd) ExecInHosts(gs *GoSSH, target *Host) error {
-	for _, host := range s.hosts {
-		if target == nil || target == host {
-			s.do(gs, *host)
-		}
-	}
-
-	return nil
-}
-
-func (s *DlCmd) do(gs *GoSSH, h Host) {
-	if err := s.downloadHost(gs, h); err != nil {
-		gs.Vars.log.Printf("download %s error %v\n", s.remote, err)
-	}
-}
-
-func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
+// Exec execute in specified host.
+func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 	sf, err := h.GetClient()
 	if err != nil {
 		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)

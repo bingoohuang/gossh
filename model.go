@@ -169,12 +169,27 @@ type CmdExcResult struct {
 type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
-	// ExecInHosts execute in specified hosts.
-	ExecInHosts(gs *GoSSH, host *Host) error
+	// Exec execute in specified host.
+	Exec(gs *GoSSH, host *Host) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
-	// RawCmd returns the original raw command
-	RawCmd() string
+}
+
+// ExecInHosts execute in specified hosts.
+func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
+	for _, host := range hostsCmd.TargetHosts() {
+		if target == nil || target == host {
+			if target == nil || host.client == nil {
+				fmt.Printf("\n--- %s--- \n\n", host.Addr)
+			}
+
+			if err := hostsCmd.Exec(gs, host); err != nil {
+				fmt.Printf("Error occurred %v\n", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Hosts stands for slice of Host

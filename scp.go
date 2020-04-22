@@ -35,13 +35,10 @@ type DlCmd struct {
 }
 
 // Parse parses UlCmd.
-func (UlDl) Parse() {}
+func (*UlDl) Parse() {}
 
 // TargetHosts returns target hosts for the command
-func (u UlDl) TargetHosts() Hosts { return u.hosts }
-
-// RawCmd returns the original raw command
-func (u UlDl) RawCmd() string { return u.cmd }
+func (u *UlDl) TargetHosts() Hosts { return u.hosts }
 
 // nolint gomnd
 func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {

@@ -18,8 +18,12 @@ type LocalCmd struct {
 	cmd string
 }
 
+// LocalHost means the local host.
+// nolint gochecknoglobals
+var LocalHost = &Host{ID: "localhost"}
+
 // TargetHosts returns target hosts for the command
-func (LocalCmd) TargetHosts() Hosts { return nil }
+func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
 
 // RawCmd returns the original raw command
 func (l LocalCmd) RawCmd() string { return l.cmd }
@@ -30,12 +34,8 @@ func (l *LocalCmd) Parse() {
 	l.cmd = strings.ReplaceAll(l.cmd, "~", home)
 }
 
-// ExecInHosts execute in specified hosts.
-func (l *LocalCmd) ExecInHosts(_ *GoSSH, target *Host) error {
-	if target != nil && target.ID != "localhost" {
-		return nil
-	}
-
+// Exec execute in specified host.
+func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 	localCmd, uuidStr := l.buildLocalCmd()
 
 	timeout := viper.Get("CmdTimeout").(time.Duration)

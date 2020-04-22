@@ -56,23 +56,24 @@ func main() {
 		fmt.Println("There is nothing to do.")
 	}
 
+	hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
+
 	switch gs.Vars.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		for _, cmd := range gs.Cmds {
-			if err := cmd.ExecInHosts(&gs, nil); err != nil {
-				gs.LogPrintf("ExecInHosts error %v\n", err)
-			}
-		}
+		execCmds(gs, nil)
 	case gossh.ExecModeHostByHost:
-		hosts := append([]*gossh.Host{{ID: "localhost"}}, gs.Hosts...)
 		for _, host := range hosts {
-			for _, cmd := range gs.Cmds {
-				if err := cmd.ExecInHosts(&gs, host); err != nil {
-					gs.LogPrintf("ExecInHosts error %v\n", err)
-				}
-			}
+			execCmds(gs, host)
 		}
 	}
 
 	_ = gs.Close()
+}
+
+func execCmds(gs gossh.GoSSH, host *gossh.Host) {
+	for _, cmd := range gs.Cmds {
+		if err := gossh.ExecInHosts(&gs, host, cmd); err != nil {
+			gs.LogPrintf("ExecInHosts error %v\n", err)
+		}
+	}
 }
