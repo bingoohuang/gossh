@@ -339,19 +339,26 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 			continue
 		}
 
-		var hostCmd HostsCmd
+		var (
+			err     error
+			hostCmd HostsCmd
+		)
 
 		switch cmdType {
 		case cmdtype.Local:
 			hostCmd = &LocalCmd{cmd: cmd}
 		case cmdtype.Ul:
-			hostCmd = buildUlCmd(gs, hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildUlCmd(hostPart, realCmd, cmd)
 		case cmdtype.Dl:
-			hostCmd = buildDlCmd(gs, hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildDlCmd(hostPart, realCmd, cmd)
 		case cmdtype.SSH:
-			hostCmd = buildSSHCmd(gs, hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildSSHCmd(hostPart, realCmd, cmd)
 		default:
 			continue
+		}
+
+		if err != nil {
+			logrus.Fatalf("failed to build ul command %v", err)
 		}
 
 		hostCmd.Parse()

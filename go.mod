@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
-	github.com/bingoohuang/gou v0.0.0-20200422030932-794a2d44381c
+	github.com/bingoohuang/gou v0.0.0-20200422044132-0d4d7c555215
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49

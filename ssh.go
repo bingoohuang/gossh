@@ -35,8 +35,9 @@ func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
 	return h.SSH(cmds)
 }
 
-func buildSSHCmd(gs *GoSSH, hostPart, realCmd, _ string) *SSHCmd {
-	return &SSHCmd{hosts: parseHosts(gs, hostPart), cmd: realCmd}
+// nolint unparam
+func (g *GoSSH) buildSSHCmd(hostPart, realCmd, _ string) (*SSHCmd, error) {
+	return &SSHCmd{hosts: g.parseHosts(hostPart), cmd: realCmd}, nil
 }
 
 // SSH executes ssh commands  on remote host h.

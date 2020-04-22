@@ -20,6 +20,10 @@ import (
 
 // Exec execute in specified host.
 func (s *UlCmd) Exec(gs *GoSSH, h *Host) error {
+	if err := s.init(); err != nil {
+		return err
+	}
+
 	startTime := time.Now()
 
 	if err := s.sftpUpload(gs, h); err != nil {

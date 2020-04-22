@@ -1,8 +1,11 @@
 package gossh
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
+
+	errs "github.com/pkg/errors"
 
 	"github.com/bingoohuang/gou/file"
 	"github.com/bingoohuang/gou/str"
@@ -29,6 +32,32 @@ type UlCmd struct {
 	localFiles []string
 }
 
+func (s *UlCmd) init() error {
+	if len(s.localFiles) > 0 {
+		return nil
+	}
+
+	localFiles, err := doublestar.Glob(s.local)
+	basedir := file.BaseDir(localFiles)
+
+	if err != nil {
+		return errs.Wrapf(err, "doublestar.Glob(%s)", s.local)
+	}
+
+	if len(localFiles) == 0 {
+		return errs.Wrapf(err, "there is no file matched for pattern %s to upload", s.local)
+	}
+
+	if len(localFiles) == 1 {
+		basedir = filepath.Dir(localFiles[0])
+	}
+
+	s.localFiles = localFiles
+	s.basedir = basedir
+
+	return nil
+}
+
 // DlCmd download cmd structure.
 type DlCmd struct {
 	UlDl
@@ -41,85 +70,53 @@ func (*UlDl) Parse() {}
 func (u *UlDl) TargetHosts() Hosts { return u.hosts }
 
 // nolint gomnd
-func buildUlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *UlCmd {
+func (g *GoSSH) buildUlCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
-		logrus.Warnf("bad format for %s", cmd)
-		return nil
+		return nil, fmt.Errorf("bad format for %s", cmd)
 	}
 
-	local := fields[0]
-	remote := fields[1]
-	home, _ := homedir.Dir()
-
-	local = strings.ReplaceAll(local, "~", home)
-	localFiles, err := doublestar.Glob(local)
-	basedir := file.BaseDir(localFiles)
-
-	if err != nil {
-		logrus.Fatalf("doublestar.Glob(%s) error %v", local, err)
-	}
-
-	if len(localFiles) == 0 {
-		logrus.Fatalf("there is no file matched for pattern %s to upload", local)
-	}
-
-	if len(localFiles) == 1 {
-		basedir = filepath.Dir(localFiles[0])
-	}
-
-	hosts := parseHosts(gs, hostPart)
-
-	return &UlCmd{
-		UlDl:       UlDl{hosts: hosts, cmd: cmd, local: local, remote: remote},
-		localFiles: localFiles,
-		basedir:    basedir,
-	}
+	return &UlCmd{UlDl: UlDl{
+		hosts:  g.parseHosts(hostPart),
+		cmd:    cmd,
+		local:  strings.ReplaceAll(fields[0], "~", str.PickFirst(homedir.Dir())),
+		remote: fields[1],
+	}}, nil
 }
 
 // nolint gomnd
-func buildDlCmd(gs *GoSSH, hostPart, realCmd, cmd string) *DlCmd {
+func (g *GoSSH) buildDlCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
-		logrus.Warnf("bad format for %s", cmd)
-		return nil
+		return nil, fmt.Errorf("bad format for %s", cmd)
 	}
 
-	remote := fields[0]
-	local := fields[1]
-	home, _ := homedir.Dir()
-
-	local = strings.ReplaceAll(local, "~", home)
-
-	hosts := parseHosts(gs, hostPart)
-
-	return &DlCmd{UlDl: UlDl{hosts: hosts, cmd: cmd, local: local, remote: remote}}
+	return &DlCmd{UlDl: UlDl{
+		hosts:  g.parseHosts(hostPart),
+		cmd:    cmd,
+		local:  strings.ReplaceAll(fields[1], "~", str.PickFirst(homedir.Dir())),
+		remote: fields[0]}}, nil
 }
 
-func parseHosts(gs *GoSSH, hostTag string) Hosts {
+func (g *GoSSH) parseHosts(hostTag string) Hosts {
 	host := hostTag[len(`%host`):]
-
 	if host == "" {
-		return gs.Hosts
+		return g.Hosts
 	}
 
-	host = strings.TrimPrefix(host, "-")
-
-	if host == "" {
-		return gs.Hosts
+	if host = strings.TrimPrefix(host, "-"); host == "" {
+		return g.Hosts
 	}
 
-	found := findHost(gs.Hosts, host)
-
-	return found
+	return g.findHost(host)
 }
 
-func findHost(hosts Hosts, name string) Hosts {
+func (g *GoSSH) findHost(name string) Hosts {
 	targetHosts := make(Hosts, 0)
 	tm := make(map[string]bool)
 
 	m := make(map[string]*Host)
-	for _, h := range hosts {
+	for _, h := range g.Hosts {
 		m[h.ID] = h
 	}
 
