@@ -27,3 +27,5 @@ require (
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )
+
+replace github.com/bingoohuang/gou => /Users/bingoobjca/github/gou

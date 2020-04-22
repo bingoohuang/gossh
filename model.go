@@ -79,7 +79,8 @@ type Host struct {
 	cmdChan      chan string
 	executedChan chan interface{}
 
-	sftpClient *sftp.Client
+	sftpClient    *sftp.Client
+	sftpSSHClient *ssh.Client
 }
 
 // Close closes the resource associated to the host.
@@ -106,6 +107,12 @@ func (h *Host) Close() error {
 
 	if c := h.sftpClient; c != nil {
 		h.sftpClient = nil
+
+		g.Go(c.Close)
+	}
+
+	if c := h.sftpSSHClient; c != nil {
+		h.sftpSSHClient = nil
 
 		g.Go(c.Close)
 	}

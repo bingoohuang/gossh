@@ -8,14 +8,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bingoohuang/gou/lang"
 	"github.com/pkg/sftp"
 )
 
 // Exec execute in specified host.
 func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
-	sf, err := h.GetClient()
+	sf, err := h.GetSftpClient()
 	if err != nil {
-		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
+		return fmt.Errorf("gs.sftpClientMap.GetSftpClient failed: %w", err)
 	}
 
 	stat, err := sf.Stat(s.remote)
@@ -71,7 +72,7 @@ func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, f
 		return fmt.Errorf("os.OpenFile %s failed: %w", to, err)
 	}
 
-	defer localFile.Close()
+	defer lang.Closef(&err, localFile, "close file %s", to)
 
 	writer := io.Writer(localFile)
 	if _, err := io.Copy(writer, remoteFile); err != nil {

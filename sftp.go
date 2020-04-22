@@ -6,32 +6,24 @@ import (
 	"github.com/pkg/sftp"
 )
 
-func (h *Host) makeSftpClient() error {
+// GetSftpClient get sftClient by host
+func (h *Host) GetSftpClient() (*sftp.Client, error) {
 	if h.sftpClient != nil {
-		return nil
+		return h.sftpClient, nil
 	}
 
 	gc, err := h.GetGosshConnect()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	sf, err := sftp.NewClient(gc.Client)
 	if err != nil {
-		return fmt.Errorf("sftp.NewClient failed: %w", err)
+		return nil, fmt.Errorf("sftp.NewClient failed: %w", err)
 	}
 
 	h.sftpClient = sf
-
-	return nil
-}
-
-// GetClient get sftClient by host
-func (h *Host) GetClient() (*sftp.Client, error) {
-	err := h.makeSftpClient()
-	if err != nil {
-		return nil, err
-	}
+	h.sftpSSHClient = gc.Client
 
 	return h.sftpClient, nil
 }

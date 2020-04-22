@@ -25,6 +25,7 @@ func (*SSHCmd) Parse() {}
 // TargetHosts returns target hosts for the command
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
+// Exec execute in specified host.
 func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
 	cmds := []string{s.cmd}
 	if gs.Vars.SplitSSH {

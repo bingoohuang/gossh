@@ -10,6 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gou/lang"
+	errs "github.com/pkg/errors"
+
 	"github.com/pkg/sftp"
 
 	"github.com/cheggaaa/pb/v3"
@@ -30,9 +33,9 @@ func (s *UlCmd) Exec(gs *GoSSH, h *Host) error {
 }
 
 func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
-	sf, err := h.GetClient()
+	sf, err := h.GetSftpClient()
 	if err != nil {
-		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
+		return fmt.Errorf("gs.sftpClientMap.GetSftpClient failed: %w", err)
 	}
 
 	remote := s.remote
@@ -43,7 +46,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("stat remote %s error %w", remote, err)
+			return errs.Wrapf(err, "stat remote %s", remote)
 		}
 
 		isDir = true
@@ -66,61 +69,60 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 			remoteDir := filepath.Join(remote, relativePart)
 
 			if err := sf.MkdirAll(remoteDir); err != nil {
-				return fmt.Errorf("sftp MkdirAll %s error %w", remoteDir, err)
+				return errs.Wrapf(err, "sftp MkdirAll %s", remoteDir)
 			}
 		}
 	}
 
 	for _, localFile := range s.localFiles {
-		if err := uploadSingleOne(gs.Vars.log, sf, s.basedir, localFile, remote, overrideSingleFile); err != nil {
-			return fmt.Errorf("uploadSingleOne %s to %s error %w", localFile, remote, err)
+		if err := uploadSingle(gs.Vars.log, sf, s.basedir, localFile, remote, overrideSingleFile); err != nil {
+			return errs.Wrapf(err, "uploadSingle %s to %s", localFile, remote)
 		}
 	}
 
 	return nil
 }
 
-func uploadSingleOne(logger *log.Logger, sf *sftp.Client,
-	basedir, localFile, remote string, overrideSingleFile bool) error {
-	fromFile, _ := os.Open(localFile)
-	defer fromFile.Close()
+func uploadSingle(l *log.Logger, sf *sftp.Client, basedir, local, remote string, overrideSingle bool) (err error) {
+	fromFile, _ := os.Open(local)
+	defer lang.Closef(&err, fromFile, "close local %s", local)
 
 	dest := remote
 
-	if !overrideSingleFile {
-		dest = filepath.Join(remote, strings.TrimPrefix(localFile, basedir))
+	if !overrideSingle {
+		dest = filepath.Join(remote, strings.TrimPrefix(local, basedir))
 	}
 
 	f, err := sf.Create(dest)
 	if err != nil {
-		return fmt.Errorf("sftp Create %s error %w", dest, err)
+		return errs.Wrapf(err, "sftp Create %s", dest)
 	}
 
-	defer f.Close()
+	defer lang.Closef(&err, f, "close dest %s", dest)
 
 	fromStat, err := fromFile.Stat()
 	if err != nil {
-		return fmt.Errorf("stat file %s error %w", localFile, err)
+		return errs.Wrapf(err, "stat file %s", local)
 	}
 
-	logger.Printf("start to upload %s to %s\n", localFile, dest)
+	l.Printf("start to upload %s to %s\n", local, dest)
 
 	start := time.Now()
 	bar := pb.StartNew(int(fromStat.Size()))
 
 	if _, err := io.Copy(bar.NewProxyWriter(f), fromFile); err != nil {
-		return fmt.Errorf("io.Copy failed: %w", err)
+		return errs.Wrapf(err, "io.Copy %s to %s", local, dest)
 	}
 
 	bar.Finish()
 
-	logger.Printf("complete to upload %s to %s, cost %v\n", localFile, dest, time.Since(start))
+	l.Printf("complete to upload %s to %s, cost %v\n", local, dest, time.Since(start))
 
 	if err := sf.Chmod(dest, fromStat.Mode()); err != nil {
-		return fmt.Errorf("sf.Chmo %s failed: %w", dest, err)
+		return errs.Wrapf(err, "sf.Chmod %s", dest)
 	}
 
-	return nil
+	return err
 }
 
 func extractDirs(files []string) []string {

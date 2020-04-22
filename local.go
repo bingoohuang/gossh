@@ -20,7 +20,7 @@ type LocalCmd struct {
 
 // LocalHost means the local host.
 // nolint gochecknoglobals
-var LocalHost = &Host{ID: "localhost"}
+var LocalHost = &Host{ID: "localhost", Addr: "localhost"}
 
 // TargetHosts returns target hosts for the command
 func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
@@ -37,20 +37,30 @@ func (l *LocalCmd) Parse() {
 // Exec execute in specified host.
 func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 	localCmd, uuidStr := l.buildLocalCmd()
-
 	timeout := viper.Get("CmdTimeout").(time.Duration)
-
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
 	p := cmd.NewCmdOptions(opts, "/bin/bash", "-c", localCmd)
 	status := p.Start()
+	uuidTimes := 0
 
 	for {
 		select {
 		case so := <-p.Stdout:
 			if so == uuidStr {
-				fmt.Println("$", l.cmd)
+				if uuidTimes == 0 {
+					fmt.Println("$", l.cmd)
+				}
+
+				uuidTimes++
 			} else {
-				fmt.Println(so)
+				if uuidTimes == 2 { // nolint gomnd
+					pwd, _ := os.Getwd()
+					if pwd != so {
+						_ = os.Chdir(so)
+					}
+				} else {
+					fmt.Println(so)
+				}
 			}
 		case se := <-p.Stderr:
 			_, _ = fmt.Fprintln(os.Stderr, se)
@@ -61,8 +71,9 @@ func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 	}
 }
 
+// buildLocalCmd  把当前命令进行封装，为了更好地获得命令的输出，前后添加uuid的echo，并且最后打印当前目录，为了切换。
 func (l *LocalCmd) buildLocalCmd() (localCmdsStr string, uuidStr string) {
 	uuidStr = uuid.New().String()
 
-	return "echo " + uuidStr + ";" + l.cmd, uuidStr
+	return "echo " + uuidStr + ";" + l.cmd + "; echo " + uuidStr + ";pwd", uuidStr
 }
