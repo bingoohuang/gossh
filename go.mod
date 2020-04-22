@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
-	github.com/bingoohuang/gou v0.0.0-20200403081909-e61e812925ed
+	github.com/bingoohuang/gou v0.0.0-20200422030932-794a2d44381c
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
@@ -27,5 +27,3 @@ require (
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )
-
-replace github.com/bingoohuang/gou => /Users/bingoobjca/github/gou

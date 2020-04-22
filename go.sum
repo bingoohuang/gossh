@@ -20,6 +20,8 @@ github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8 h1:yJyBZE6ahC8F1
 github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8/go.mod h1:X6KsZUI8jGvpmIFAtQS9IKyyDcdSzSi/0Gcjf5bvI2k=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea h1:DGdKt4f+BciAcqlJ7v7LHCTO3wXBqeItwaLXKea4GjI=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea/go.mod h1:ahEOivpxL+rGjwq6hk2H8aQEMh/Uc6r1N3ohugldIww=
+github.com/bingoohuang/gou v0.0.0-20200422030932-794a2d44381c h1:S61z41uzO24IBGS1DLLw6vUQ6qPz9xqAAeWoWOtc7QI=
+github.com/bingoohuang/gou v0.0.0-20200422030932-794a2d44381c/go.mod h1:8uY7c8S0pFBvz4iKZ72K17pqLxcT6BnHHFi0Bt622/Y=
 github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d h1:RkZ/6GrOw5MkrsMk/YKTkcmEF5z1CnjdaKaYCd9FJWQ=
 github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d/go.mod h1:WYrcjWhT2QgbWZcYzfYqWxaxut2hPFa6if/zYwEEEio=
 github.com/bmatcuk/doublestar v1.2.1 h1:eetYiv8DDYOZcBADY+pRvRytf3Dlz1FhnpvL2FsClBc=
