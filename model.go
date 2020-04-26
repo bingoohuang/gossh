@@ -187,7 +187,7 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
 	for _, host := range hostsCmd.TargetHosts() {
 		if target == nil || target == host {
 			if target == nil || host.client == nil {
-				fmt.Printf("\n--- %s--- \n\n", host.Addr)
+				fmt.Printf("\n---> %s <--- \n\n", host.Addr)
 			}
 
 			if err := hostsCmd.Exec(gs, host); err != nil {
