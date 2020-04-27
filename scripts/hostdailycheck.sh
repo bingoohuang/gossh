@@ -160,7 +160,7 @@ function getSystemStatus(){
     echo " 发行版本：$Release"
     echo "     内核：$Kernel"
     echo "   主机名：$Hostname"
-    echo "  SELinux：$SELinux"
+    echo " SELinux：$SELinux"
     echo "语言/编码：$default_LANG"
     echo " 当前时间：$(date +'%F %T')"
     echo " 最后启动：$LastReboot"
