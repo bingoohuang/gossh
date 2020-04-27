@@ -23,50 +23,50 @@ RESULTFILE="$LOGPATH/HostDailyCheck-`hostname`-`date +%Y%m%d`.txt"
 
 
 #定义报表的全局变量
-report_DateTime=""    #日期 ok
-report_Hostname=""    #主机名 ok
-report_OSRelease=""    #发行版本 ok
-report_Kernel=""    #内核 ok
-report_Language=""    #语言/编码 ok
-report_LastReboot=""    #最近启动时间 ok
-report_Uptime=""    #运行时间（天） ok
-report_CPUs=""    #CPU数量 ok
-report_CPUType=""    #CPU类型 ok
-report_Arch=""    #CPU架构 ok
-report_MemTotal=""    #内存总容量(MB) ok
-report_MemFree=""    #内存剩余(MB) ok
-report_MemUsedPercent=""    #内存使用率% ok
-report_DiskTotal=""    #硬盘总容量(GB) ok
-report_DiskFree=""    #硬盘剩余(GB) ok
-report_DiskUsedPercent=""    #硬盘使用率% ok
-report_InodeTotal=""    #Inode总量 ok
-report_InodeFree=""    #Inode剩余 ok
-report_InodeUsedPercent=""    #Inode使用率 ok
-report_IP=""    #IP地址 ok
-report_MAC=""    #MAC地址 ok
-report_Gateway=""    #默认网关 ok
-report_DNS=""    #DNS ok
-report_Listen=""    #监听 ok
-report_Selinux=""    #Selinux ok
-report_Firewall=""    #防火墙 ok
-report_USERs=""    #用户 ok
-report_USEREmptyPassword=""   #空密码用户 ok
-report_USERTheSameUID=""      #相同ID的用户 ok 
-report_PasswordExpiry=""    #密码过期（天） ok
-report_RootUser=""    #root用户 ok
-report_Sudoers=""    #sudo授权  ok
-report_SSHAuthorized=""    #SSH信任主机 ok
-report_SSHDProtocolVersion=""    #SSH协议版本 ok
-report_SSHDPermitRootLogin=""    #允许root远程登录 ok
-report_DefunctProsess=""    #僵尸进程数量 ok
-report_SelfInitiatedService=""    #自启动服务数量 ok
-report_SelfInitiatedProgram=""    #自启动程序数量 ok
-report_RuningService=""           #运行中服务数  ok
-report_Crontab=""    #计划任务数 ok
-report_Syslog=""    #日志服务 ok
-report_SNMP=""    #SNMP  OK
-report_NTP=""    #NTP ok
-report_JDK=""    #JDK版本 ok
+report_DateTime=""                      #日期 ok
+report_Hostname=""                      #主机名 ok
+report_OSRelease=""                     #发行版本 ok
+report_Kernel=""                        #内核 ok
+report_Language=""                      #语言/编码 ok
+report_LastReboot=""                    #最近启动时间 ok
+report_Uptime=""                        #运行时间（天） ok
+report_CPUs=""                          #CPU数量 ok
+report_CPUType=""                       #CPU类型 ok
+report_Arch=""                          #CPU架构 ok
+report_MemTotal=""                      #内存总容量(MB) ok
+report_MemFree=""                       #内存剩余(MB) ok
+report_MemUsedPercent=""                #内存使用率% ok
+report_DiskTotal=""                     #硬盘总容量(GB) ok
+report_DiskFree=""                      #硬盘剩余(GB) ok
+report_DiskUsedPercent=""               #硬盘使用率% ok
+report_InodeTotal=""                    #Inode总量 ok
+report_InodeFree=""                     #Inode剩余 ok
+report_InodeUsedPercent=""              #Inode使用率 ok
+report_IP=""                            #IP地址 ok
+report_MAC=""                           #MAC地址 ok
+report_Gateway=""                       #默认网关 ok
+report_DNS=""                           #DNS ok
+report_Listen=""                        #监听 ok
+report_Selinux=""                       #Selinux ok
+report_Firewall=""                      #防火墙 ok
+report_USERs=""                         #用户 ok
+report_USEREmptyPassword=""             #空密码用户 ok
+report_USERTheSameUID=""                #相同ID的用户 ok 
+report_PasswordExpiry=""                #密码过期（天） ok
+report_RootUser=""                      #root用户 ok
+report_Sudoers=""                       #sudo授权  ok
+report_SSHAuthorized=""                 #SSH信任主机 ok
+report_SSHDProtocolVersion=""           #SSH协议版本 ok
+report_SSHDPermitRootLogin=""           #允许root远程登录 ok
+report_DefunctProsess=""                #僵尸进程数量 ok
+report_SelfInitiatedService=""          #自启动服务数量 ok
+report_SelfInitiatedProgram=""          #自启动程序数量 ok
+report_RuningService=""                 #运行中服务数  ok
+report_Crontab=""                       #计划任务数 ok
+report_Syslog=""                        #日志服务 ok
+report_SNMP=""                          #SNMP  OK
+report_NTP=""                           #NTP ok
+report_JDK=""                           #JDK版本 ok
 function version(){
     echo ""
     echo ""
@@ -680,6 +680,19 @@ function uploadHostDailyCheckReport(){
     curl -l -H "Content-type: application/json" -X POST -d "$json" "$uploadHostDailyCheckReportApi" 2>/dev/null
 }
 
+function getJavaProcessos(){
+    echo ""
+    echo ""
+    echo "############################ JAVA进程检查 #############################"
+    ps axo lstart,user,pid,ppid,pcpu,pmem,vsz,rss,tname,stat,time,args |grep java|grep -v grep|awk '{c="date -d\""$1 FS $2 FS $3 FS $4 FS $5"\" +\047%Y-%m-%d %H:%M:%S\047"; c|getline d; close(c); $1=$2=$3=$4=$5=""; printf "%s\n",d$0 }'
+}
+
+function getEnd(){
+    echo ""
+    echo ""
+    echo "############################ 所有检查运行完毕 #############################"
+}
+
 function check(){
     version
     getSystemStatus
@@ -703,6 +716,8 @@ function check(){
     getSNMPStatus
     getNTPStatus
     getInstalledStatus
+    getJavaProcessos
+    getEnd    
 }
 
 
