@@ -6,53 +6,17 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
+	"github.com/bingoohuang/gou/lang"
 	"github.com/pkg/sftp"
 )
 
-// ExecInHosts executes downloading among hosts.
-func (s *DlCmd) ExecInHosts(gs *GoSSH, wg *sync.WaitGroup) error {
-	if gs.Vars.Goroutines == Off {
-		for _, host := range s.hosts {
-			s.do(gs, *host, nil)
-		}
-
-		return nil
-	}
-
-	if gs.Vars.Goroutines == CmdScope {
-		wg = &sync.WaitGroup{}
-	}
-
-	wg.Add(len(s.hosts))
-
-	for _, host := range s.hosts {
-		go s.do(gs, *host, wg)
-	}
-
-	if gs.Vars.Goroutines == CmdScope {
-		wg.Wait()
-	}
-
-	return nil
-}
-
-func (s *DlCmd) do(gs *GoSSH, h Host, wg *sync.WaitGroup) {
-	if err := s.downloadHost(gs, h); err != nil {
-		gs.Vars.log.Printf("download %s error %v\n", s.remote, err)
-	}
-
-	if wg != nil {
-		wg.Done()
-	}
-}
-
-func (s *DlCmd) downloadHost(gs *GoSSH, h Host) error {
-	sf, err := gs.sftpClientMap.GetClient(h)
+// Exec execute in specified host.
+func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
+	sf, err := h.GetSftpClient()
 	if err != nil {
-		return fmt.Errorf("gs.sftpClientMap.GetClient failed: %w", err)
+		return fmt.Errorf("gs.sftpClientMap.GetSftpClient failed: %w", err)
 	}
 
 	stat, err := sf.Stat(s.remote)
@@ -108,7 +72,7 @@ func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, f
 		return fmt.Errorf("os.OpenFile %s failed: %w", to, err)
 	}
 
-	defer localFile.Close()
+	defer lang.Closef(&err, localFile, "close file %s", to)
 
 	writer := io.Writer(localFile)
 	if _, err := io.Copy(writer, remoteFile); err != nil {

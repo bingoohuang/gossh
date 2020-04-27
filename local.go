@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -19,11 +18,12 @@ type LocalCmd struct {
 	cmd string
 }
 
-// TargetHosts returns target hosts for the command
-func (LocalCmd) TargetHosts() Hosts { return nil }
+// LocalHost means the local host.
+// nolint gochecknoglobals
+var LocalHost = &Host{ID: "localhost", Addr: "localhost"}
 
-// ExecInHosts execute in specified hosts.
-func (LocalCmd) ExecInHosts(_ *GoSSH, _ *sync.WaitGroup) error { return nil }
+// TargetHosts returns target hosts for the command
+func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
 
 // RawCmd returns the original raw command
 func (l LocalCmd) RawCmd() string { return l.cmd }
@@ -34,58 +34,46 @@ func (l *LocalCmd) Parse() {
 	l.cmd = strings.ReplaceAll(l.cmd, "~", home)
 }
 
-// execLocal executes local shells
-func (g CmdGroup) execLocal() {
-	localCmds, uuids := g.buildLocalCmds()
-
-	timeout := viper.Get("Timeout").(time.Duration)
-
+// Exec execute in specified host.
+func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
+	localCmd, uuidStr := l.buildLocalCmd()
+	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
-	p := cmd.NewCmdOptions(opts, "/bin/bash", "-c", localCmds)
+	p := cmd.NewCmdOptions(opts, "/bin/bash", "-c", localCmd)
 	status := p.Start()
-
-	uuidIndex := 0
-	cmdIndex := 0
+	uuidTimes := 0
 
 	for {
 		select {
 		case so := <-p.Stdout:
-			if so == uuids[uuidIndex] {
-				if cmdIndex < len(g.Cmds) {
-					fmt.Println("$", g.Cmds[cmdIndex].(*LocalCmd).cmd)
+			if so == uuidStr {
+				if uuidTimes == 0 {
+					fmt.Println("$", l.cmd)
 				}
 
-				uuidIndex++
-				cmdIndex++
+				uuidTimes++
 			} else {
-				fmt.Println(so)
+				if uuidTimes == 2 { // nolint gomnd
+					pwd, _ := os.Getwd()
+					if pwd != so {
+						_ = os.Chdir(so)
+					}
+				} else {
+					fmt.Println(so)
+				}
 			}
 		case se := <-p.Stderr:
 			_, _ = fmt.Fprintln(os.Stderr, se)
 		case exitState := <-status:
 			fmt.Println("exit status ", exitState.Exit)
-			return
+			return nil
 		}
 	}
 }
 
-func (g CmdGroup) buildLocalCmds() (localCmdsStr string, uuids []string) {
-	uuids = make([]string, 00)
-	localCmds := make([]string, 0)
+// buildLocalCmd  把当前命令进行封装，为了更好地获得命令的输出，前后添加uuid的echo，并且最后打印当前目录，为了切换。
+func (l *LocalCmd) buildLocalCmd() (localCmdsStr string, uuidStr string) {
+	uuidStr = uuid.New().String()
 
-	uuidStr := uuid.New().String()
-	uuids = append(uuids, uuidStr)
-	localCmds = append(localCmds, "echo "+uuidStr)
-
-	for _, localCmd := range g.Cmds {
-		lc := localCmd.(*LocalCmd)
-		localCmds = append(localCmds, lc.cmd)
-
-		uuidStr := uuid.New().String()
-		uuids = append(uuids, uuidStr)
-
-		localCmds = append(localCmds, "echo "+uuidStr)
-	}
-
-	return strings.Join(localCmds, ";"), uuids
+	return "echo " + uuidStr + ";" + l.cmd + "; echo " + uuidStr + ";pwd", uuidStr
 }

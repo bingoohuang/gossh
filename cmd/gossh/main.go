@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/bingoohuang/gou/enc"
 
@@ -33,7 +32,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Println("Version: v0.2.2")
+		fmt.Println("Version: v1.0.0")
 		return
 	}
 
@@ -53,21 +52,28 @@ func main() {
 
 	ssh.do(gs)
 
-	if len(gs.CmdGroups) == 0 {
+	if len(gs.Cmds) == 0 {
 		fmt.Println("There is nothing to do.")
 	}
 
-	var globalWg *sync.WaitGroup
+	hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 
-	if config.Goroutines == gossh.GlobalScope {
-		globalWg = &sync.WaitGroup{}
+	switch gs.Vars.ExecMode {
+	case gossh.ExecModeCmdByCmd:
+		execCmds(gs, nil)
+	case gossh.ExecModeHostByHost:
+		for _, host := range hosts {
+			execCmds(gs, host)
+		}
 	}
 
-	for _, group := range gs.CmdGroups {
-		group.Exec(globalWg)
-	}
+	_ = gs.Close()
+}
 
-	if globalWg != nil {
-		globalWg.Wait()
+func execCmds(gs gossh.GoSSH, host *gossh.Host) {
+	for _, cmd := range gs.Cmds {
+		if err := gossh.ExecInHosts(&gs, host, cmd); err != nil {
+			gs.LogPrintf("ExecInHosts error %v\n", err)
+		}
 	}
 }

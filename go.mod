@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
-	github.com/bingoohuang/gou v0.0.0-20200403081909-e61e812925ed
+	github.com/bingoohuang/gou v0.0.0-20200422044132-0d4d7c555215
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
@@ -13,6 +13,7 @@ require (
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2 // indirect
@@ -22,6 +23,7 @@ require (
 	go.mongodb.org/mongo-driver v1.1.3 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )
