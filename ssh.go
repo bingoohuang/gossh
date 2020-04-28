@@ -96,40 +96,42 @@ func (h *Host) waitCmdExecuted(cmd string) {
 
 // nolint gomnd
 func (h *Host) setupSession() error {
-	if h.session == nil {
-		session, err := h.client.Client.NewSession()
-		if err != nil {
-			return err
-		}
-
-		// disable echoing input/output speed = 14.4kbaud
-		modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
-		if err := session.RequestPty("vt100", 800, 400, modes); err != nil {
-			return err
-		}
-
-		w, err := session.StdinPipe()
-		if err != nil {
-			return err
-		}
-
-		r, err := session.StdoutPipe()
-		if err != nil {
-			return err
-		}
-
-		if err := session.Shell(); err != nil {
-			return err
-		}
-
-		h.session = session
-		h.w = w
-		h.r = r
-		h.cmdChan = make(chan string, 1)
-		h.executedChan = make(chan interface{}, 1)
-
-		go mux(h.cmdChan, h.executedChan, h.w, h.r)
+	if h.session != nil {
+		return nil
 	}
+
+	session, err := h.client.Client.NewSession()
+	if err != nil {
+		return err
+	}
+
+	// disable echoing input/output speed = 14.4kbaud
+	modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
+	if err := session.RequestPty("vt100", 800, 400, modes); err != nil {
+		return err
+	}
+
+	w, err := session.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	r, err := session.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := session.Shell(); err != nil {
+		return err
+	}
+
+	h.session = session
+	h.w = w
+	h.r = r
+	h.cmdChan = make(chan string, 1)
+	h.executedChan = make(chan interface{}, 1)
+
+	go mux(h.cmdChan, h.executedChan, h.w, h.r)
 
 	return nil
 }
