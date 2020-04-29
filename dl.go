@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	errs "github.com/pkg/errors"
+
 	"github.com/bingoohuang/gou/lang"
 	"github.com/pkg/sftp"
 )
@@ -16,15 +18,30 @@ import (
 func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 	sf, err := h.GetSftpClient()
 	if err != nil {
-		return fmt.Errorf("gs.sftpClientMap.GetSftpClient failed: %w", err)
+		return errs.Wrapf(err, "GetSftpClient")
 	}
 
-	stat, err := sf.Stat(s.remote)
+	remotes, err := sf.Glob(s.remote)
 	if err != nil {
-		return fmt.Errorf("sftp.Stat %s failed: %w", s.remote, err)
+		return errs.Wrapf(err, "Glob %s", s.remote)
 	}
 
-	return download(gs.Vars.log, stat, h.Addr, s.local, s.remote, sf)
+	if len(remotes) == 0 {
+		return fmt.Errorf("no files to download for %s", s.remote)
+	}
+
+	for _, remote := range remotes {
+		stat, err := sf.Stat(remote)
+		if err != nil {
+			return errs.Wrapf(err, "sftp.Stat %s", remote)
+		}
+
+		if err := download(gs.Vars.log, stat, h.Addr, s.local, remote, sf); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func download(logger *log.Logger, stat os.FileInfo, host, to, from string, sf *sftp.Client) error {

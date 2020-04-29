@@ -51,7 +51,7 @@ report_Selinux=""                       #Selinux ok
 report_Firewall=""                      #防火墙 ok
 report_USERs=""                         #用户 ok
 report_USEREmptyPassword=""             #空密码用户 ok
-report_USERTheSameUID=""                #相同ID的用户 ok 
+report_USERTheSameUID=""                #相同ID的用户 ok
 report_PasswordExpiry=""                #密码过期（天） ok
 report_RootUser=""                      #root用户 ok
 report_Sudoers=""                       #sudo授权  ok
@@ -117,14 +117,14 @@ function getDiskStatus(){
     echo ""
     echo "############################ 磁盘检查 ############################"
     df -hiP | sed 's/Mounted on/Mounted/'> /tmp/inode
-    df -hTP | sed 's/Mounted on/Mounted/'> /tmp/disk 
+    df -hTP | sed 's/Mounted on/Mounted/'> /tmp/disk
     join /tmp/disk /tmp/inode | awk '{print $1,$2,"|",$3,$4,$5,$6,"|",$8,$9,$10,$11,"|",$12}'| column -t
     #报表信息
     diskdata=$(df -TP | sed '1d' | awk '$2!="tmpfs"{print}') #KB
     disktotal=$(echo "$diskdata" | awk '{total+=$3}END{print total}') #KB
     diskused=$(echo "$diskdata" | awk '{total+=$4}END{print total}')  #KB
     diskfree=$((disktotal-diskused)) #KB
-    diskusedpercent=$(echo $disktotal $diskused | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}') 
+    diskusedpercent=$(echo $disktotal $diskused | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}')
     inodedata=$(df -iTP | sed '1d' | awk '$2!="tmpfs"{print}')
     inodetotal=$(echo "$inodedata" | awk '{total+=$3}END{print total}')
     inodeused=$(echo "$inodedata" | awk '{total+=$4}END{print total}')
@@ -377,7 +377,7 @@ function getUserStatus(){
                 echo $r
                 USEREmptyPassword="$USEREmptyPassword,"$r
             fi
-        done    
+        done
     done
     echo ""
     echo "相同ID的用户"
@@ -394,8 +394,8 @@ function getUserStatus(){
     done
     #报表信息
     report_USERs="$USERs"    #用户
-    report_USEREmptyPassword=$(echo $USEREmptyPassword | sed 's/^,//') 
-    report_USERTheSameUID=$(echo $USERTheSameUID | sed 's/,$//') 
+    report_USEREmptyPassword=$(echo $USEREmptyPassword | sed 's/^,//')
+    report_USERTheSameUID=$(echo $USERTheSameUID | sed 's/,$//')
     report_RootUser=$(echo $RootUser | sed 's/^,//')    #特权用户
 }
 
@@ -450,7 +450,8 @@ function getInstalledStatus(){
     echo ""
     echo ""
     echo "############################ 软件检查 ############################"
-    rpm -qa --last | head | column -t 
+    # https://www.cyberciti.biz/faq/linux-run-a-command-with-a-time-limit/
+    timeout --signal=9 10s rpm -qa --last | head | column -t
 }
 
 function getProcessStatus(){
@@ -468,7 +469,7 @@ function getProcessStatus(){
     echo "内存占用TOP10"
     echo "-------------"
     echo -e "PID %MEM RSS COMMAND
-    $(ps aux | awk '{print $2, $4, $6, $11}' | sort -k3rn | head -n 10 )"| column -t 
+    $(ps aux | awk '{print $2, $4, $6, $11}' | sort -k3rn | head -n 10 )"| column -t
     echo ""
     echo "CPU占用TOP10"
     echo "------------"
@@ -676,7 +677,7 @@ function uploadHostDailyCheckReport(){
         \"NTP\":\"$report_NTP\",
         \"JDK\":\"$report_JDK\"
     }"
-    #echo "$json" 
+    #echo "$json"
     curl -l -H "Content-type: application/json" -X POST -d "$json" "$uploadHostDailyCheckReportApi" 2>/dev/null
 }
 
@@ -717,7 +718,7 @@ function check(){
     getNTPStatus
     getInstalledStatus
     getJavaProcessos
-    getEnd    
+    getEnd
 }
 
 

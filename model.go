@@ -168,6 +168,11 @@ func (h *Host) Prop(name string) string {
 	return ""
 }
 
+// IsConnected tells if host is connected by ssh or sftp.
+func (h *Host) IsConnected() bool {
+	return h.client != nil || h.sftpClient != nil
+}
+
 // CmdExcResult means the detail exec result of cmd
 type CmdExcResult struct {
 }
@@ -186,7 +191,7 @@ type HostsCmd interface {
 func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
 	for _, host := range hostsCmd.TargetHosts() {
 		if target == nil || target == host {
-			if target == nil || host.client == nil {
+			if target == nil || !host.IsConnected() {
 				fmt.Printf("\n---> %s <--- \n\n", host.Addr)
 			}
 
