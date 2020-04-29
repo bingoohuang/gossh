@@ -36,6 +36,8 @@ type Config struct {
 
 	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
 	PrintConfig bool `pflag:"print config before running. shorthand=P"`
+	// 是否全局设置为远程shell命令
+	GlobalRemote bool `pflag:"run as global remote ssh command(no need %host). shorthand=g"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`
@@ -339,7 +341,7 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 	cmds := make([]HostsCmd, 0)
 
 	for _, cmd := range c.Cmds {
-		cmdType, hostPart, realCmd := cmdtype.Parse(cmd)
+		cmdType, hostPart, realCmd := cmdtype.Parse(c.GlobalRemote, cmd)
 		if cmdType == cmdtype.Noop {
 			continue
 		}

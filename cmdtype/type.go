@@ -23,25 +23,33 @@ const (
 )
 
 // Parse parses the type of cmd,  returns CmdType, host part and real cmd part
-func Parse(cmd string) (CmdType, string, string) {
+func Parse(globalRemote bool, cmd string) (CmdType, string, string) {
 	cmd = strings.TrimSpace(cmd)
 	if cmd == "" {
 		return Noop, "", ""
 	}
 
-	fields := str.Fields(cmd, 2)
+	if globalRemote {
+		return parseRemote(cmd)
+	}
 
-	if strings.HasPrefix(fields[0], "%host") {
-		fields2 := str.Fields(fields[1], 2)
-		switch fields2[0] {
-		case "%ul":
-			return Ul, fields[0], fields2[1]
-		case "%dl":
-			return Dl, fields[0], fields2[1]
-		}
-
-		return SSH, fields[0], fields[1]
+	if f := str.Fields(cmd, 2); strings.HasPrefix(f[0], hostTag) {
+		return parseRemote(f[1])
 	}
 
 	return Local, "", cmd
+}
+
+const hostTag = "%host"
+
+func parseRemote(cmd string) (CmdType, string, string) {
+	fields2 := str.Fields(cmd, 2)
+	switch fields2[0] {
+	case "%ul":
+		return Ul, hostTag, fields2[1]
+	case "%dl":
+		return Dl, hostTag, fields2[1]
+	}
+
+	return SSH, hostTag, cmd
 }
