@@ -8,7 +8,77 @@
 
 execute shell scripts among multiple ssh servers
 
-## usage
+## Usage demo
+
+```bash
+$ gossh --quoteReplace=%q --bangReplace=%b --hosts="192.168.1.1:8022 app/app" --cmds="%host MYSQL_PWD='%babcdefg' mysql -h127.0.0.1 -uroot -e %qshow variables like 'server%'%q"
+
+--- 192.168.1.1:8022 ---
+$ MYSQL_PWD='!abcdefg' mysql -h127.0.0.1 -uroot -e "show variables like 'server%'"
++----------------+--------------------------------------+
+| Variable_name  | Value                                |
++----------------+--------------------------------------+
+| server_id      | 1                                    |
+| server_id_bits | 32                                   |
+| server_uuid    | 43e9cbe5-b38a-11e9-8570-04d4c439354e |
++----------------+--------------------------------------+
+```
+
+```bash
+gossh -h="192.168.1.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!abcdefg' mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
+gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
+gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
+```
+
+proxy supported:
+
+```bash
+gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 %dl 1.log 10.log"
+gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 cat 1.log"
+```
+
+```bash
+gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y5VaKfj-vxSJ5JUHL0R-CBtZTkR2UR"
+```
+
+```text
+# hosts.txt
+13.26.15.12:(1061-1063)
+13.26.15.13:222
+13.26.15.14
+```
+
+```text
+# cmds.txt
+%host pwd
+%host hostname -I
+```
+
+## Substitute ResultVars
+
+1. define result variables like `... => @varName`
+1. use the variables like `echo @varName`
+
+```toml
+#printConfig = false
+#passphrase="xxxx"
+
+hosts = [
+"12.26.85.62:1082 root/111",
+"12.26.85.62:1083 root/222",
+"12.26.85.62:1084 root/333",
+]
+
+# 全部命令都默认成远程执行，相当于自动添加了%host标识。
+globalRemote = true
+cmdTimeout = "15s"
+
+cmds = [
+    "date '+%Y%m%d' => @today",
+    "sh /tmp/hostdailycheck.sh",
+    "%dl /tmp/log/HostDailyCheck-*-@today.txt ./dailychecks@today/",
+]
+```
 
 ```bash
 $  uuidgen
@@ -68,75 +138,3 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [An auditing / logging SSH relay for a jump box / bastion host.](https://github.com/iamacarpet/ssh-bastion)
 1. [A curated list of SSH resources.](https://github.com/moul/awesome-ssh)
 1. [melbahja/goph The native golang ssh client to execute your commands over ssh connection](https://github.com/melbahja/goph)
-
-## Scripts
-
-```bash
-$ gossh --quoteReplace=%q --bangReplace=%b --hosts="192.168.1.1:8022 app/app" --cmds="%host MYSQL_PWD='%babcdefg' mysql -h127.0.0.1 -uroot -e %qshow variables like 'server%'%q"
-
---- 192.168.1.1:8022 ---
-$ MYSQL_PWD='!abcdefg' mysql -h127.0.0.1 -uroot -e "show variables like 'server%'"
-+----------------+--------------------------------------+
-| Variable_name  | Value                                |
-+----------------+--------------------------------------+
-| server_id      | 1                                    |
-| server_id_bits | 32                                   |
-| server_uuid    | 43e9cbe5-b38a-11e9-8570-04d4c439354e |
-+----------------+--------------------------------------+
-```
-
-```bash
-gossh -h="192.168.1.(9 18):8022 app/app id=(9 18)" --cmds="%host-9 MYSQL_PWD='\!abcdefg' mysql -u root -h 127.0.0.1 -vvv -e 'show slave status\G'"
-gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %ul ~/go/bin/linux_amd64/mci ./mci,%host-9 ./mci/mci -v"
-gossh -h="192.168.1.9:8022 app/app id=9, 192.168.1.18:8022 app/app id=18" --cmds="%host-9 %dl ./mci/mci ."
-```
-
-proxy supported:
-
-```bash
-gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 %dl 1.log 10.log"
-gossh --hosts="192.168.1.3:6022 huangjinbing/123 id=1, 192.168.9.1:22 user proxy=1" --cmds="%host-2 cat 1.log"
-```
-
-
-```bash
-gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y5VaKfj-vxSJ5JUHL0R-CBtZTkR2UR"
-```
-
-```text
-# hosts.txt
-13.26.15.12:(1061-1063)
-13.26.15.13:222
-13.26.15.14
-```
-
-```text
-# cmds.txt
-%host pwd
-%host hostname -I
-```
-
-## Substitute ResultVars
-
-1. define result variables like `... => @varName`
-1. use the variables like `echo @varName`
-
-```toml
-#printConfig = false
-#passphrase="xxxx"
-
-hosts = [
-"12.26.85.62:1082 root/111",
-"12.26.85.62:1083 root/222",
-"12.26.85.62:1084 root/333",
-]
-
-globalRemote = true
-cmdTimeout = "15s"
-
-cmds = [
-    "date '+%Y%m%d' => @today",
-    "sh /tmp/hostdailycheck.sh",
-    "%dl /tmp/log/HostDailyCheck-*-@today.txt ./dailychecks@today/",
-]
-```
