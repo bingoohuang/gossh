@@ -107,6 +107,8 @@ func (c Config) expandHost(host *Host) Hosts {
 		if hosts[i].Password == "" {
 			hosts[i].Password = c.Pass
 		}
+
+		hosts[i].resultVars = make(map[string]string)
 	}
 
 	return hosts

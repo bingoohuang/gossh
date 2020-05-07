@@ -21,7 +21,9 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 		return errs.Wrapf(err, "GetSftpClient")
 	}
 
-	remotes, err := sf.Glob(s.remote)
+	remote := h.SubstituteResultVars(s.remote)
+	remotes, err := sf.Glob(remote)
+
 	if err != nil {
 		return errs.Wrapf(err, "Glob %s", s.remote)
 	}
@@ -30,13 +32,15 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 		return fmt.Errorf("no files to download for %s", s.remote)
 	}
 
+	local := h.SubstituteResultVars(s.local)
+
 	for _, remote := range remotes {
 		stat, err := sf.Stat(remote)
 		if err != nil {
 			return errs.Wrapf(err, "sftp.Stat %s", remote)
 		}
 
-		if err := download(gs.Vars.log, stat, h.Addr, s.local, remote, sf); err != nil {
+		if err := download(gs.Vars.log, stat, h.Addr, local, remote, sf); err != nil {
 			return err
 		}
 	}
@@ -44,8 +48,8 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 	return nil
 }
 
-func download(logger *log.Logger, stat os.FileInfo, host, to, from string, sf *sftp.Client) error {
-	if stat.IsDir() {
+func download(logger *log.Logger, remoteStat os.FileInfo, host, to, from string, sf *sftp.Client) error {
+	if remoteStat.IsDir() {
 		fileInfos, err := sf.ReadDir(from)
 		if err != nil {
 			return fmt.Errorf("sftp.ReadDir %s failed: %w", from, err)
@@ -73,7 +77,7 @@ func download(logger *log.Logger, stat os.FileInfo, host, to, from string, sf *s
 		return fmt.Errorf("MkdirAll %s failed: %w", to, err)
 	}
 
-	return downloadFile(logger, sf, stat.Mode(), host, from, dest)
+	return downloadFile(logger, sf, remoteStat.Mode(), host, from, dest)
 }
 
 func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, from, to string) error {

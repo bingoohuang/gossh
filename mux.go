@@ -11,7 +11,7 @@ import (
 // CmdChanClosed represents the cmd channel closed event.
 type CmdChanClosed struct{}
 
-func mux(cmdsChan chan string, executed chan interface{}, w io.Writer, r io.Reader) {
+func mux(cmdsChan chan CmdWrap, executed chan interface{}, w io.Writer, r io.Reader, h *Host) {
 	uuidStr := uuid.New().String()
 	testEcho := "echo " + uuidStr
 
@@ -23,6 +23,8 @@ func mux(cmdsChan chan string, executed chan interface{}, w io.Writer, r io.Read
 
 		uuidStr:  uuidStr,
 		testEcho: testEcho,
+
+		host: h,
 	}
 
 	for {
@@ -39,16 +41,17 @@ func mux(cmdsChan chan string, executed chan interface{}, w io.Writer, r io.Read
 type muxRunner struct {
 	r        io.Reader
 	w        io.Writer
-	cmdsChan chan string
+	cmdsChan chan CmdWrap
 	executed chan interface{}
 
-	lastCmd       string
+	lastCmd       CmdWrap
 	last          string
 	buf           [65 * 1024]byte
 	readN         int
 	testEcho      string
 	testEchoState EchoState
 	uuidStr       string
+	host          *Host
 }
 
 // EchoState 回显状态
@@ -113,8 +116,11 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 			fmt.Print(preLines)
 		}
 
-		if s.lastCmd != "" {
+		if s.lastCmd.Cmd != "" {
 			s.executed <- s.lastCmd
+
+			_, result := GetLastLine(strings.TrimSpace(preLines))
+			s.host.SetResultVar(s.lastCmd.ResultVar, result)
 		}
 
 		s.last = curLine
@@ -137,11 +143,11 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	}
 
 	if s.testEchoState == EchoStateNotFound {
-		fmt.Println(s.last + s.lastCmd)
+		fmt.Println(s.last + s.lastCmd.Cmd)
 		s.last = ""
 	}
 
-	_, _ = s.w.Write([]byte(s.lastCmd + "\n"))
+	_, _ = s.w.Write([]byte(s.lastCmd.Cmd + "\n"))
 
 	return true
 }

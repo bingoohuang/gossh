@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gossh/cmdtype"
 	"github.com/spf13/viper"
 
 	"github.com/gobars/cmd"
@@ -15,12 +16,21 @@ import (
 
 // LocalCmd means local commands.
 type LocalCmd struct {
-	cmd string
+	cmd       string
+	resultVar string
+}
+
+// nolint gomnd
+func (g *GoSSH) buildLocalCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
+	c, v := cmdtype.ParseResultVar(cmd)
+	l := &LocalCmd{cmd: c, resultVar: v}
+
+	return l, nil
 }
 
 // LocalHost means the local host.
 // nolint gochecknoglobals
-var LocalHost = &Host{ID: "localhost", Addr: "localhost"}
+var LocalHost = &Host{ID: "localhost", Addr: "localhost", resultVars: make(map[string]string)}
 
 // TargetHosts returns target hosts for the command
 func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
@@ -35,10 +45,12 @@ func (l *LocalCmd) Parse() {
 }
 
 // Exec execute in specified host.
-func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
-	localCmd, uuidStr := l.buildLocalCmd()
+func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
+	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
+	echoCmd := h.SubstituteResultVars(l.cmd)
+
 	p := cmd.NewCmdOptions(opts, "/bin/bash", "-c", localCmd)
 	status := p.Start()
 	uuidTimes := 0
@@ -48,7 +60,7 @@ func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 		case so := <-p.Stdout:
 			if so == uuidStr {
 				if uuidTimes == 0 {
-					fmt.Println("$", l.cmd)
+					fmt.Println("$", echoCmd)
 				}
 
 				uuidTimes++
@@ -59,6 +71,7 @@ func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 						_ = os.Chdir(so)
 					}
 				} else {
+					h.SetResultVar(l.resultVar, so)
 					fmt.Println(so)
 				}
 			}
@@ -72,8 +85,10 @@ func (l *LocalCmd) Exec(_ *GoSSH, _ *Host) error {
 }
 
 // buildLocalCmd  把当前命令进行封装，为了更好地获得命令的输出，前后添加uuid的echo，并且最后打印当前目录，为了切换。
-func (l *LocalCmd) buildLocalCmd() (localCmdsStr string, uuidStr string) {
+func (l *LocalCmd) buildLocalCmd(h *Host) (localCmdsStr string, uuidStr string) {
 	uuidStr = uuid.New().String()
 
-	return "echo " + uuidStr + ";" + l.cmd + "; echo " + uuidStr + ";pwd", uuidStr
+	return "echo " + uuidStr + ";" +
+		h.SubstituteResultVars(l.cmd) +
+		"; echo " + uuidStr + ";pwd", uuidStr
 }

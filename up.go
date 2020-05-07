@@ -42,7 +42,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 		return fmt.Errorf("gs.sftpClientMap.GetSftpClient failed: %w", err)
 	}
 
-	remote := s.remote
+	remote := h.SubstituteResultVars(s.remote)
 	stat, err := sf.Stat(remote)
 
 	overrideSingleFile := false
@@ -69,6 +69,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 	if isDir || stat.IsDir() {
 		localDirs := extractDirs(s.localFiles)
 		for _, localDir := range localDirs {
+			localDir := h.SubstituteResultVars(localDir)
 			relativePart := strings.TrimPrefix(localDir, s.basedir)
 			remoteDir := filepath.Join(remote, relativePart)
 
@@ -79,6 +80,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 	}
 
 	for _, localFile := range s.localFiles {
+		localFile := h.SubstituteResultVars(localFile)
 		if err := uploadSingle(gs.Vars.log, sf, s.basedir, localFile, remote, overrideSingleFile); err != nil {
 			return errs.Wrapf(err, "uploadSingle %s to %s", localFile, remote)
 		}

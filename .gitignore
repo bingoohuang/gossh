@@ -15,3 +15,5 @@
 
 /dist
 /doublestar/test/
+.history/
+dailychecks*

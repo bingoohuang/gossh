@@ -115,3 +115,28 @@ gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y
 %host pwd
 %host hostname -I
 ```
+
+## Substitute ResultVars
+
+1. define result variables like `... => @varName`
+1. use the variables like `echo @varName`
+
+```toml
+#printConfig = false
+#passphrase="xxxx"
+
+hosts = [
+"12.26.85.62:1082 root/111",
+"12.26.85.62:1083 root/222",
+"12.26.85.62:1084 root/333",
+]
+
+globalRemote = true
+cmdTimeout = "15s"
+
+cmds = [
+    "date '+%Y%m%d' => @today",
+    "sh /tmp/hostdailycheck.sh",
+    "%dl /tmp/log/HostDailyCheck-*-@today.txt ./dailychecks@today/",
+]
+```

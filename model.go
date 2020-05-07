@@ -64,6 +64,12 @@ const (
 // GetSeparator get the separator
 func (c Config) GetSeparator() string { return c.Separator }
 
+// CmdWrap wraps a command with result variable name.
+type CmdWrap struct {
+	Cmd       string
+	ResultVar string
+}
+
 // Host represents the structure of remote host information for ssh.
 type Host struct {
 	ID         string
@@ -78,11 +84,31 @@ type Host struct {
 	session      *ssh.Session
 	w            io.WriteCloser
 	r            io.Reader
-	cmdChan      chan string
+	cmdChan      chan CmdWrap
 	executedChan chan interface{}
 
 	sftpClient    *sftp.Client
 	sftpSSHClient *ssh.Client
+
+	resultVars map[string]string
+}
+
+// SubstituteResultVars substitutes the variables in the command line string.
+func (h *Host) SubstituteResultVars(cmd string) string {
+	for k, v := range h.resultVars {
+		cmd = strings.ReplaceAll(cmd, k, v)
+	}
+
+	return cmd
+}
+
+// SetResultVar sets the value of result variable.
+func (h *Host) SetResultVar(varName, varValue string) {
+	if varName == "" {
+		return
+	}
+
+	h.resultVars[varName] = varValue
 }
 
 // Close closes the resource associated to the host.
@@ -353,7 +379,7 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 
 		switch cmdType {
 		case cmdtype.Local:
-			hostCmd = &LocalCmd{cmd: cmd}
+			hostCmd, err = gs.buildLocalCmd(hostPart, realCmd, cmd)
 		case cmdtype.Ul:
 			hostCmd, err = gs.buildUlCmd(hostPart, realCmd, cmd)
 		case cmdtype.Dl:

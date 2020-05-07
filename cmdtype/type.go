@@ -1,6 +1,7 @@
 package cmdtype
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/bingoohuang/gou/str"
@@ -52,4 +53,17 @@ func parseRemote(cmd string) (CmdType, string, string) {
 	}
 
 	return SSH, hostTag, cmd
+}
+
+// nolint
+var resultVarPattern = regexp.MustCompile(`(.*?)\s*=>\s*(@\w+)\s*$`)
+
+// ParseResultVar parses the result variable from the end of command like ... => @xyz
+func ParseResultVar(s string) (cmd, resultVar string) {
+	subs := resultVarPattern.FindAllStringSubmatch(s, -1)
+	if len(subs) == 0 {
+		return s, ""
+	}
+
+	return subs[0][1], subs[0][2]
 }

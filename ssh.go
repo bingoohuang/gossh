@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/bingoohuang/gossh/cmdtype"
 	"github.com/bingoohuang/gou/str"
 
 	"github.com/spf13/viper"
@@ -15,8 +16,9 @@ import (
 
 // SSHCmd means SSH command.
 type SSHCmd struct {
-	cmd   string
-	hosts Hosts
+	cmd       string
+	resultVar string
+	hosts     Hosts
 }
 
 // Parse parses command.
@@ -32,17 +34,19 @@ func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
-	return h.SSH(cmds)
+	return h.SSH(cmds, s.resultVar)
 }
 
 // nolint unparam
 func (g *GoSSH) buildSSHCmd(hostPart, realCmd, _ string) (*SSHCmd, error) {
-	return &SSHCmd{hosts: g.parseHosts(hostPart), cmd: realCmd}, nil
+	c, v := cmdtype.ParseResultVar(realCmd)
+
+	return &SSHCmd{hosts: g.parseHosts(hostPart), cmd: c, resultVar: v}, nil
 }
 
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func (h *Host) SSH(cmds []string) error {
+func (h *Host) SSH(cmds []string, resultVar string) error {
 	if h.client == nil {
 		gc, err := h.GetGosshConnect()
 		if err != nil {
@@ -57,14 +61,15 @@ func (h *Host) SSH(cmds []string) error {
 	}
 
 	for _, cmd := range cmds {
-		h.cmdChan <- cmd
-		h.waitCmdExecuted(cmd)
+		wrap := CmdWrap{Cmd: h.SubstituteResultVars(cmd), ResultVar: resultVar}
+		h.cmdChan <- wrap
+		h.waitCmdExecuted(wrap)
 	}
 
 	return nil
 }
 
-func (h *Host) waitCmdExecuted(cmd string) {
+func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	ticker := time.NewTicker(timeout)
 
@@ -73,7 +78,7 @@ func (h *Host) waitCmdExecuted(cmd string) {
 	for {
 		select {
 		case executed := <-h.executedChan:
-			if s, ok := executed.(string); ok && s == cmd {
+			if s, ok := executed.(CmdWrap); ok && s == cmd {
 				return
 			}
 		case <-ticker.C:
@@ -128,10 +133,10 @@ func (h *Host) setupSession() error {
 	h.session = session
 	h.w = w
 	h.r = r
-	h.cmdChan = make(chan string, 1)
+	h.cmdChan = make(chan CmdWrap, 1)
 	h.executedChan = make(chan interface{}, 1)
 
-	go mux(h.cmdChan, h.executedChan, h.w, h.r)
+	go mux(h.cmdChan, h.executedChan, h.w, h.r, h)
 
 	return nil
 }
