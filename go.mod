@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
-	github.com/bingoohuang/gou v0.0.0-20200422044132-0d4d7c555215
+	github.com/bingoohuang/gou v0.0.0-20200608105644-af3865a1364f
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
@@ -20,7 +20,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	go.mongodb.org/mongo-driver v1.1.3 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553

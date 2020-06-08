@@ -20,10 +20,12 @@ github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8 h1:yJyBZE6ahC8F1
 github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8/go.mod h1:X6KsZUI8jGvpmIFAtQS9IKyyDcdSzSi/0Gcjf5bvI2k=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea h1:DGdKt4f+BciAcqlJ7v7LHCTO3wXBqeItwaLXKea4GjI=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea/go.mod h1:ahEOivpxL+rGjwq6hk2H8aQEMh/Uc6r1N3ohugldIww=
-github.com/bingoohuang/gou v0.0.0-20200422044132-0d4d7c555215 h1:3pP0ExH5DHm9bnp4btdl/eGPPD2rJy4p0i2/x+iV3/8=
-github.com/bingoohuang/gou v0.0.0-20200422044132-0d4d7c555215/go.mod h1:8uY7c8S0pFBvz4iKZ72K17pqLxcT6BnHHFi0Bt622/Y=
+github.com/bingoohuang/gou v0.0.0-20200608105644-af3865a1364f h1:sSUPbypwrryIVlGT90245byjiopncsXvXK45+CCeQpk=
+github.com/bingoohuang/gou v0.0.0-20200608105644-af3865a1364f/go.mod h1:aDOwtkuv68JHEEsHoWJhqyUODo79t5k/erZCZllNBhc=
 github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d h1:RkZ/6GrOw5MkrsMk/YKTkcmEF5z1CnjdaKaYCd9FJWQ=
 github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d/go.mod h1:WYrcjWhT2QgbWZcYzfYqWxaxut2hPFa6if/zYwEEEio=
+github.com/bingoohuang/toml v0.0.0-20200422103751-d93794558fab h1:mngDLNbvrqMRZZCO+VdiSIuDbm629YgNReBfj3gcTnI=
+github.com/bingoohuang/toml v0.0.0-20200422103751-d93794558fab/go.mod h1:aixwsUzzh8XHIqLUnWUAGLUVYv8HOEhABIXQYx8U1/o=
 github.com/bmatcuk/doublestar v1.2.1 h1:eetYiv8DDYOZcBADY+pRvRytf3Dlz1FhnpvL2FsClBc=
 github.com/bmatcuk/doublestar v1.2.1/go.mod h1:wiQtGV+rzVYxB7WIlirSN++5HPtPlXEo9MEoZQC/PmE=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
@@ -207,6 +209,8 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
+github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tdewolff/minify v2.3.6+incompatible/go.mod h1:9Ov578KJUmAWpS6NeZwRZyT56Uf6o3Mcz9CEsg8USYs=
