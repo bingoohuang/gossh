@@ -138,3 +138,4 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [An auditing / logging SSH relay for a jump box / bastion host.](https://github.com/iamacarpet/ssh-bastion)
 1. [A curated list of SSH resources.](https://github.com/moul/awesome-ssh)
 1. [melbahja/goph The native golang ssh client to execute your commands over ssh connection](https://github.com/melbahja/goph)
+1. [yahoo/vssh Go library to handle tens of thousands SSH connections and execute the command(s) with higher-level API for building network device / server automation.](https://github.com/yahoo/vssh)
