@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -112,7 +113,13 @@ func (h *Host) setupSession() error {
 
 	// disable echoing input/output speed = 14.4kbaud
 	modes := ssh.TerminalModes{ssh.ECHO: 0, ssh.TTY_OP_ISPEED: 14400, ssh.TTY_OP_OSPEED: 14400}
-	if err := session.RequestPty("vt100", 800, 400, modes); err != nil {
+
+	term := os.Getenv("TERM")
+	if term == "" {
+		term = "xterm-256color" // alternative to vt100
+	}
+
+	if err := session.RequestPty(term, 800, 400, modes); err != nil {
 		return err
 	}
 
