@@ -29,7 +29,7 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 	}
 
 	if len(remotes) == 0 {
-		return fmt.Errorf("no files to download for %s", s.remote)
+		return fmt.Errorf("no files to download for %s", s.remote) // nolint:goerr113
 	}
 
 	local := h.SubstituteResultVars(s.local)

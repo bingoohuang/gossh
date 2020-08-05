@@ -59,6 +59,11 @@ gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y
 1. define result variables like `... => @varName`
 1. use the variables like `echo @varName`
 
+Notice:
+
+1. `@varName` which is not capitalized will be limited to the host related.
+1. `@VarName` which is capitalized will be global to all hosts.
+
 ```toml
 #printConfig = false
 #passphrase="xxxx"
@@ -74,9 +79,9 @@ globalRemote = true
 cmdTimeout = "15s"
 
 cmds = [
-    "date '+%Y%m%d' => @today",
+    "date '+%Y%m%d' => @Today",
     "sh /tmp/hostdailycheck.sh",
-    "%dl /tmp/log/HostDailyCheck-*-@today.txt ./dailychecks@today/",
+    "%dl /tmp/log/HostDailyCheck-*-@Today.txt ./dailychecks@today/",
 ]
 ```
 

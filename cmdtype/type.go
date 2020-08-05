@@ -23,7 +23,7 @@ const (
 	SSH
 )
 
-// Parse parses the type of cmd,  returns CmdType, host part and real cmd part
+// Parse parses the type of cmd,  returns CmdType, host part and real cmd part.
 func Parse(globalRemote bool, cmd string) (CmdType, string, string) {
 	cmd = strings.TrimSpace(cmd)
 	if cmd == "" {
@@ -58,7 +58,7 @@ func parseRemote(cmd string) (CmdType, string, string) {
 // nolint
 var resultVarPattern = regexp.MustCompile(`(.*?)\s*=>\s*(@\w+)\s*$`)
 
-// ParseResultVar parses the result variable from the end of command like ... => @xyz
+// ParseResultVar parses the result variable from the end of command like ... => @xyz.
 func ParseResultVar(s string) (cmd, resultVar string) {
 	subs := resultVarPattern.FindAllStringSubmatch(s, -1)
 	if len(subs) == 0 {

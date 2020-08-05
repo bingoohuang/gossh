@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/sftp"
 )
 
-// GetSftpClient get sftClient by host
+// GetSftpClient get sftClient by host.
 func (h *Host) GetSftpClient() (*sftp.Client, error) {
 	if h.sftpClient != nil {
 		return h.sftpClient, nil

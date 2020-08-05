@@ -54,7 +54,7 @@ type muxRunner struct {
 	host          *Host
 }
 
-// EchoState 回显状态
+// EchoState 回显状态.
 type EchoState int
 
 const (
@@ -83,7 +83,7 @@ func (s *muxRunner) read() (err error) {
 	return err
 }
 
-// nolint gomnd
+// nolint:gomnd
 func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 	if s.readN > 0 {
 		recv = string(s.buf[:s.readN])
@@ -96,6 +96,7 @@ func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 	return
 }
 
+// nolint:nestif
 func (s *muxRunner) exec(recv, lastTwo string) bool {
 	if !isPrompt(lastTwo) {
 		s.last += recv
@@ -104,7 +105,7 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 
 	if s.testEchoState == EchoStateSent {
 		uuidCount := strings.Count(recv, s.uuidStr)
-		if uuidCount == 2 { // nolint gomnd
+		if uuidCount == 2 { // nolint:gomnd
 			// 有回显，包括命令中的uuid和执行结果的uuid共2处
 			s.testEchoState = EchoStateFound
 		} else {

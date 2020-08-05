@@ -24,7 +24,7 @@ type SSHCmd struct {
 // Parse parses command.
 func (*SSHCmd) Parse() {}
 
-// TargetHosts returns target hosts for the command
+// TargetHosts returns target hosts for the command.
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // Exec execute in specified host.
@@ -37,7 +37,7 @@ func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
 	return h.SSH(cmds, s.resultVar)
 }
 
-// nolint unparam
+// nolint:unparam
 func (g *GoSSH) buildSSHCmd(hostPart, realCmd, _ string) (*SSHCmd, error) {
 	c, v := cmdtype.ParseResultVar(realCmd)
 
@@ -99,7 +99,7 @@ func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 	}
 }
 
-// nolint gomnd
+// nolint:gomnd
 func (h *Host) setupSession() error {
 	if h.session != nil {
 		return nil

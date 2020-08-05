@@ -63,6 +63,7 @@ func (s *UlCmd) sftpUpload(gs *GoSSH, h *Host) error {
 	}
 
 	if len(s.localFiles) > 1 && overrideSingleFile {
+		// nolint:goerr113
 		return fmt.Errorf("unable to upload multiple files %s to remote single file %s", s.local, s.remote)
 	}
 

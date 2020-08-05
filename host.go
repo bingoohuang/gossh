@@ -64,8 +64,11 @@ func (c Config) parseHost(host string) Hosts {
 	//	continue
 	//}
 
-	addr := parseHostID(fields[0])
-	user, pass := parseUserPass(fields, 1)
+	addr, user, pass := parseHostID(fields[0])
+	if user == "" {
+		user, pass = parseUserPass(fields, 1)
+	}
+
 	props := parseProps(fields)
 	id := fixID(props)
 
@@ -98,7 +101,8 @@ func (c Config) expandHost(host *Host) Hosts {
 		hosts[i] = &Host{
 			ID: ids.Part(i), Addr: addrs.Part(i),
 			User: users.Part(i), Password: passes.Part(i),
-			Properties: props}
+			Properties: props,
+		}
 
 		if hosts[i].User == "" {
 			hosts[i].User = c.User
@@ -151,10 +155,18 @@ func parseUserPass(fields []string, index int) (string, string) {
 	return user, pass
 }
 
-func parseHostID(addr string) string {
-	if strings.Contains(addr, ":") {
-		return addr
+func parseHostID(addr string) (string, string, string) {
+	lastAt := strings.LastIndex(addr, "@")
+	user, pass := "", ""
+
+	if lastAt >= 0 {
+		user, pass = str.Split2(addr[:lastAt], ":", false, false)
+		addr = addr[lastAt+1:]
 	}
 
-	return addr + ":22"
+	if strings.Contains(addr, ":") {
+		return addr, user, pass
+	}
+
+	return addr + ":22", user, pass
 }

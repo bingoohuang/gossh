@@ -20,31 +20,31 @@ type LocalCmd struct {
 	resultVar string
 }
 
-// nolint gomnd
-func (g *GoSSH) buildLocalCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
+func (g *GoSSH) buildLocalCmd(cmd string) HostsCmd {
 	c, v := cmdtype.ParseResultVar(cmd)
 	l := &LocalCmd{cmd: c, resultVar: v}
 
-	return l, nil
+	return l
 }
 
 // LocalHost means the local host.
-// nolint gochecknoglobals
+// nolint:gochecknoglobals
 var LocalHost = &Host{ID: "localhost", Addr: "localhost", resultVars: make(map[string]string)}
 
-// TargetHosts returns target hosts for the command
+// TargetHosts returns target hosts for the command.
 func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
 
-// RawCmd returns the original raw command
+// RawCmd returns the original raw command.
 func (l LocalCmd) RawCmd() string { return l.cmd }
 
-// Parse parses the local cmd
+// Parse parses the local cmd.
 func (l *LocalCmd) Parse() {
 	home, _ := homedir.Dir()
 	l.cmd = strings.ReplaceAll(l.cmd, "~", home)
 }
 
 // Exec execute in specified host.
+// nolint:nestif
 func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
 	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
@@ -65,7 +65,7 @@ func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
 
 				uuidTimes++
 			} else {
-				if uuidTimes == 2 { // nolint gomnd
+				if uuidTimes == 2 { // nolint:gomnd
 					pwd, _ := os.Getwd()
 					if pwd != so {
 						_ = os.Chdir(so)
@@ -84,7 +84,7 @@ func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
 	}
 }
 
-// buildLocalCmd  把当前命令进行封装，为了更好地获得命令的输出，前后添加uuid的echo，并且最后打印当前目录，为了切换。
+// buildLocalCmd  把当前命令进行封装，为了更好地获得命令的输出，前后添加uuid的echo，并且最后打印当前目录，为了切换.
 func (l *LocalCmd) buildLocalCmd(h *Host) (localCmdsStr string, uuidStr string) {
 	uuidStr = uuid.New().String()
 

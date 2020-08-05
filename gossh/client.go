@@ -17,7 +17,7 @@ type Connect struct {
 	ProxyDialer proxy.Dialer
 }
 
-// CreateClient connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server
+// CreateClient connects to the remote SSH server, returns error if it couldn't establish a session to the SSH server.
 func (c *Connect) CreateClient(addr string, cc *ssh.ClientConfig) error {
 	dialer := c.ProxyDialer
 	if dialer == nil {

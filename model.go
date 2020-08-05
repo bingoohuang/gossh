@@ -8,7 +8,9 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
+	"unicode"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
@@ -61,7 +63,7 @@ const (
 	ExecModeHostByHost
 )
 
-// GetSeparator get the separator
+// GetSeparator get the separator.
 func (c Config) GetSeparator() string { return c.Separator }
 
 // CmdWrap wraps a command with result variable name.
@@ -93,11 +95,19 @@ type Host struct {
 	resultVars map[string]string
 }
 
+// resultVarsMap is the global map of result variable.
+var resultVarsMap sync.Map // nolint:gochecknoglobals
+
 // SubstituteResultVars substitutes the variables in the command line string.
 func (h *Host) SubstituteResultVars(cmd string) string {
 	for k, v := range h.resultVars {
 		cmd = strings.ReplaceAll(cmd, k, v)
 	}
+
+	resultVarsMap.Range(func(k, v interface{}) bool {
+		cmd = strings.ReplaceAll(cmd, k.(string), v.(string))
+		return true
+	})
 
 	return cmd
 }
@@ -108,7 +118,20 @@ func (h *Host) SetResultVar(varName, varValue string) {
 		return
 	}
 
-	h.resultVars[varName] = varValue
+	if len(varValue) > 1 && IsCapitalized(varName[1:]) {
+		resultVarsMap.Store(varName, varValue)
+	} else {
+		h.resultVars[varName] = varValue
+	}
+}
+
+// IsCapitalized test a string is a capitalized one.
+func IsCapitalized(str string) bool {
+	for _, v := range str {
+		return unicode.IsUpper(v)
+	}
+
+	return false
 }
 
 // Close closes the resource associated to the host.
@@ -148,7 +171,7 @@ func (h *Host) Close() error {
 	return g.Wait()
 }
 
-// GetGosshConnect get gossh Connect
+// GetGosshConnect get gossh Connect.
 func (h *Host) GetGosshConnect() (*gossh.Connect, error) {
 	gc := &gossh.Connect{}
 
@@ -170,7 +193,7 @@ func (h *Host) GetGosshConnect() (*gossh.Connect, error) {
 
 const ignoreWarning = "-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-// PrintSSH prints sshpass ssh commands
+// PrintSSH prints sshpass ssh commands.
 func (h *Host) PrintSSH() {
 	host, port, _ := net.SplitHostPort(h.Addr)
 
@@ -178,7 +201,7 @@ func (h *Host) PrintSSH() {
 	fmt.Println(sshCmd)
 }
 
-// PrintSCP prints sshpass scp commands
+// PrintSCP prints sshpass scp commands.
 func (h Host) PrintSCP() {
 	host, port, _ := net.SplitHostPort(h.Addr)
 
@@ -187,7 +210,7 @@ func (h Host) PrintSCP() {
 	fmt.Println(scpCmd)
 }
 
-// Prop finds property by name
+// Prop finds property by name.
 func (h *Host) Prop(name string) string {
 	if v, ok := h.Properties[name]; ok {
 		return v
@@ -201,11 +224,11 @@ func (h *Host) IsConnected() bool {
 	return h.client != nil || h.sftpClient != nil
 }
 
-// CmdExcResult means the detail exec result of cmd
+// CmdExcResult means the detail exec result of cmd.
 type CmdExcResult struct {
 }
 
-// HostsCmd means the executable interface
+// HostsCmd means the executable interface.
 type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
@@ -232,7 +255,7 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
 	return nil
 }
 
-// Hosts stands for slice of Host
+// Hosts stands for slice of Host.
 type Hosts []*Host
 
 // Close closes all the host related resources.
@@ -246,7 +269,7 @@ func (hosts Hosts) Close() error {
 	return g.Wait()
 }
 
-// PrintSSH prints sshpass ssh commands for all hosts
+// PrintSSH prints sshpass ssh commands for all hosts.
 func (hosts Hosts) PrintSSH() {
 	for _, h := range hosts {
 		h.PrintSSH()
@@ -262,14 +285,14 @@ func (hosts Hosts) FixHostID() {
 	}
 }
 
-// PrintSCP prints sshpass scp commands for all hosts
+// PrintSCP prints sshpass scp commands for all hosts.
 func (hosts Hosts) PrintSCP() {
 	for _, h := range hosts {
 		h.PrintSCP()
 	}
 }
 
-// FixProxy fix proxy
+// FixProxy fix proxy.
 func (hosts Hosts) FixProxy() {
 	m := make(map[string]*Host)
 	for _, h := range hosts {
@@ -308,7 +331,7 @@ func (hosts Hosts) FixProxy() {
 			h = h.Proxy
 		}
 
-		if i == 10 { // nolint gomnd
+		if i == 10 { // nolint:gomnd
 			logrus.Errorf("proxy chain can not exceed 10!")
 		}
 	}
@@ -379,13 +402,15 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 
 		switch cmdType {
 		case cmdtype.Local:
-			hostCmd, err = gs.buildLocalCmd(hostPart, realCmd, cmd)
+			hostCmd = gs.buildLocalCmd(cmd)
 		case cmdtype.Ul:
 			hostCmd, err = gs.buildUlCmd(hostPart, realCmd, cmd)
 		case cmdtype.Dl:
 			hostCmd, err = gs.buildDlCmd(hostPart, realCmd, cmd)
 		case cmdtype.SSH:
 			hostCmd, err = gs.buildSSHCmd(hostPart, realCmd, cmd)
+		case cmdtype.Noop:
+			continue
 		default:
 			continue
 		}

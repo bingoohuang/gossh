@@ -50,14 +50,14 @@ func PasswordKey(username, password string) *ssh.ClientConfig {
 	return MakeClientConfig(username, auth)
 }
 
-// MakeClientConfig makes a new ssh.ClientConfig
+// MakeClientConfig makes a new ssh.ClientConfig.
 func MakeClientConfig(username string, auth []ssh.AuthMethod) *ssh.ClientConfig {
 	timeout := viper.Get("NetTimeout").(time.Duration)
 
 	return &ssh.ClientConfig{
 		User:            username,
 		Auth:            auth,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // nolint G106
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // nolint:G106
 		Timeout:         timeout,
 	}
 }
