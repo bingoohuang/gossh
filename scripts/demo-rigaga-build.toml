@@ -1,0 +1,31 @@
+# gossh -c demo-rigaga-build.toml -e=1
+
+#printConfig = true
+#passphrase="xxxx"
+
+hosts = [
+  "root:1@2@3@192.168.1.5",
+]
+
+# 全部命令都默认成远程执行，相当于自动添加了%host标识。
+# globalRemote = true
+cmdTimeout = "30s"
+
+cmds = [
+  "date '+%Y%m%d%H%M%S' => @Today",
+  "cd ~/github/rigaga", # "go mod download -x",
+  "go mod download", # "go mod vendor -v",
+  "go mod vendor",
+  "cd ..",
+  "rm -fr rigaga.tar.gz",
+  "tar czf rigaga.tar.gz rigaga",
+  "%host %ul rigaga.tar.gz rigagasrc",
+  "%host cd rigagasrc",
+  "%host rm -fr rigaga",
+  "%host tar zxf rigaga.tar.gz --warning=no-timestamp --exclude .git",
+  "%host cd rigaga", # "%host go build -v -x -mod vendor -o rigaga  -ldflags=' -w -s -X main.branch=HEAD -X main.commit=@Today' ./cmd/rigaga",
+  "%host go build -mod vendor -o rigaga  -ldflags=' -w -s -X main.branch=HEAD -X main.commit=@Today' ./cmd/rigaga",
+  "%host ./rigaga version",
+  "%host ../upx-3.96-amd64_linux/upx rigaga",
+  "%host ./rigaga version",
+]
