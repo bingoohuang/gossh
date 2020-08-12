@@ -96,42 +96,44 @@ func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 	return
 }
 
-// nolint:nestif
 func (s *muxRunner) exec(recv, lastTwo string) bool {
 	if !isPrompt(lastTwo) {
 		s.last += recv
 		return true
 	}
 
+	newFound := false
+
 	if s.testEchoState == EchoStateSent {
-		uuidCount := strings.Count(recv, s.uuidStr)
-		if uuidCount == 2 { // nolint:gomnd
+		uuidCount := strings.Count(s.last+recv, s.uuidStr)
+		if uuidCount >= 2 { // nolint:gomnd
 			// 有回显，包括命令中的uuid和执行结果的uuid共2处
 			s.testEchoState = EchoStateFound
+			newFound = true
 		} else {
 			s.testEchoState = EchoStateNotFound
 		}
-	} else {
-		preLines, curLine := GetLastLine(s.last + recv)
-		if preLines != "" {
-			fmt.Print(preLines)
-		}
+	}
 
-		if s.lastCmd.Cmd != "" {
-			s.executed <- s.lastCmd
+	preLines, curLine := GetLastLine(s.last + recv)
+	if preLines != "" && !newFound {
+		fmt.Print(StripAnsi(preLines))
+	}
 
-			_, result := GetLastLine(strings.TrimSpace(preLines))
-			s.host.SetResultVar(s.lastCmd.ResultVar, result)
-		}
+	if s.lastCmd.Cmd != "" {
+		s.executed <- s.lastCmd
 
-		s.last = curLine
+		_, result := GetLastLine(strings.TrimSpace(preLines))
+		s.host.SetResultVar(s.lastCmd.ResultVar, result)
+	}
 
-		if s.testEchoState == EchoStateInit {
-			_, _ = s.w.Write([]byte(s.testEcho + "\n"))
-			s.testEchoState = EchoStateSent
+	s.last = curLine
 
-			return true
-		}
+	if s.testEchoState == EchoStateInit {
+		_, _ = s.w.Write([]byte(s.testEcho + "\n"))
+		s.testEchoState = EchoStateSent
+
+		return true
 	}
 
 	ok := false
@@ -144,7 +146,7 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	}
 
 	if s.testEchoState == EchoStateNotFound {
-		fmt.Println(s.last + s.lastCmd.Cmd)
+		fmt.Println(StripAnsi(s.last + s.lastCmd.Cmd))
 		s.last = ""
 	}
 

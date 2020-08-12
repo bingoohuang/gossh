@@ -1,6 +1,7 @@
 package gossh
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -52,6 +53,9 @@ type Config struct {
 
 	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
 	log      *log.Logger
+	Confirm  bool `pflag:"conform to continue."`
+
+	FirstConfirm bool
 }
 
 const (
@@ -241,9 +245,19 @@ type HostsCmd interface {
 // ExecInHosts execute in specified hosts.
 func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
 	for _, host := range hostsCmd.TargetHosts() {
-		if target == nil || target == host {
+		if target == nil || target == host { // nolint:nestif
 			if target == nil || !host.IsConnected() {
 				fmt.Printf("\n---> %s <--- \n\n", host.Addr)
+			}
+
+			if gs.Vars.Confirm {
+				if !gs.Vars.FirstConfirm {
+					gs.Vars.FirstConfirm = true
+				} else {
+					fmt.Print("Press Enter to go on:")
+					reader := bufio.NewReader(os.Stdin)
+					_, _ = reader.ReadString('\n')
+				}
 			}
 
 			if err := hostsCmd.Exec(gs, host); err != nil {
