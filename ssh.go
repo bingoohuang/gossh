@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -29,13 +30,13 @@ func (*SSHCmd) Parse() {}
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // Exec execute in specified host.
-func (s *SSHCmd) Exec(gs *GoSSH, h *Host) error {
+func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer) error {
 	cmds := []string{s.cmd}
 	if gs.Vars.SplitSSH {
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
-	return h.SSH(cmds, s.resultVar)
+	return h.SSH(cmds, s.resultVar, stdout)
 }
 
 // nolint:unparam
@@ -47,7 +48,7 @@ func (g *GoSSH) buildSSHCmd(hostPart, realCmd, _ string) (*SSHCmd, error) {
 
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func (h *Host) SSH(cmds []string, resultVar string) error {
+func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer) error {
 	if h.client == nil {
 		gc, err := h.GetGosshConnect()
 		if err != nil {
@@ -57,7 +58,7 @@ func (h *Host) SSH(cmds []string, resultVar string) error {
 		h.client = gc
 	}
 
-	if err := h.setupSession(); err != nil {
+	if err := h.setupSession(stdout); err != nil {
 		return errors.Wrapf(err, "setupSession")
 	}
 
@@ -101,7 +102,7 @@ func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 }
 
 // nolint:gomnd
-func (h *Host) setupSession() error {
+func (h *Host) setupSession(stdout io.Writer) error {
 	if h.session != nil {
 		return nil
 	}
@@ -143,7 +144,7 @@ func (h *Host) setupSession() error {
 	h.cmdChan = make(chan CmdWrap, 1)
 	h.executedChan = make(chan interface{}, 1)
 
-	go mux(h.cmdChan, h.executedChan, h.w, h.r, h)
+	go mux(h.cmdChan, h.executedChan, h.w, h.r, h, stdout)
 
 	return nil
 }

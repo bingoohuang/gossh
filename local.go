@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -45,7 +46,7 @@ func (l *LocalCmd) Parse() {
 
 // Exec execute in specified host.
 // nolint:nestif
-func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
+func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer) error {
 	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
@@ -60,7 +61,7 @@ func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
 		case so := <-p.Stdout:
 			if so == uuidStr {
 				if uuidTimes == 0 {
-					fmt.Println("$", echoCmd)
+					_, _ = fmt.Fprintln(stdout, "$", echoCmd)
 				}
 
 				uuidTimes++
@@ -72,13 +73,13 @@ func (l *LocalCmd) Exec(_ *GoSSH, h *Host) error {
 					}
 				} else {
 					h.SetResultVar(l.resultVar, so)
-					fmt.Println(so)
+					_, _ = fmt.Fprintln(stdout, so)
 				}
 			}
 		case se := <-p.Stderr:
-			_, _ = fmt.Fprintln(os.Stderr, se)
+			_, _ = fmt.Fprintln(stdout, se)
 		case exitState := <-status:
-			fmt.Println("exit status ", exitState.Exit)
+			_, _ = fmt.Fprintln(stdout, "exit status ", exitState.Exit)
 			return nil
 		}
 	}

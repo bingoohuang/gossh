@@ -15,7 +15,6 @@ import "regexp"
 
 var re = regexp.MustCompile("\u001b\\[[0-9;]*[A-Ksu]") // nolint:gochecknoglobals
 
-// StripAnsi strips the cursor, clears, and save positions escape code.
 // https://github.com/pborman/ansi/blob/master/ansi.go
 // https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
 // Up: \u001b[{n}A moves cursor up by n
@@ -36,6 +35,8 @@ var re = regexp.MustCompile("\u001b\\[[0-9;]*[A-Ksu]") // nolint:gochecknoglobal
 // n=2 clears entire line
 // Save Position: \u001b[{s} saves the current cursor position
 // Save Position: \u001b[{u} restores the cursor to the last saved position
+
+// StripAnsi strips the cursor, clears, and save positions escape code.
 func StripAnsi(str string) string {
 	return re.ReplaceAllString(str, "")
 }

@@ -3,7 +3,6 @@ package gossh
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -15,7 +14,7 @@ import (
 )
 
 // Exec execute in specified host.
-func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
+func (s *DlCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer) error {
 	sf, err := h.GetSftpClient()
 	if err != nil {
 		return errs.Wrapf(err, "GetSftpClient")
@@ -40,7 +39,7 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 			return errs.Wrapf(err, "sftp.Stat %s", remote)
 		}
 
-		if err := download(gs.Vars.log, stat, h.Addr, local, remote, sf); err != nil {
+		if err := download(stdout, stat, h.Addr, local, remote, sf); err != nil {
 			return err
 		}
 	}
@@ -48,7 +47,7 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host) error {
 	return nil
 }
 
-func download(logger *log.Logger, remoteStat os.FileInfo, host, to, from string, sf *sftp.Client) error {
+func download(stdout io.Writer, remoteStat os.FileInfo, host, to, from string, sf *sftp.Client) error {
 	if remoteStat.IsDir() {
 		fileInfos, err := sf.ReadDir(from)
 		if err != nil {
@@ -77,10 +76,10 @@ func download(logger *log.Logger, remoteStat os.FileInfo, host, to, from string,
 		return fmt.Errorf("MkdirAll %s failed: %w", to, err)
 	}
 
-	return downloadFile(logger, sf, remoteStat.Mode(), host, from, dest)
+	return downloadFile(stdout, sf, remoteStat.Mode(), host, from, dest)
 }
 
-func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, from, to string) error {
+func downloadFile(stdout io.Writer, sf *sftp.Client, perm os.FileMode, host, from, to string) error {
 	startTime := time.Now()
 
 	remoteFile, err := sf.Open(from)
@@ -102,7 +101,8 @@ func downloadFile(logger *log.Logger, sf *sftp.Client, perm os.FileMode, host, f
 
 	_ = localFile.Sync()
 
-	logger.Printf("downloaded %s:%s to %s cost %s, successfully!\n", host, from, to, time.Since(startTime).String())
+	fmt.Fprintf(stdout, "downloaded %s:%s to %s cost %s, successfully!\n",
+		host, from, to, time.Since(startTime).String())
 
 	return nil
 }

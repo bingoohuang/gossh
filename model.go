@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"strings"
@@ -41,6 +40,8 @@ type Config struct {
 	PrintConfig bool `pflag:"print config before running. shorthand=P"`
 	// 是否全局设置为远程shell命令
 	GlobalRemote bool `pflag:"run as global remote ssh command(no need %host). shorthand=g"`
+	Confirm      bool `pflag:"conform to continue."`
+	FirstConfirm bool
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
 	Hosts      []string `pflag:"hosts. shorthand=H"`
@@ -52,10 +53,6 @@ type Config struct {
 	CmdsFile  string `pflag:"cmds file."`
 
 	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
-	log      *log.Logger
-	Confirm  bool `pflag:"conform to continue."`
-
-	FirstConfirm bool
 }
 
 const (
@@ -237,17 +234,17 @@ type HostsCmd interface {
 	// Parse parses the command.
 	Parse()
 	// Exec execute in specified host.
-	Exec(gs *GoSSH, host *Host) error
+	Exec(gs *GoSSH, host *Host, stdout io.Writer) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
 }
 
 // ExecInHosts execute in specified hosts.
-func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
+func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer) error {
 	for _, host := range hostsCmd.TargetHosts() {
 		if target == nil || target == host { // nolint:nestif
 			if target == nil || !host.IsConnected() {
-				fmt.Printf("\n---> %s <--- \n\n", host.Addr)
+				_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
 			}
 
 			if gs.Vars.Confirm {
@@ -260,8 +257,8 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd) error {
 				}
 			}
 
-			if err := hostsCmd.Exec(gs, host); err != nil {
-				fmt.Printf("Error occurred %v\n", err)
+			if err := hostsCmd.Exec(gs, host, stdout); err != nil {
+				_, _ = fmt.Fprintf(stdout, "Error occurred %v\n", err)
 			}
 		}
 	}
@@ -364,12 +361,6 @@ func (g *GoSSH) Close() error {
 	return g.Hosts.Close()
 }
 
-// LogPrintf calls l.Output to print to the logger.
-// Arguments are handled in the manner of fmt.Printf.
-func (g *GoSSH) LogPrintf(format string, v ...interface{}) {
-	g.Vars.log.Printf(format, v...)
-}
-
 // Parse parses the flags or cnf files to GoSSH.
 func (c *Config) Parse() GoSSH {
 	gs := GoSSH{}
@@ -378,8 +369,6 @@ func (c *Config) Parse() GoSSH {
 	c.parseVars()
 
 	c.fixPass()
-
-	c.log = log.New(os.Stdout, "", 0)
 
 	gs.Vars = c
 	gs.Hosts = c.parseHosts()

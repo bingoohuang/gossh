@@ -2,6 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 
 	"github.com/bingoohuang/gou/enc"
 
@@ -58,22 +65,56 @@ func main() {
 
 	hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 
+	logsDir, _ := homedir.Expand("~/.gossh/logs/")
+	_ = os.MkdirAll(logsDir, os.ModePerm)
+	cnfFile := filepath.Base(viper.GetString("cnf"))
+
+	if cnfFile != "" {
+		cnfFile += "-"
+	}
+
+	logFn := filepath.Join(logsDir, cnfFile+time.Now().Format("20060102150304")+".log")
+	logFile, err := os.Create(logFn)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create log file %s, error:%v\n", logFn, err)
+	} else {
+		fmt.Fprintf(os.Stdout, "log file %s created\n", logFn)
+		fmt.Fprintf(logFile, "started at %s\n", time.Now().UTC().Format("2006-01-02 15:03:04"))
+	}
+
+	start := time.Now()
+
+	var stdout io.Writer = os.Stdout
+
+	if logFile != nil {
+		stdout = io.MultiWriter(os.Stdout, logFile)
+
+		defer func() {
+			fmt.Fprintf(logFile, "finished at %s\n", time.Now().UTC().Format("2006-01-02 15:03:04"))
+			fmt.Fprintf(logFile, "cost %s\n", time.Since(start))
+			fmt.Fprintf(os.Stdout, "log file %s recorded\n", logFn)
+
+			logFile.Close()
+		}()
+	}
+
 	switch gs.Vars.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		execCmds(gs, nil)
+		execCmds(gs, nil, stdout)
 	case gossh.ExecModeHostByHost:
 		for _, host := range hosts {
-			execCmds(gs, host)
+			execCmds(gs, host, stdout)
 		}
 	}
 
 	_ = gs.Close()
 }
 
-func execCmds(gs gossh.GoSSH, host *gossh.Host) {
+func execCmds(gs gossh.GoSSH, host *gossh.Host, stdout io.Writer) {
 	for _, cmd := range gs.Cmds {
-		if err := gossh.ExecInHosts(&gs, host, cmd); err != nil {
-			gs.LogPrintf("ExecInHosts error %v\n", err)
+		if err := gossh.ExecInHosts(&gs, host, cmd, stdout); err != nil {
+			fmt.Fprintf(stdout, "ExecInHosts error %v\n", err)
 		}
 	}
 }
