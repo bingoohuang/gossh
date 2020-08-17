@@ -17,3 +17,4 @@
 /doublestar/test/
 .history/
 dailychecks*
+scripts/check-client-abort-exception.toml
