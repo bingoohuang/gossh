@@ -79,7 +79,9 @@ func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer) error {
 		case se := <-p.Stderr:
 			_, _ = fmt.Fprintln(stdout, se)
 		case exitState := <-status:
-			_, _ = fmt.Fprintln(stdout, "exit status ", exitState.Exit)
+			if exitState.Exit != 0 {
+				_, _ = fmt.Fprintln(stdout, "exit status ", exitState.Exit)
+			}
 			return nil
 		}
 	}

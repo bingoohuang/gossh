@@ -93,6 +93,8 @@ type Host struct {
 	sftpClient    *sftp.Client
 	sftpSSHClient *ssh.Client
 
+	localConnected bool
+
 	resultVars map[string]string
 }
 
@@ -222,6 +224,15 @@ func (h *Host) Prop(name string) string {
 
 // IsConnected tells if host is connected by ssh or sftp.
 func (h *Host) IsConnected() bool {
+	if h.ID == "localhost" {
+		if h.localConnected {
+			return true
+		}
+
+		h.localConnected = true
+		return false
+	}
+
 	return h.client != nil || h.sftpClient != nil
 }
 
