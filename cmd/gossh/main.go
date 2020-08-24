@@ -39,7 +39,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Println("Version: v1.0.0")
+		fmt.Println("Version: v1.0.1 at 2020-08-24 10:35:44")
 		return
 	}
 
