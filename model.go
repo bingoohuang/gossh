@@ -101,7 +101,20 @@ type Host struct {
 // resultVarsMap is the global map of result variable.
 var resultVarsMap sync.Map // nolint:gochecknoglobals
 
+const CmdByCmd = "_CmdByCmd"
+
+func NewExecModeCmdByCmd() *Host {
+	return &Host{
+		ID: CmdByCmd,
+	}
+}
+
+func (h *Host) IsExecModeCmdByCmd() bool {
+	return h.ID == CmdByCmd
+}
+
 // SubstituteResultVars substitutes the variables in the command line string.
+
 func (h *Host) SubstituteResultVars(cmd string) string {
 	for k, v := range h.resultVars {
 		cmd = strings.ReplaceAll(cmd, k, v)
@@ -253,8 +266,13 @@ type HostsCmd interface {
 // ExecInHosts execute in specified hosts.
 func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer) error {
 	for _, host := range hostsCmd.TargetHosts() {
-		if target == nil || target == host { // nolint:nestif
-			if target == nil || !host.IsConnected() {
+		if target.IsExecModeCmdByCmd() || target == host { // nolint:nestif
+			if target.IsExecModeCmdByCmd() {
+				if target.Addr != host.Addr {
+					_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
+					target.Addr = host.Addr
+				}
+			} else if !host.IsConnected() {
 				_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
 			}
 

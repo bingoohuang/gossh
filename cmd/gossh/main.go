@@ -101,7 +101,7 @@ func main() {
 
 	switch gs.Vars.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		execCmds(gs, nil, stdout)
+		execCmds(gs, gossh.NewExecModeCmdByCmd(), stdout)
 	case gossh.ExecModeHostByHost:
 		for _, host := range hosts {
 			execCmds(gs, host, stdout)
