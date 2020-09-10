@@ -43,6 +43,10 @@ func main() {
 		return
 	}
 
+	if pbe.DealPflag() {
+		return
+	}
+
 	var config gossh.Config
 
 	cnf.LoadByPflag(&config)
@@ -52,10 +56,6 @@ func main() {
 	}
 
 	gs := config.Parse()
-
-	if pbe.DealPflag() {
-		return
-	}
 
 	ssh.do(gs)
 
