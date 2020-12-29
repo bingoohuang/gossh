@@ -30,18 +30,25 @@ func Parse(globalRemote bool, cmd string) (CmdType, string, string) {
 		return Noop, "", ""
 	}
 
-	if globalRemote {
-		return parseRemote(cmd, hostTag)
+	f := str.Fields(cmd, 2)
+	if strings.HasPrefix(f[0], hostTag) {
+		return parseRemote(f[1], f[0])
+	}
+	if strings.HasPrefix(f[0], localTag) {
+		return Local, "", cmd
 	}
 
-	if f := str.Fields(cmd, 2); strings.HasPrefix(f[0], hostTag) {
-		return parseRemote(f[1], f[0])
+	if globalRemote {
+		return parseRemote(cmd, hostTag)
 	}
 
 	return Local, "", cmd
 }
 
-const hostTag = "%host"
+const (
+	hostTag  = "%host"
+	localTag = "%local"
+)
 
 func parseRemote(cmd, hostPart string) (CmdType, string, string) {
 	fields2 := str.Fields(cmd, 2)
