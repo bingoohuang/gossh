@@ -20,7 +20,6 @@ import (
 // UlDl scp...
 type UlDl struct {
 	hosts  Hosts
-	cmd    string
 	remote string
 	local  string
 }
@@ -70,30 +69,28 @@ func (*UlDl) Parse() {}
 func (u *UlDl) TargetHosts() Hosts { return u.hosts }
 
 // nolint:gomnd
-func (g *GoSSH) buildUlCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
+func (g *GoSSH) buildUlCmd(hostPart, realCmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
-		return nil, fmt.Errorf("bad format for %s", cmd) // nolint:goerr113
+		return nil, fmt.Errorf("bad format for %s", realCmd) // nolint:goerr113
 	}
 
 	return &UlCmd{UlDl: UlDl{
 		hosts:  g.parseHosts(hostPart),
-		cmd:    cmd,
 		local:  strings.ReplaceAll(fields[0], "~", str.PickFirst(homedir.Dir())),
 		remote: fields[1],
 	}}, nil
 }
 
 // nolint:gomnd
-func (g *GoSSH) buildDlCmd(hostPart, realCmd, cmd string) (HostsCmd, error) {
+func (g *GoSSH) buildDlCmd(hostPart, realCmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
-		return nil, fmt.Errorf("bad format for %s", cmd) // nolint:goerr113
+		return nil, fmt.Errorf("bad format for %s", realCmd) // nolint:goerr113
 	}
 
 	return &DlCmd{UlDl: UlDl{
 		hosts:  g.parseHosts(hostPart),
-		cmd:    cmd,
 		local:  strings.ReplaceAll(fields[1], "~", str.PickFirst(homedir.Dir())),
 		remote: fields[0],
 	}}, nil

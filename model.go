@@ -434,13 +434,13 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 
 		switch cmdType {
 		case cmdtype.Local:
-			hostCmd = gs.buildLocalCmd(cmd)
+			hostCmd = gs.buildLocalCmd(realCmd)
 		case cmdtype.Ul:
-			hostCmd, err = gs.buildUlCmd(hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildUlCmd(hostPart, realCmd)
 		case cmdtype.Dl:
-			hostCmd, err = gs.buildDlCmd(hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildDlCmd(hostPart, realCmd)
 		case cmdtype.SSH:
-			hostCmd, err = gs.buildSSHCmd(hostPart, realCmd, cmd)
+			hostCmd, err = gs.buildSSHCmd(hostPart, realCmd)
 		case cmdtype.Noop:
 			continue
 		default:

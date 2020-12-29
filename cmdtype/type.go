@@ -35,7 +35,7 @@ func Parse(globalRemote bool, cmd string) (CmdType, string, string) {
 		return parseRemote(f[1], f[0])
 	}
 	if strings.HasPrefix(f[0], localTag) {
-		return Local, "", cmd
+		return Local, "", f[1]
 	}
 
 	if globalRemote {

@@ -40,7 +40,7 @@ func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer) error {
 }
 
 // nolint:unparam
-func (g *GoSSH) buildSSHCmd(hostPart, realCmd, _ string) (*SSHCmd, error) {
+func (g *GoSSH) buildSSHCmd(hostPart, realCmd string) (*SSHCmd, error) {
 	c, v := cmdtype.ParseResultVar(realCmd)
 
 	return &SSHCmd{hosts: g.parseHosts(hostPart), cmd: c, resultVar: v}, nil
