@@ -5,6 +5,8 @@ go 1.13
 require (
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
 	github.com/bingoohuang/gou v0.0.0-20200608105644-af3865a1364f
+	github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d
+	github.com/bingoohuang/toml v0.0.0-20210315055333-6286864a0ab8
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
@@ -21,6 +23,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.5.1
+	github.com/tkrajina/go-reflector v0.5.1
 	go.mongodb.org/mongo-driver v1.1.3 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553

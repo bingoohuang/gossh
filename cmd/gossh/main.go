@@ -29,6 +29,7 @@ func main() {
 	var ssh sshpassHelp
 
 	ver := pflag.BoolP("version", "v", false, "show version")
+	tag := pflag.StringP("tag", "t", "", "command prefix tag")
 
 	ssh.declarePlags()
 	cnf.DeclarePflags()
@@ -49,7 +50,7 @@ func main() {
 
 	var config gossh.Config
 
-	cnf.LoadByPflag(&config)
+	LoadByPflag(*tag, &config)
 
 	if config.PrintConfig {
 		fmt.Printf("Config%s\n", enc.JSONPretty(config))
