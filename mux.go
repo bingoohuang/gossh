@@ -11,15 +11,15 @@ import (
 // CmdChanClosed represents the cmd channel closed event.
 type CmdChanClosed struct{}
 
-func mux(cmdsChan chan CmdWrap, executed chan interface{}, w io.Writer, r io.Reader, h *Host, stdout io.Writer) {
+func mux(cmdsCh chan CmdWrap, executedCh chan interface{}, w io.Writer, r io.Reader, h *Host, stdout io.Writer) {
 	uuidStr := uuid.New().String()
 	testEcho := "echo " + uuidStr
 
 	runner := &muxRunner{
-		r:        r,
-		w:        w,
-		cmdsChan: cmdsChan,
-		executed: executed,
+		r:          r,
+		w:          w,
+		cmdsCh:     cmdsCh,
+		executedCh: executedCh,
 
 		uuidStr:  uuidStr,
 		testEcho: testEcho,
@@ -40,10 +40,10 @@ func mux(cmdsChan chan CmdWrap, executed chan interface{}, w io.Writer, r io.Rea
 }
 
 type muxRunner struct {
-	r        io.Reader
-	w        io.Writer
-	cmdsChan chan CmdWrap
-	executed chan interface{}
+	r          io.Reader
+	w          io.Writer
+	cmdsCh     chan CmdWrap
+	executedCh chan interface{}
 
 	lastCmd       CmdWrap
 	last          string
@@ -79,7 +79,7 @@ func (s *muxRunner) read() (err error) {
 			fmt.Println(err.Error())
 		}
 
-		s.executed <- err
+		s.executedCh <- err
 	}
 
 	return err
@@ -123,7 +123,7 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	}
 
 	if s.lastCmd.Cmd != "" {
-		s.executed <- s.lastCmd
+		s.executedCh <- s.lastCmd
 
 		_, result := GetLastLine(strings.TrimSpace(preLines))
 		s.host.SetResultVar(s.lastCmd.ResultVar, result)
@@ -134,16 +134,14 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	if s.testEchoState == EchoStateInit {
 		_, _ = s.w.Write([]byte(s.testEcho + "\n"))
 		s.testEchoState = EchoStateSent
-
 		return true
 	}
 
 	ok := false
 
-	s.lastCmd, ok = <-s.cmdsChan
+	s.lastCmd, ok = <-s.cmdsCh
 	if !ok {
-		s.executed <- CmdChanClosed{}
-
+		s.executedCh <- CmdChanClosed{}
 		return false
 	}
 

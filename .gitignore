@@ -18,3 +18,4 @@
 .history/
 dailychecks*
 scripts/check-client-abort-exception.toml
+/testdata/ctrl.toml
