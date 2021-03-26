@@ -10,10 +10,7 @@ import (
 
 // Connect structure to store contents about ssh connection.
 type Connect struct {
-	// Client *ssh.Client
-	Client *ssh.Client
-
-	// ProxyDialer
+	Client      *ssh.Client
 	ProxyDialer proxy.Dialer
 }
 
@@ -24,21 +21,17 @@ func (c *Connect) CreateClient(addr string, cc *ssh.ClientConfig) error {
 		dialer = gonet.DialerTimeoutBean{ConnTimeout: cc.Timeout, ReadWriteTimeout: cc.Timeout}
 	}
 
-	// Dial to host:port
 	netConn, err := dialer.Dial("tcp", addr)
 	if err != nil {
 		return err
 	}
 
-	// Create new ssh connect
 	sshCon, channel, req, err := ssh.NewClientConn(netConn, addr, cc)
 	if err != nil {
 		return err
 	}
 
-	// Create *ssh.Client
 	c.Client = ssh.NewClient(sshCon, channel, req)
-
 	return nil
 }
 

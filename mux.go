@@ -119,6 +119,9 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 
 	preLines, curLine := GetLastLine(s.last + recv)
 	if preLines != "" && !newFound {
+		if p := strings.Index(preLines, "Last login:"); p > 0 {
+			preLines = preLines[p:]
+		}
 		_, _ = fmt.Fprint(s.out, StripAnsi(preLines))
 	}
 

@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"github.com/bingoohuang/gossh/gossh"
 	"io"
 	"os"
 	"time"
@@ -138,9 +139,14 @@ func (h *Host) setupSession(stdout io.Writer) error {
 		return err
 	}
 
+	tryReader := gossh.NewTryReader(r)
+	if v := h.Prop("initial_cmd"); v != "" {
+		gossh.ExecuteInitialCmd(v, w, tryReader)
+	}
+
 	h.session = session
 	h.w = w
-	h.r = r
+	h.r = tryReader
 	h.cmdChan = make(chan CmdWrap, 1)
 	h.executedChan = make(chan interface{}, 1)
 

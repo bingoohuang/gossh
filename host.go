@@ -59,11 +59,6 @@ func (c Config) parseHost(host string) Hosts {
 	}
 
 	fields := str.FieldsX(host, "(", ")", -1)
-	//if len(fields) < 2 && {
-	//	logrus.Warnf("bad format for host %s", host)
-	//	continue
-	//}
-
 	addr, user, pass := parseHostID(fields[0])
 	if user == "" {
 		user, pass = parseUserPass(fields, 1)

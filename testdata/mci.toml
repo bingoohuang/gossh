@@ -6,6 +6,7 @@ hosts = [
     "192.168.136.23:8022 root/{PBE}oe_QIpc3HijCULUwQ-iYiA id=23",
     #"192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw id=9",
     #"192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg id=18",
+    #"192.168.136.18:22 user/xxx initial_cmd={CtrlG}信信书{2N}{CtrlR}10.6.5.4{2N}{CtrlA}msspoper{4N}",
 ]
 
 cmds = [
