@@ -108,10 +108,10 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 
 	if s.testEchoState == EchoStateSent {
 		uuidCount := strings.Count(s.last+recv, s.uuidStr)
+		newFound = uuidCount >= 1
 		if uuidCount >= 2 { // nolint:gomnd
 			// 有回显，包括命令中的uuid和执行结果的uuid共2处
 			s.testEchoState = EchoStateFound
-			newFound = true
 		} else {
 			s.testEchoState = EchoStateNotFound
 		}
