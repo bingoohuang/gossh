@@ -141,7 +141,7 @@ func (h *Host) setupSession(stdout io.Writer) error {
 
 	tryReader := gossh.NewTryReader(r)
 	if v := h.Prop("initial_cmd"); v != "" {
-		gossh.ExecuteInitialCmd(v, w, tryReader)
+		ExecuteInitialCmd(v, w)
 	}
 
 	h.session = session
@@ -153,4 +153,11 @@ func (h *Host) setupSession(stdout io.Writer) error {
 	go mux(h.cmdChan, h.executedChan, h.w, h.r, h, stdout)
 
 	return nil
+}
+
+func ExecuteInitialCmd(initialCmd string, w io.Writer) {
+	for _, v := range gossh.ConvertKeys(initialCmd) {
+		time.Sleep(100 * time.Millisecond)
+		_, _ = w.Write(v)
+	}
 }

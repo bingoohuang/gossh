@@ -1,32 +1,33 @@
 package gossh
 
 import (
-	"io"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
+// KeyText keeps mapping a string representation to keys.
+// https://github.com/jesseduffield/lazygit/blob/master/pkg/gui/keybindings.go
+// https://github.com/Nerdmaster/terminal/blob/master/key_constants.go
+// https://github.com/gdamore/tcell/blob/master/key.go
 var KeyText = map[string]rune{
+	"c-a": KeyCtrlA, "c-b": KeyCtrlB, "c-c": KeyCtrlC, "c-d": KeyCtrlD, "c-e": KeyCtrlE, "c-f": KeyCtrlF,
+	"c-g": KeyCtrlG, "c-h": KeyCtrlH, "c-i": KeyCtrlI, "c-j": KeyCtrlJ, "c-k": KeyCtrlK, "c-l": KeyCtrlL,
+	"c-m": KeyCtrlM, "c-n": KeyCtrlN, "c-o": KeyCtrlO, "c-p": KeyCtrlP, "c-q": KeyCtrlQ, "c-r": KeyCtrlR,
+	"c-s": KeyCtrlS, "c-t": KeyCtrlT, "c-u": KeyCtrlU, "c-v": KeyCtrlV, "c-w": KeyCtrlW, "c-x": KeyCtrlX,
+	"c-y": KeyCtrlY, "c-z": KeyCtrlZ,
+
 	"CtrlA": KeyCtrlA, "CtrlB": KeyCtrlB, "CtrlC": KeyCtrlC, "CtrlD": KeyCtrlD, "CtrlE": KeyCtrlE, "CtrlF": KeyCtrlF,
 	"CtrlG": KeyCtrlG, "CtrlH": KeyCtrlH, "CtrlI": KeyCtrlI, "CtrlJ": KeyCtrlJ, "CtrlK": KeyCtrlK, "CtrlL": KeyCtrlL,
 	"CtrlM": KeyCtrlM, "CtrlN": KeyCtrlN, "CtrlO": KeyCtrlO, "CtrlP": KeyCtrlP, "CtrlQ": KeyCtrlQ, "CtrlR": KeyCtrlR,
 	"CtrlS": KeyCtrlS, "CtrlT": KeyCtrlT, "CtrlU": KeyCtrlU, "CtrlV": KeyCtrlV, "CtrlW": KeyCtrlW, "CtrlX": KeyCtrlX,
 	"CtrlY": KeyCtrlY, "CtrlZ": KeyCtrlZ, "Escape": KeyEscape, "LeftBracket": KeyLeftBracket,
 	"RightBracket": KeyRightBracket, "Enter": KeyEnter, "N": KeyEnter, "Backspace": KeyBackspace,
-	"Unknown": KeyUnknown, "Up": KeyUp, "Down": KeyDown, "Left": KeyLeft, "Right": KeyRight,
+	"Up": KeyUp, "Down": KeyDown, "Left": KeyLeft, "Right": KeyRight,
 	"Home": KeyHome, "End": KeyEnd, "PasteStart": KeyPasteStart, "PasteEnd": KeyPasteEnd, "Insert": KeyInsert,
 	"Del": KeyDelete, "PgUp": KeyPgUp, "PgDn": KeyPgDn, "Pause": KeyPause,
 	"F1": KeyF1, "F2": KeyF2, "F3": KeyF3, "F4": KeyF4, "F5": KeyF5, "F6": KeyF6, "F7": KeyF7,
 	"F8": KeyF8, "F9": KeyF9, "F10": KeyF10, "F11": KeyF11, "F12": KeyF12,
-}
-
-func ExecuteInitialCmd(initialCmd string, w io.Writer, r *TryReader) {
-	for _, v := range ConvertKeys(initialCmd) {
-		time.Sleep(100 * time.Millisecond)
-		_, _ = w.Write(v)
-	}
 }
 
 var numReg = regexp.MustCompile(`^\d+`)
