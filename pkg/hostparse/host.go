@@ -71,17 +71,34 @@ func (c Host) Expands() []Host {
 	tmpls := make([]Host, maxExpands)
 
 	for i := 0; i < maxExpands; i++ {
+		props := partPropsFn(i)
+		for k, v := range props {
+			props[k] = SubstituteProps(v, props)
+		}
+
 		tmpls[i] = Host{
 			ID:       ids.Part(i),
 			Addr:     hosts.Part(i),
 			Port:     ports.Part(i),
 			User:     users.Part(i),
 			Password: passes.Part(i),
-			Props:    partPropsFn(i),
+			Props:    props,
 		}
 	}
 
 	return tmpls
+}
+
+func SubstituteProps(s string, props map[string]string) string {
+	if s == "" {
+		return s
+	}
+
+	for k, v := range props {
+		s = strings.ReplaceAll(s, "{"+k+"}", v)
+	}
+
+	return s
 }
 
 func SplitHostPort(addr string) (string, string) {
