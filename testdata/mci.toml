@@ -7,6 +7,7 @@ hosts = [
     #"192.168.136.9:8022 app/{PBE}8nnU_pQtBdBkufUYEufvYw id=9",
     #"192.168.136.18:8022 app/{PBE}blbcTp6uL1nMMIuiLtt6Hg id=18",
     #"192.168.136.18:22 user/xxx initial_cmd={CtrlG}信信书{2N}{CtrlR}10.6.5.4{2N}{CtrlA}msspoper{4N}",
+    # "10.6.6.12:22 iser/pass id=(4-6) initial_cmd={c-g}xyz{2n}{c-r}10.6.6.(4-6){2n}{c-a}msspoper{4n} note=rig-10.6.6.(4-6)",
 ]
 
 cmds = [
