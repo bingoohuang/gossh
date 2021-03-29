@@ -1,17 +1,9 @@
 package gossh
 
 import (
-	"io/ioutil"
-	"strings"
-
-	homedir "github.com/mitchellh/go-homedir"
-
-	"github.com/sirupsen/logrus"
-
-	"github.com/bingoohuang/gou/mat"
-	"github.com/bingoohuang/gou/pbe"
-
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/gg/pkg/ss"
+	"github.com/bingoohuang/gossh/pkg/hostparse"
+	"net"
 )
 
 func (c Config) parseHosts() Hosts {
@@ -20,148 +12,27 @@ func (c Config) parseHosts() Hosts {
 	for _, host := range c.Hosts {
 		hosts = append(hosts, c.parseHost(host)...)
 	}
-
 	if c.HostsFile != "" {
 		hosts = append(hosts, c.parseHostFile()...)
 	}
 
-	hosts.FixHostID()
+	hosts.FixHost()
 	hosts.FixProxy()
-
-	return hosts
-}
-
-func (c Config) parseHostFile() Hosts {
-	hosts := make([]*Host, 0)
-
-	hostsFile, _ := homedir.Expand(c.HostsFile)
-	file, err := ioutil.ReadFile(hostsFile)
-
-	if err != nil {
-		logrus.Warnf("failed to read hosts file %s: %v", c.HostsFile, err)
-		return hosts
-	}
-
-	for _, line := range strings.Split(string(file), "\n") {
-		hostLine := strings.TrimSpace(line)
-		if hostLine != "" && !strings.HasPrefix(hostLine, "#") {
-			hosts = append(hosts, c.parseHost(hostLine)...)
-		}
-	}
-
 	return hosts
 }
 
 func (c Config) parseHost(host string) Hosts {
-	host = strings.TrimSpace(host)
-	if host == "" {
-		return Hosts{}
-	}
-
-	fields := str.FieldsX(host, "(", ")", -1)
-	addr, user, pass := parseHostID(fields[0])
-	if user == "" {
-		user, pass = parseUserPass(fields, 1)
-	}
-
-	props := parseProps(fields)
-	id := fixID(props)
-
-	return c.expandHost(&Host{ID: id, Addr: addr, User: user, Password: pass, Properties: props})
+	return convertHosts(hostparse.Parse(host))
+}
+func (c Config) parseHostFile() Hosts {
+	return convertHosts(hostparse.ParseHostFile(c.HostsFile))
 }
 
-func (c Config) expandHost(host *Host) Hosts {
-	ids := str.MakeExpand(host.ID).MakePart()
-	addrs := str.MakeExpand(host.Addr).MakePart()
-	users := str.MakeExpand(host.User).MakePart()
-	passes := str.MakeExpand(host.Password).MakePart()
-	maxExpands := mat.MaxInt(ids.Len(), addrs.Len(), users.Len(), passes.Len())
-	expandedProps := make(map[string]str.Part)
-
-	for k, v := range host.Properties {
-		vv := str.MakeExpand(v).MakePart()
-		expandedProps[k] = vv
-		maxExpands = mat.MaxInt(maxExpands, vv.Len())
+func convertHosts(parsed []hostparse.Host) Hosts {
+	hosts := make(Hosts, len(parsed))
+	for i, p := range parsed {
+		addr := net.JoinHostPort(p.Addr, ss.Or(p.Port, "22"))
+		hosts[i] = &Host{ID: p.ID, Addr: addr, User: p.User, Password: p.Password, Properties: p.Props}
 	}
-
-	hosts := make(Hosts, maxExpands)
-
-	for i := 0; i < maxExpands; i++ {
-		props := make(map[string]string)
-
-		for k, v := range expandedProps {
-			props[k] = v.Part(i)
-		}
-
-		hosts[i] = &Host{
-			ID: ids.Part(i), Addr: addrs.Part(i),
-			User: users.Part(i), Password: passes.Part(i),
-			Properties: props,
-		}
-
-		if hosts[i].User == "" {
-			hosts[i].User = c.User
-		}
-
-		if hosts[i].Password == "" {
-			hosts[i].Password = c.Pass
-		}
-
-		hosts[i].resultVars = make(map[string]string)
-	}
-
 	return hosts
-}
-
-func fixID(props map[string]string) string {
-	if v, ok := props["id"]; ok {
-		return v
-	}
-
-	return ""
-}
-
-func parseProps(fields []string) map[string]string {
-	props := make(map[string]string)
-
-	for i := 2; i < len(fields); i++ {
-		k, v := str.Split2(fields[i], "=", true, true)
-		props[k] = v
-	}
-
-	return props
-}
-
-func parseUserPass(fields []string, index int) (string, string) {
-	if index >= len(fields) {
-		return "", ""
-	}
-
-	userpass := fields[index]
-	user, pass := str.Split2(userpass, "/", false, false)
-
-	if pass != "" {
-		var err error
-		if pass, err = pbe.Ebp(pass); err != nil {
-			panic(err)
-		}
-	}
-
-	return user, pass
-}
-
-func parseHostID(addr string) (string, string, string) {
-	lastAt := strings.LastIndex(addr, "@")
-	user, pass := "", ""
-
-	if lastAt >= 0 {
-		user, pass = str.Split2(addr[:lastAt], ":", false, false)
-		addr = addr[lastAt+1:]
-	}
-
-	if strings.Contains(addr, ":") {
-		return addr, user, pass
-	}
-
-	return addr + ":22", user, pass
 }

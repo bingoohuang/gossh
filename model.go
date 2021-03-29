@@ -200,7 +200,8 @@ func (h *Host) GetGosshConnect() (*gossh.Connect, error) {
 		gc.ProxyDialer = pc.Client
 	}
 
-	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password)); err != nil {
+	key := gossh.PasswordKey(h.User, h.Password)
+	if err := gc.CreateClient(h.Addr, key); err != nil {
 		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
 	}
 
@@ -316,11 +317,16 @@ func (hosts Hosts) PrintSSH() {
 	}
 }
 
-// FixHostID fix the host ID by sequence if it is blank.
-func (hosts Hosts) FixHostID() {
+// FixHost fix the host ID by sequence if it is blank.
+func (hosts Hosts) FixHost() {
 	for i, h := range hosts {
 		if h.ID == "" {
 			h.ID = fmt.Sprintf("%d", i+1)
+		}
+		if v, err := pbe.Ebp(h.Password); err != nil {
+			panic(err)
+		} else {
+			h.Password = v
 		}
 	}
 }
