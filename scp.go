@@ -62,9 +62,6 @@ type DlCmd struct {
 	UlDl
 }
 
-// Parse parses UlCmd.
-func (*UlDl) Parse() {}
-
 // TargetHosts returns target hosts for the command.
 func (u *UlDl) TargetHosts() Hosts { return u.hosts }
 

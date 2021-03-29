@@ -3,6 +3,8 @@ package gossh
 import (
 	"bufio"
 	"fmt"
+	"github.com/chzyer/readline"
+	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"net"
@@ -104,17 +106,12 @@ var resultVarsMap sync.Map // nolint:gochecknoglobals
 const CmdByCmd = "_CmdByCmd"
 
 func NewExecModeCmdByCmd() *Host {
-	return &Host{
-		ID: CmdByCmd,
-	}
+	return &Host{ID: CmdByCmd}
 }
 
-func (h *Host) IsExecModeCmdByCmd() bool {
-	return h.ID == CmdByCmd
-}
+func (h *Host) IsExecModeCmdByCmd() bool { return h.ID == CmdByCmd }
 
 // SubstituteResultVars substitutes the variables in the command line string.
-
 func (h *Host) SubstituteResultVars(cmd string) string {
 	for k, v := range h.resultVars {
 		cmd = strings.ReplaceAll(cmd, k, v)
@@ -200,7 +197,8 @@ func (h *Host) GetGosshConnect() (*gossh.Connect, error) {
 		gc.ProxyDialer = pc.Client
 	}
 
-	if err := gc.CreateClient(h.Addr, gossh.PasswordKey(h.User, h.Password)); err != nil {
+	key := gossh.PasswordKey(h.User, h.Password)
+	if err := gc.CreateClient(h.Addr, key); err != nil {
 		return nil, fmt.Errorf("CreateClient(%s) failed: %w", h.Addr, err)
 	}
 
@@ -255,12 +253,100 @@ type CmdExcResult struct {
 
 // HostsCmd means the executable interface.
 type HostsCmd interface {
-	// Parse parses the command.
-	Parse()
 	// Exec execute in specified host.
 	Exec(gs *GoSSH, host *Host, stdout io.Writer) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
+}
+
+func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer) {
+	for _, cmd := range gs.Cmds {
+		if err := ExecInHosts(gs, host, cmd, stdout); err != nil {
+			fmt.Fprintf(stdout, "ExecInHosts error %v\n", err)
+		}
+	}
+}
+
+// Repl execute in specified hosts.
+func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer) {
+	green := color.New(color.FgGreen).SprintfFunc()
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:      green(">>> "),
+		HistoryFile: "/tmp/gossh-histories",
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
+		os.Exit(1)
+	}
+	if err := repl(gs, hosts, stdout, rl); err != nil {
+		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
+		os.Exit(1)
+	}
+
+	defer rl.Close()
+}
+
+func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance) error {
+	lastErrInterrupt := time.Time{}
+	for {
+		line, err := rl.Readline()
+		if err == readline.ErrInterrupt {
+			if lastErrInterrupt.IsZero() {
+				lastErrInterrupt = time.Now()
+				continue
+			}
+
+			if time.Since(lastErrInterrupt) < 5*time.Second {
+				return nil
+			}
+
+			lastErrInterrupt = time.Now()
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+
+		lastErrInterrupt = time.Time{}
+
+		if len(line) == 0 {
+			continue
+		}
+
+		if line == "exit" || line == "quit" {
+			return nil
+		}
+
+		executeReplCmd(gs, hosts, stdout, line)
+	}
+
+	return nil
+}
+
+func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string) {
+	if line == "%hosts" {
+		for _, h := range hosts {
+			fmt.Fprintf(w, "ID:%s addr:%s note:%s\n", h.ID, h.Addr, h.Prop("note"))
+		}
+		return
+	}
+
+	cmd, err := gs.Config.parseCmd(gs, line)
+	if err != nil {
+		fmt.Fprintf(w, "failed to parse cmd: %s, error: %v", line, err)
+		return
+	}
+
+	if cmd == nil {
+		return
+	}
+
+	for _, host := range hosts {
+		if err := ExecInHosts(gs, host, cmd, w); err != nil {
+			fmt.Fprintf(w, "ExecInHosts error %v\n", err)
+		}
+	}
 }
 
 // ExecInHosts execute in specified hosts.
@@ -276,9 +362,9 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer) e
 				_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
 			}
 
-			if gs.Vars.Confirm {
-				if !gs.Vars.FirstConfirm {
-					gs.Vars.FirstConfirm = true
+			if gs.Config.Confirm {
+				if !gs.Config.FirstConfirm {
+					gs.Config.FirstConfirm = true
 				} else {
 					fmt.Print("Press Enter to go on:")
 					reader := bufio.NewReader(os.Stdin)
@@ -316,11 +402,16 @@ func (hosts Hosts) PrintSSH() {
 	}
 }
 
-// FixHostID fix the host ID by sequence if it is blank.
-func (hosts Hosts) FixHostID() {
+// FixHost fix the host ID by sequence if it is blank.
+func (hosts Hosts) FixHost() {
 	for i, h := range hosts {
 		if h.ID == "" {
 			h.ID = fmt.Sprintf("%d", i+1)
+		}
+		if v, err := pbe.Ebp(h.Password); err != nil {
+			panic(err)
+		} else {
+			h.Password = v
 		}
 	}
 }
@@ -379,10 +470,9 @@ func (hosts Hosts) FixProxy() {
 
 // GoSSH defines the structure of the whole cfg context.
 type GoSSH struct {
-	Vars  *Config
-	Hosts Hosts
-
-	Cmds []HostsCmd
+	Config *Config
+	Hosts  Hosts
+	Cmds   []HostsCmd
 }
 
 // Close closes gossh.
@@ -399,7 +489,7 @@ func (c *Config) Parse() GoSSH {
 
 	c.fixPass()
 
-	gs.Vars = c
+	gs.Config = c
 	gs.Hosts = c.parseHosts()
 	gs.Cmds = c.parseCmdGroups(&gs)
 
@@ -422,40 +512,31 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 	cmds := make([]HostsCmd, 0)
 
 	for _, cmd := range c.Cmds {
-		cmdType, hostPart, realCmd := cmdtype.Parse(c.GlobalRemote, cmd)
-		if cmdType == cmdtype.Noop {
-			continue
-		}
-
-		var (
-			err     error
-			hostCmd HostsCmd
-		)
-
-		switch cmdType {
-		case cmdtype.Local:
-			hostCmd = gs.buildLocalCmd(realCmd)
-		case cmdtype.Ul:
-			hostCmd, err = gs.buildUlCmd(hostPart, realCmd)
-		case cmdtype.Dl:
-			hostCmd, err = gs.buildDlCmd(hostPart, realCmd)
-		case cmdtype.SSH:
-			hostCmd, err = gs.buildSSHCmd(hostPart, realCmd)
-		case cmdtype.Noop:
-			continue
-		default:
-			continue
-		}
-
+		hostCmd, err := c.parseCmd(gs, cmd)
 		if err != nil {
-			logrus.Fatalf("failed to build ul command %v", err)
+			logrus.Fatalf("failed to parse cmd: %s error: %v", cmd, err)
 		}
-
-		hostCmd.Parse()
-		cmds = append(cmds, hostCmd)
+		if hostCmd != nil {
+			cmds = append(cmds, hostCmd)
+		}
 	}
 
 	return cmds
+}
+
+func (c *Config) parseCmd(gs *GoSSH, cmd string) (hostCmd HostsCmd, err error) {
+	switch cmdType, hostPart, realCmd := cmdtype.Parse(c.GlobalRemote, cmd); cmdType {
+	case cmdtype.Local:
+		hostCmd = gs.buildLocalCmd(realCmd)
+	case cmdtype.Ul:
+		hostCmd, err = gs.buildUlCmd(hostPart, realCmd)
+	case cmdtype.Dl:
+		hostCmd, err = gs.buildDlCmd(hostPart, realCmd)
+	case cmdtype.SSH:
+		hostCmd, err = gs.buildSSHCmd(hostPart, realCmd)
+	}
+
+	return hostCmd, err
 }
 
 func (c *Config) parseCmdsFile() {

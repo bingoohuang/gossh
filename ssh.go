@@ -24,16 +24,13 @@ type SSHCmd struct {
 	hosts     Hosts
 }
 
-// Parse parses command.
-func (*SSHCmd) Parse() {}
-
 // TargetHosts returns target hosts for the command.
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // Exec execute in specified host.
 func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer) error {
 	cmds := []string{s.cmd}
-	if gs.Vars.SplitSSH {
+	if gs.Config.SplitSSH {
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
@@ -49,14 +46,11 @@ func (g *GoSSH) buildSSHCmd(hostPart, realCmd string) (*SSHCmd, error) {
 
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer) error {
+func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer) (err error) {
 	if h.client == nil {
-		gc, err := h.GetGosshConnect()
-		if err != nil {
+		if h.client, err = h.GetGosshConnect(); err != nil {
 			return err
 		}
-
-		h.client = gc
 	}
 
 	if err := h.setupSession(stdout); err != nil {
@@ -88,7 +82,6 @@ func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 			_ = h.Close()
 
 			time.AfterFunc(1*time.Second, func() { close(h.executedChan) })
-
 			for executed := range h.executedChan {
 				if _, ok := executed.(error); ok {
 					break
@@ -96,7 +89,6 @@ func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 			}
 
 			fmt.Printf("[%s] TIMOUT IN %v\n", cmd, timeout)
-
 			return
 		}
 	}

@@ -29,6 +29,7 @@ func main() {
 	var ssh sshpassHelp
 
 	ver := pflag.BoolP("version", "v", false, "show version")
+	repl := pflag.BoolP("repl", "", false, "repl mode")
 	tag := pflag.StringP("tag", "t", "", "command prefix tag")
 
 	ssh.declarePlags()
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Println("Version: v1.0.1 at 2020-08-24 10:35:44")
+		fmt.Println("Version: v1.0.2 at 2021-03-29 11:02:34")
 		return
 	}
 
@@ -60,11 +61,9 @@ func main() {
 
 	ssh.do(gs)
 
-	if len(gs.Cmds) == 0 {
+	if len(gs.Cmds) == 0 || !*repl {
 		fmt.Println("There is nothing to do.")
 	}
-
-	hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 
 	logsDir, _ := homedir.Expand("~/.gossh/logs/")
 	_ = os.MkdirAll(logsDir, os.ModePerm)
@@ -100,22 +99,19 @@ func main() {
 		}()
 	}
 
-	switch gs.Vars.ExecMode {
+	switch gs.Config.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		execCmds(gs, gossh.NewExecModeCmdByCmd(), stdout)
+		gossh.ExecCmds(&gs, gossh.NewExecModeCmdByCmd(), stdout)
 	case gossh.ExecModeHostByHost:
+		hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 		for _, host := range hosts {
-			execCmds(gs, host, stdout)
+			gossh.ExecCmds(&gs, host, stdout)
 		}
+	}
+
+	if *repl {
+		gossh.Repl(&gs, gs.Hosts, stdout)
 	}
 
 	_ = gs.Close()
-}
-
-func execCmds(gs gossh.GoSSH, host *gossh.Host, stdout io.Writer) {
-	for _, cmd := range gs.Cmds {
-		if err := gossh.ExecInHosts(&gs, host, cmd, stdout); err != nil {
-			fmt.Fprintf(stdout, "ExecInHosts error %v\n", err)
-		}
-	}
 }

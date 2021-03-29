@@ -22,6 +22,8 @@ type LocalCmd struct {
 }
 
 func (g *GoSSH) buildLocalCmd(cmd string) HostsCmd {
+	home, _ := homedir.Dir()
+	cmd = strings.ReplaceAll(cmd, "~", home)
 	c, v := cmdtype.ParseResultVar(cmd)
 	l := &LocalCmd{cmd: c, resultVar: v}
 
@@ -37,12 +39,6 @@ func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
 
 // RawCmd returns the original raw command.
 func (l LocalCmd) RawCmd() string { return l.cmd }
-
-// Parse parses the local cmd.
-func (l *LocalCmd) Parse() {
-	home, _ := homedir.Dir()
-	l.cmd = strings.ReplaceAll(l.cmd, "~", home)
-}
 
 // Exec execute in specified host.
 // nolint:nestif
