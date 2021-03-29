@@ -3,8 +3,6 @@ package gossh
 import (
 	"bufio"
 	"fmt"
-	"github.com/chzyer/readline"
-	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"net"
@@ -73,6 +71,8 @@ func (c Config) GetSeparator() string { return c.Separator }
 type CmdWrap struct {
 	Cmd       string
 	ResultVar string
+
+	ExecOption
 }
 
 // Host represents the structure of remote host information for ssh.
@@ -254,103 +254,25 @@ type CmdExcResult struct {
 // HostsCmd means the executable interface.
 type HostsCmd interface {
 	// Exec execute in specified host.
-	Exec(gs *GoSSH, host *Host, stdout io.Writer) error
+	Exec(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption) error
 	// TargetHosts returns target hosts for the command
 	TargetHosts() Hosts
 }
 
-func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer) {
+func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption) {
 	for _, cmd := range gs.Cmds {
-		if err := ExecInHosts(gs, host, cmd, stdout); err != nil {
+		if err := ExecInHosts(gs, host, cmd, stdout, eo); err != nil {
 			fmt.Fprintf(stdout, "ExecInHosts error %v\n", err)
 		}
 	}
 }
 
-// Repl execute in specified hosts.
-func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer) {
-	green := color.New(color.FgGreen).SprintfFunc()
-	rl, err := readline.NewEx(&readline.Config{
-		Prompt:      green(">>> "),
-		HistoryFile: "/tmp/gossh-histories",
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
-		os.Exit(1)
-	}
-	if err := repl(gs, hosts, stdout, rl); err != nil {
-		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
-		os.Exit(1)
-	}
-
-	defer rl.Close()
-}
-
-func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance) error {
-	lastErrInterrupt := time.Time{}
-	for {
-		line, err := rl.Readline()
-		if err == readline.ErrInterrupt {
-			if lastErrInterrupt.IsZero() {
-				lastErrInterrupt = time.Now()
-				continue
-			}
-
-			if time.Since(lastErrInterrupt) < 5*time.Second {
-				return nil
-			}
-
-			lastErrInterrupt = time.Now()
-			continue
-		}
-
-		if err != nil {
-			return err
-		}
-
-		lastErrInterrupt = time.Time{}
-
-		if len(line) == 0 {
-			continue
-		}
-
-		if line == "exit" || line == "quit" {
-			return nil
-		}
-
-		executeReplCmd(gs, hosts, stdout, line)
-	}
-
-	return nil
-}
-
-func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string) {
-	if line == "%hosts" {
-		for _, h := range hosts {
-			fmt.Fprintf(w, "ID:%s addr:%s note:%s\n", h.ID, h.Addr, h.Prop("note"))
-		}
-		return
-	}
-
-	cmd, err := gs.Config.parseCmd(gs, line)
-	if err != nil {
-		fmt.Fprintf(w, "failed to parse cmd: %s, error: %v", line, err)
-		return
-	}
-
-	if cmd == nil {
-		return
-	}
-
-	for _, host := range hosts {
-		if err := ExecInHosts(gs, host, cmd, w); err != nil {
-			fmt.Fprintf(w, "ExecInHosts error %v\n", err)
-		}
-	}
+type ExecOption struct {
+	Repl bool
 }
 
 // ExecInHosts execute in specified hosts.
-func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer) error {
+func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer, eo ExecOption) error {
 	for _, host := range hostsCmd.TargetHosts() {
 		if target.IsExecModeCmdByCmd() || target == host { // nolint:nestif
 			if target.IsExecModeCmdByCmd() {
@@ -372,7 +294,7 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer) e
 				}
 			}
 
-			if err := hostsCmd.Exec(gs, host, stdout); err != nil {
+			if err := hostsCmd.Exec(gs, host, stdout, eo); err != nil {
 				_, _ = fmt.Fprintf(stdout, "Error occurred %v\n", err)
 			}
 		}

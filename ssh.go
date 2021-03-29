@@ -28,13 +28,13 @@ type SSHCmd struct {
 func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
 
 // Exec execute in specified host.
-func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer) error {
+func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
 	cmds := []string{s.cmd}
 	if gs.Config.SplitSSH {
 		cmds = str.SplitX(s.cmd, ";")
 	}
 
-	return h.SSH(cmds, s.resultVar, stdout)
+	return h.SSH(cmds, s.resultVar, stdout, eo)
 }
 
 // nolint:unparam
@@ -46,7 +46,7 @@ func (g *GoSSH) buildSSHCmd(hostPart, realCmd string) (*SSHCmd, error) {
 
 // SSH executes ssh commands  on remote host h.
 // http://networkbit.ch/golang-ssh-client/
-func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer) (err error) {
+func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer, eo ExecOption) (err error) {
 	if h.client == nil {
 		if h.client, err = h.GetGosshConnect(); err != nil {
 			return err
@@ -58,7 +58,7 @@ func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer) (err error
 	}
 
 	for _, cmd := range cmds {
-		wrap := CmdWrap{Cmd: h.SubstituteResultVars(cmd), ResultVar: resultVar}
+		wrap := CmdWrap{Cmd: h.SubstituteResultVars(cmd), ResultVar: resultVar, ExecOption: eo}
 		h.cmdChan <- wrap
 		h.waitCmdExecuted(wrap)
 	}

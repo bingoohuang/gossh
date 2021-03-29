@@ -42,7 +42,7 @@ func (l LocalCmd) RawCmd() string { return l.cmd }
 
 // Exec execute in specified host.
 // nolint:nestif
-func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer) error {
+func (l *LocalCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
 	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}

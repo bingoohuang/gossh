@@ -99,13 +99,14 @@ func main() {
 		}()
 	}
 
+	eo := gossh.ExecOption{}
 	switch gs.Config.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		gossh.ExecCmds(&gs, gossh.NewExecModeCmdByCmd(), stdout)
+		gossh.ExecCmds(&gs, gossh.NewExecModeCmdByCmd(), stdout, eo)
 	case gossh.ExecModeHostByHost:
 		hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 		for _, host := range hosts {
-			gossh.ExecCmds(&gs, host, stdout)
+			gossh.ExecCmds(&gs, host, stdout, eo)
 		}
 	}
 

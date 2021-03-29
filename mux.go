@@ -91,6 +91,10 @@ func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 		recv = string(s.buf[:s.readN])
 	}
 
+	if s.lastCmd.Repl {
+		return
+	}
+
 	if len(recv) > 2 {
 		lastTwo = recv[s.readN-2:]
 	}
@@ -100,7 +104,11 @@ func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 
 func (s *muxRunner) exec(recv, lastTwo string) bool {
 	if !isPrompt(lastTwo) {
-		s.last += recv
+		if s.lastCmd.Repl {
+			_, _ = fmt.Fprint(s.out, recv)
+		} else {
+			s.last += recv
+		}
 		return true
 	}
 
