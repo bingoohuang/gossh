@@ -1,10 +1,11 @@
 package hostparse
 
 import (
-	"github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strings"
+
+	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
 )
 
 func ParseHostFile(hostsFile string) []Host {

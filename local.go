@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gossh/cmdtype"
+	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/spf13/viper"
 
 	"github.com/gobars/cmd"
@@ -35,7 +35,7 @@ func (g *GoSSH) buildLocalCmd(cmd string) HostsCmd {
 var LocalHost = &Host{ID: "localhost", Addr: "localhost", resultVars: make(map[string]string)}
 
 // TargetHosts returns target hosts for the command.
-func (LocalCmd) TargetHosts() Hosts { return []*Host{LocalHost} }
+func (LocalCmd) TargetHosts(string) Hosts { return []*Host{LocalHost} }
 
 // RawCmd returns the original raw command.
 func (l LocalCmd) RawCmd() string { return l.cmd }

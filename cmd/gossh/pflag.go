@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/bingoohuang/gou/cnf"
 	"github.com/bingoohuang/toml"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"io/ioutil"
 )
 
 // LoadByPflag load values to cfgValue from pflag cnf specified path.

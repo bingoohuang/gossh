@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/bingoohuang/gossh/gossh"
+	"github.com/bingoohuang/gossh/pkg/gossh"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/sftp"
 
@@ -23,7 +23,7 @@ import (
 
 	"github.com/bingoohuang/gou/pbe"
 
-	"github.com/bingoohuang/gossh/cmdtype"
+	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/spf13/viper"
 )
 
@@ -98,6 +98,8 @@ type Host struct {
 	localConnected bool
 
 	resultVars map[string]string
+
+	groups map[string]int
 }
 
 // resultVarsMap is the global map of result variable.
@@ -256,12 +258,12 @@ type HostsCmd interface {
 	// Exec execute in specified host.
 	Exec(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption) error
 	// TargetHosts returns target hosts for the command
-	TargetHosts() Hosts
+	TargetHosts(hostGroup string) Hosts
 }
 
-func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption) {
+func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption, hostGroup string) {
 	for _, cmd := range gs.Cmds {
-		if err := ExecInHosts(gs, host, cmd, stdout, eo); err != nil {
+		if err := ExecInHosts(gs, host, cmd, stdout, eo, hostGroup); err != nil {
 			fmt.Fprintf(stdout, "ExecInHosts error %v\n", err)
 		}
 	}
@@ -272,8 +274,8 @@ type ExecOption struct {
 }
 
 // ExecInHosts execute in specified hosts.
-func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer, eo ExecOption) error {
-	for _, host := range hostsCmd.TargetHosts() {
+func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer, eo ExecOption, hostGroup string) error {
+	for _, host := range hostsCmd.TargetHosts(hostGroup) {
 		if target.IsExecModeCmdByCmd() || target == host { // nolint:nestif
 			if target.IsExecModeCmdByCmd() {
 				if target.Addr != host.Addr {
@@ -334,6 +336,22 @@ func (hosts Hosts) FixHost() {
 			panic(err)
 		} else {
 			h.Password = v
+		}
+
+		h.groups = make(map[string]int)
+		groups := h.Properties["groups"]
+		if groups == "" {
+			groups = h.Properties["group"]
+		}
+		if groups != "" {
+			for _, group := range strings.Split(groups, "/") {
+				if group != "" {
+					h.groups[group] = 1
+				}
+			}
+		}
+		if len(h.groups) == 0 {
+			h.groups["default"] = 1
 		}
 	}
 }

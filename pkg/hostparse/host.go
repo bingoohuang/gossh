@@ -1,9 +1,10 @@
 package hostparse
 
 import (
+	"strings"
+
 	"github.com/bingoohuang/gou/mat"
 	"github.com/bingoohuang/gou/str"
-	"strings"
 )
 
 // Host represents the structure of remote host information for ssh.

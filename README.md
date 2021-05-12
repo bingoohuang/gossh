@@ -56,7 +56,7 @@ gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y
 
 ## Config examples
 
-### proxy configuration
+### demo configuration of proxy
 
 ```toml
 hosts = [
@@ -69,6 +69,61 @@ hosts = [
 cmds = [
     # execute on hosts whose id between 1 and 3
     "%host-(1-3) hostname -I",
+]
+```
+
+### demo configuration of host group example
+
+```toml
+# group.toml
+hosts = [
+    # if no group specified, a group names default will be set.
+    "12.26.85.0:22 user/pass group=proxy",
+    "12.26.85.1:22 root/na proxy=0 group=g1/g3", # proxy by id=0
+    "12.26.85.2:22 root/na proxy=0 group=g2/g3",
+    "12.26.85.3:22 root/na proxy=0 group=g1/g2",
+]
+
+
+globalRemote = true
+
+cmds = [
+    "hostname -I",
+]
+```
+
+cli commands:
+
+1. `gossh -c group.toml --group=g1`
+1. `gossh -c group.toml --group=g2`
+1. `gossh -c group.toml --group=g3`
+
+## demo configuration of tags
+
+```toml
+# tags.toml
+hosts = [
+    "12.26.85.0:22 user/pass",
+    "12.26.85.1:22 user/pass",
+    "12.26.85.2:22 user/pass",
+    "12.26.85.3:22 user/pass",
+]
+
+globalRemote = true
+
+# gossh -c tags.toml
+cmds = [
+    "echo bingoohuang",
+]
+
+# gossh -c tags.toml --tag=hostname
+hostname-cmds = [
+    "hostname -I",
+]
+
+# gossh -c tags.toml --tag=date
+date-cmds = [
+    "date",
 ]
 ```
 
@@ -157,7 +212,8 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 1. [Implements support for double star (**) matches in golang's path.Match and filepath.Glob.](https://github.com/bmatcuk/doublestar)
 1. [easyssh-proxy provides a simple implementation of some SSH protocol features in Go](https://github.com/appleboy/easyssh-proxy)
 1. [List selection type alternative ssh/scp/sftp client. Pure Go.](https://github.com/blacknon/lssh)
-1. [A library to handle ssh easily with Golang.It can do multiple proxy, x11 forwarding, etc.](https://github.com/blacknon/go-sshlib), [go-sshlib doc](https://godoc.org/github.com/blacknon/go-sshlib)
+1. [A library to handle ssh easily with Golang.It can do multiple proxy, x11 forwarding, etc.](https://github.com/blacknon/go-sshlib)
+   , [go-sshlib doc](https://godoc.org/github.com/blacknon/go-sshlib)
 1. [An auditing / logging SSH relay for a jump box / bastion host.](https://github.com/iamacarpet/ssh-bastion)
 1. [A curated list of SSH resources.](https://github.com/moul/awesome-ssh)
 1. [melbahja/goph The native golang ssh client to execute your commands over ssh connection](https://github.com/melbahja/goph)

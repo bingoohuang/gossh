@@ -2,14 +2,15 @@ package gossh
 
 import (
 	"fmt"
-	"github.com/bingoohuang/gossh/gossh"
 	"io"
 	"os"
 	"time"
 
+	"github.com/bingoohuang/gossh/pkg/gossh"
+
 	"github.com/pkg/errors"
 
-	"github.com/bingoohuang/gossh/cmdtype"
+	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/bingoohuang/gou/str"
 
 	"github.com/spf13/viper"
@@ -25,7 +26,17 @@ type SSHCmd struct {
 }
 
 // TargetHosts returns target hosts for the command.
-func (s *SSHCmd) TargetHosts() Hosts { return s.hosts }
+func (s *SSHCmd) TargetHosts(hostGroup string) Hosts {
+	hosts := make(Hosts, 0, len(s.hosts))
+
+	for _, h := range s.hosts {
+		if h.groups[hostGroup] == 1 {
+			hosts = append(hosts, h)
+		}
+	}
+
+	return hosts
+}
 
 // Exec execute in specified host.
 func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {

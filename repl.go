@@ -2,15 +2,16 @@ package gossh
 
 import (
 	"fmt"
-	"github.com/chzyer/readline"
-	"github.com/fatih/color"
 	"io"
 	"os"
 	"time"
+
+	"github.com/chzyer/readline"
+	"github.com/fatih/color"
 )
 
 // Repl execute in specified hosts.
-func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer) {
+func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer, hostGroup string) {
 	green := color.New(color.FgGreen).SprintfFunc()
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:      green(">>> "),
@@ -22,7 +23,7 @@ func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer) {
 	}
 
 	eo := ExecOption{Repl: true}
-	if err := repl(gs, hosts, stdout, rl, eo); err != nil {
+	if err := repl(gs, hosts, stdout, rl, eo, hostGroup); err != nil {
 		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
 		os.Exit(1)
 	}
@@ -30,7 +31,7 @@ func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer) {
 	defer rl.Close()
 }
 
-func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo ExecOption) error {
+func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo ExecOption, hostGroup string) error {
 	lastErrInterrupt := time.Time{}
 	for {
 		line, err := rl.Readline()
@@ -62,13 +63,13 @@ func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo 
 			return nil
 		}
 
-		executeReplCmd(gs, hosts, stdout, line, eo)
+		executeReplCmd(gs, hosts, stdout, line, eo, hostGroup)
 	}
 
 	return nil
 }
 
-func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string, eo ExecOption) {
+func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string, eo ExecOption, hostGroup string) {
 	if line == "%hosts" {
 		for _, h := range hosts {
 			fmt.Fprintf(w, "ID:%s addr:%s note:%s\n", h.ID, h.Addr, h.Prop("note"))
@@ -87,7 +88,7 @@ func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string, eo ExecO
 	}
 
 	for _, host := range hosts {
-		if err := ExecInHosts(gs, host, cmd, w, eo); err != nil {
+		if err := ExecInHosts(gs, host, cmd, w, eo, hostGroup); err != nil {
 			fmt.Fprintf(w, "ExecInHosts error %v\n", err)
 		}
 	}

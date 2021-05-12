@@ -6,7 +6,7 @@ require (
 	github.com/bingoohuang/gg v0.0.0-20210329025959-4720ec0f27bd
 	github.com/bingoohuang/gonet v0.0.0-20191216053050-9d60a7650df8
 	github.com/bingoohuang/gou v0.0.0-20200608105644-af3865a1364f
-	github.com/bingoohuang/toml v0.0.0-20210315055333-6286864a0ab8
+	github.com/bingoohuang/toml v0.0.0-20210512074958-7ceff543b9a3
 	github.com/bmatcuk/doublestar v1.2.1
 	github.com/cheggaaa/pb/v3 v3.0.3
 	github.com/chzyer/logex v1.1.10 // indirect

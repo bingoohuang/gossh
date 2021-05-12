@@ -1,0 +1,68 @@
+# gossh -c this.toml --tags test/kill/install/trunc
+
+#printConfig = true
+#passphrase="xxxx"
+
+hosts = [
+  "192.168.(126.210 126.71 126.18) zz/zz id=(1 2 3)",
+]
+
+# exec mode(0: cmd by cmd, 1 host by host)
+execMode = 1
+# 全部命令都默认成远程执行，相当于自动添加了%host标识。
+cmdTimeout = "30s"
+globalRemote = true
+
+# brew install gnu-sed
+# gsed -i 's/^COMMIT.*/COMMIT="20210204-ee4b208"/' Makefile
+# 本地编译linux版本 make build/linux_amd64.tar.gz
+
+install-cmds = [
+  "%local date '+%Y%m%d%H%M%S' => @Now",
+  "%local echo '192.168.126.210:3300,192.168.126.71:3300,192.168.126.18:3300' => @Peers",
+  "rm -fr /home/zz/weed/{mlog,vlog,mdir,vdat}",
+  "%host-(1-3) mkdir -p /home/zz/weed/{bin,mlog,vlog,mdir,vdat}",
+  "%local ls -lh ~/Downloads/seaweedfs20210204ee4b208/build/weed",
+  #"%ul ~/Downloads/seaweedfs20210204ee4b208/build/weed /home/zz/weed/bin/",
+  "cd /home/zz/weed/bin",
+  "./weed version",
+  '%host-(1-3) echo -e "logdir=../mlog\nmdir=../mdir\npeers=@Peers\nport=3300\ndefaultReplication=001\n" > master.conf',
+  "%host-(1-3) nohup ./weed master -conf=master.conf 2>&1 > /dev/null &",
+  'echo -e "logdir=../vlog\ndir=../vdat\nmserver=@Peers\nport=3400\nmax=300\nminFree=0.01x100GiB\n" > volume.conf',
+  "nohup ./weed volume -conf=volume.conf 2>&1 > /dev/null &",
+  "sleep 2",
+]
+
+conf-cmds = [
+  "%local date '+%Y%m%d%H%M%S' => @Now",
+  "%local echo '192.168.126.210:3300,192.168.126.71:3300,192.168.126.18:3300' => @Peers",
+  #"%ul ~/Downloads/seaweedfs20210204ee4b208/build/weed /home/zz/weed/bin/",
+  "cd /home/zz/weed/bin",
+  '%host-(1-3) echo -e "logdir=../mlog\nmdir=../mdir\npeers=@Peers\nport=3300\ndefaultReplication=001\n" > master.conf',
+  'echo -e "logdir=../vlog\ndir=../vdat\nmserver=@Peers\nport=3400\nmax=300\nminFree=0.01/100GiB\n" > volume.conf',
+]
+
+start-cmds = [
+  "cd /home/zz/weed/bin",
+  "./weed version",
+  "%host-(1-3) nohup ./weed master -conf=master.conf 2>&1 > /dev/null &",
+  "nohup ./weed volume -conf=volume.conf 2>&1 > /dev/null &",
+  "sleep 2",
+]
+
+kill-cmds = [
+  "ps -ef|grep weed |grep -v grep",
+  "ps -ef|grep weed |grep -v grep |awk '{print $2}' | xargs kill -9",
+  "ps -ef|grep weed |grep -v grep",
+]
+
+test-cmds = [
+  "hostname -I",
+  "ps -ef|grep weed |grep -v grep",
+  "cat /home/zz/weed/bin/*.conf",
+]
+
+trunc-cmds = [
+  "rm -fr /home/zz/weed/",
+  "ls -lh /home/zz/weed/",
+]

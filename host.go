@@ -1,9 +1,10 @@
 package gossh
 
 import (
+	"net"
+
 	"github.com/bingoohuang/gg/pkg/ss"
 	"github.com/bingoohuang/gossh/pkg/hostparse"
-	"net"
 )
 
 func (c Config) parseHosts() Hosts {

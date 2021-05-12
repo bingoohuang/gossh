@@ -63,7 +63,17 @@ type DlCmd struct {
 }
 
 // TargetHosts returns target hosts for the command.
-func (u *UlDl) TargetHosts() Hosts { return u.hosts }
+func (u *UlDl) TargetHosts(hostGroup string) Hosts {
+	hosts := make(Hosts, 0, len(u.hosts))
+
+	for _, h := range u.hosts {
+		if h.groups[hostGroup] == 1 {
+			hosts = append(hosts, h)
+		}
+	}
+
+	return hosts
+}
 
 // nolint:gomnd
 func (g *GoSSH) buildUlCmd(hostPart, realCmd string) (HostsCmd, error) {

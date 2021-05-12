@@ -60,13 +60,13 @@ type muxRunner struct {
 type EchoState int
 
 const (
-	// EchoStateInit 初始化，未知
+	// EchoStateInit 初始化，未知.
 	EchoStateInit EchoState = iota
-	// EchoStateSent 已发送
+	// EchoStateSent 已发送.
 	EchoStateSent
-	// EchoStateFound 服务器回显
+	// EchoStateFound 服务器回显.
 	EchoStateFound
-	// EchoStateNotFound 服务器没有回显
+	// EchoStateNotFound 服务器没有回显.
 	EchoStateNotFound
 )
 
