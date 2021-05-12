@@ -54,6 +54,24 @@ gossh --hostsFile ~/hosts.txt --cmdsFile ~/cmds.txt --user root --pass "{PBE}H3y
 %host hostname -I
 ```
 
+## Config examples
+
+### proxy configuration
+
+```toml
+hosts = [
+    "12.26.85.0:22 user/pass id=0",
+    "12.26.85.1:22 root/na id=1 proxy=0", # proxy by id=0
+    "12.26.85.2:22 root/na id=2 proxy=0",
+    "12.26.85.3:22 root/na id=3 proxy=0",
+]
+
+cmds = [
+    # exclude on hosts whose id between 1 and 3
+    "%host-(1-3) hostname -I",
+]
+```
+
 ## Substitute ResultVars
 
 1. define result variables like `... => @varName`
@@ -69,9 +87,9 @@ Notice:
 #passphrase="xxxx"
 
 hosts = [
-"12.26.85.62:1082 root/111",
-"12.26.85.62:1083 root/222",
-"12.26.85.62:1084 root/333",
+    "12.26.85.62:1082 root/111",
+    "12.26.85.62:1083 root/222",
+    "12.26.85.62:1084 root/333",
 ]
 
 # 全部命令都默认成远程执行，相当于自动添加了%host标识。
