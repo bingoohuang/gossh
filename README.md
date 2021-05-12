@@ -67,7 +67,7 @@ hosts = [
 ]
 
 cmds = [
-    # exclude on hosts whose id between 1 and 3
+    # execute on hosts whose id between 1 and 3
     "%host-(1-3) hostname -I",
 ]
 ```
