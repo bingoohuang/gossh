@@ -31,11 +31,12 @@ type UlCmd struct {
 	localFiles []string
 }
 
-func (s *UlCmd) init() error {
+func (s *UlCmd) init(h *Host) error {
 	if len(s.localFiles) > 0 {
 		return nil
 	}
 
+	s.local = h.SubstituteResultVars(s.local)
 	localFiles, err := doublestar.Glob(s.local)
 	basedir := file.BaseDir(localFiles)
 

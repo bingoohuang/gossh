@@ -19,7 +19,7 @@ import (
 
 // Exec execute in specified host.
 func (s *UlCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
-	if err := s.init(); err != nil {
+	if err := s.init(h); err != nil {
 		return err
 	}
 
