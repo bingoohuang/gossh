@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	errs "github.com/pkg/errors"
@@ -21,6 +22,9 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error 
 	}
 
 	remote := h.SubstituteResultVars(s.remote)
+	if strings.HasPrefix(remote, "~") {
+		remote = "." + remote[1:]
+	}
 	remotes, err := sf.Glob(remote)
 
 	if err != nil {
