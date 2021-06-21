@@ -31,7 +31,6 @@ func main() {
 	ver := pflag.BoolP("version", "v", false, "show version")
 	repl := pflag.BoolP("repl", "", false, "repl mode")
 	tag := pflag.StringP("tag", "t", "", "command prefix tag")
-	hostGroup := pflag.StringP("group", "", "default", "execute commands among host group")
 
 	ssh.declarePlags()
 	cnf.DeclarePflags()
@@ -103,16 +102,16 @@ func main() {
 	eo := gossh.ExecOption{}
 	switch gs.Config.ExecMode {
 	case gossh.ExecModeCmdByCmd:
-		gossh.ExecCmds(&gs, gossh.NewExecModeCmdByCmd(), stdout, eo, *hostGroup)
+		gossh.ExecCmds(&gs, gossh.NewExecModeCmdByCmd(), stdout, eo, config.Group)
 	case gossh.ExecModeHostByHost:
 		hosts := append([]*gossh.Host{gossh.LocalHost}, gs.Hosts...)
 		for _, host := range hosts {
-			gossh.ExecCmds(&gs, host, stdout, eo, *hostGroup)
+			gossh.ExecCmds(&gs, host, stdout, eo, config.Group)
 		}
 	}
 
 	if *repl {
-		gossh.Repl(&gs, gs.Hosts, stdout, *hostGroup)
+		gossh.Repl(&gs, gs.Hosts, stdout, config.Group)
 	}
 
 	_ = gs.Close()

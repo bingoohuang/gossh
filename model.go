@@ -53,6 +53,8 @@ type Config struct {
 	CmdsFile  string `pflag:"cmds file."`
 
 	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
+
+	Group string
 }
 
 const (
