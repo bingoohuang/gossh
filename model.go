@@ -54,7 +54,7 @@ type Config struct {
 
 	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
 
-	Group string
+	Group string `pflag:"group name. default=default"`
 }
 
 const (
