@@ -53,6 +53,10 @@ func main() {
 
 	LoadByPflag(*tag, &config)
 
+	if config.Group == "" {
+		config.Group = "default"
+	}
+
 	if config.PrintConfig {
 		fmt.Printf("Config%s\n", enc.JSONPretty(config))
 	}
