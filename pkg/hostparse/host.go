@@ -30,7 +30,7 @@ func Parse(tmpl string) []Host {
 
 	f0 := fields[0]
 	if IsDirectServer(f0) {
-		sc, _ = ParseDirectServer(tmpl)
+		sc, _ = ParseDirectServer(f0)
 		sc.Props = ParseProps(fields[1:])
 	} else {
 		sc.Addr, sc.Port = SplitHostPort(f0)
