@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"net"
+	"strings"
 
 	"github.com/bingoohuang/gg/pkg/ss"
 	"github.com/bingoohuang/gossh/pkg/hostparse"
@@ -34,6 +35,12 @@ func convertHosts(parsed []hostparse.Host) Hosts {
 	for i, p := range parsed {
 		addr := net.JoinHostPort(p.Addr, ss.Or(p.Port, "22"))
 		hosts[i] = &Host{ID: p.ID, Addr: addr, User: p.User, Password: p.Password, Properties: p.Props}
+
+		for k, v := range p.Props {
+			if strings.HasPrefix(k, "@") && IsCapitalized(k[1:]) {
+				globalVarsMap.Store(k, v)
+			}
+		}
 	}
 	return hosts
 }

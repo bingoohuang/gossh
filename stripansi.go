@@ -13,7 +13,7 @@ import "regexp"
 // sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'    # Remove all escape sequences
 // sed 's/\x1b\[[0-9;]*[mGKH]//g'      # Remove color and move sequences
 
-var re = regexp.MustCompile("\u001b\\[[0-9;]*[A-Ksu]") // nolint:gochecknoglobals
+var re = regexp.MustCompile("\u001b\\[[0-9;]*[A-Ksu]")
 
 // https://github.com/pborman/ansi/blob/master/ansi.go
 // https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html

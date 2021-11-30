@@ -104,8 +104,8 @@ type Host struct {
 	groups map[string]int
 }
 
-// resultVarsMap is the global map of result variable.
-var resultVarsMap sync.Map // nolint:gochecknoglobals
+// globalVarsMap is the global map of result variable.
+var globalVarsMap sync.Map
 
 const CmdByCmd = "_CmdByCmd"
 
@@ -117,11 +117,14 @@ func (h *Host) IsExecModeCmdByCmd() bool { return h.ID == CmdByCmd }
 
 // SubstituteResultVars substitutes the variables in the command line string.
 func (h *Host) SubstituteResultVars(cmd string) string {
+	for k, v := range h.Properties {
+		cmd = strings.ReplaceAll(cmd, "@"+k, v)
+	}
 	for k, v := range h.resultVars {
 		cmd = strings.ReplaceAll(cmd, k, v)
 	}
 
-	resultVarsMap.Range(func(k, v interface{}) bool {
+	globalVarsMap.Range(func(k, v interface{}) bool {
 		cmd = strings.ReplaceAll(cmd, k.(string), v.(string))
 		return true
 	})
@@ -136,7 +139,7 @@ func (h *Host) SetResultVar(varName, varValue string) {
 	}
 
 	if len(varValue) > 1 && IsCapitalized(varName[1:]) {
-		resultVarsMap.Store(varName, varValue)
+		globalVarsMap.Store(varName, varValue)
 	} else {
 		h.resultVars[varName] = varValue
 	}
