@@ -8,6 +8,46 @@
 
 execute shell scripts among multiple ssh servers
 
+## Features
+
+1. Support global variables defined in the host definition, example `@ARCH` in hosts, at 2021-11-30
+    ```toml
+    # gossh -c xx.toml --group 4
+    
+    #printConfig = true
+    #passphrase="xxxx"
+    
+    hosts = [
+    "admin:{PBE}xxx@192.168.1.2 group=4 @ARCH=amd64", # ARM 测试编译机
+    ]
+    
+    # 全部命令都默认成远程执行，相当于自动添加了%host标识。
+    globalRemote = true
+    cmdTimeout = "300s"
+    # confirm = true
+    # exec mode(0: cmd by cmd, 1 host by host).
+    execMode = 0
+    
+    cmds = [
+    "%local rm -fr git.commit && make git.commit",
+    "%local find ./ -name \".DS_Store\" -exec rm -rf '{}' ';'",
+    "%local rm -fr vendor && go mod download && go mod vendor",
+    "%local cd .. && rm -fr xyz.tar.gz && tar --exclude .git --exclude .idea -czf xyz.tar.gz xyz",
+    "%ul xyz.tar.gz xyzsrc/",
+    "cd xyzsrc",
+    "[[ -d xyz ]] && rm -fr xyz",
+    "tar zxf xyz.tar.gz --warning=no-unknown-keyword --warning=no-timestamp --exclude .git && cd xyz",
+    "make install",
+    "%local cd xyz && pwd",
+    "%local date '+%Y%m%d%H%M%S' => @Now",
+    "%dl xyzsrc/xyz/build/xyz build/xyz_@ARCH_@Now",
+    "%local pwd && ls -lhd build/xyz_@ARCH_@Now",
+    "%local upx build/xyz_@ARCH_@Now && ls -lh build/xyz_@ARCH_@Now",
+    "%local rm -fr vendor/",
+    ]
+    ```
+3. 
+
 ## Usage demo
 
 ```bash
