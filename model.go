@@ -77,6 +77,8 @@ type CmdWrap struct {
 	ExecOption
 }
 
+func (c CmdWrap) String() string { return c.Cmd }
+
 // Host represents the structure of remote host information for ssh.
 type Host struct {
 	ID         string
@@ -107,13 +109,16 @@ type Host struct {
 // globalVarsMap is the global map of result variable.
 var globalVarsMap sync.Map
 
-const CmdByCmd = "_CmdByCmd"
+// cmdByCmd executes command one by one.
+const cmdByCmd = "_CmdByCmd"
 
+// NewExecModeCmdByCmd creates an exec mode command.
 func NewExecModeCmdByCmd() *Host {
-	return &Host{ID: CmdByCmd}
+	return &Host{ID: cmdByCmd}
 }
 
-func (h *Host) IsExecModeCmdByCmd() bool { return h.ID == CmdByCmd }
+// IsExecModeCmdByCmd tests if this is mode of cmd one by one or not.
+func (h *Host) IsExecModeCmdByCmd() bool { return h.ID == cmdByCmd }
 
 // SubstituteResultVars substitutes the variables in the command line string.
 func (h *Host) SubstituteResultVars(cmd string) string {
@@ -266,6 +271,7 @@ type HostsCmd interface {
 	TargetHosts(hostGroup string) Hosts
 }
 
+// ExecCmds executes commands.
 func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption, hostGroup string) {
 	for _, cmd := range gs.Cmds {
 		if err := ExecInHosts(gs, host, cmd, stdout, eo, hostGroup); err != nil {
@@ -274,6 +280,7 @@ func ExecCmds(gs *GoSSH, host *Host, stdout io.Writer, eo ExecOption, hostGroup 
 	}
 }
 
+// ExecOption defines the options of execute.
 type ExecOption struct {
 	Repl bool
 }
@@ -281,13 +288,13 @@ type ExecOption struct {
 // ExecInHosts execute in specified hosts.
 func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer, eo ExecOption, hostGroup string) error {
 	for _, host := range hostsCmd.TargetHosts(hostGroup) {
-		if target.IsExecModeCmdByCmd() || target == host { // nolint:nestif
+		if target.IsExecModeCmdByCmd() || target == host {
 			if target.IsExecModeCmdByCmd() {
-				if target.Addr != host.Addr {
+				if eo.Repl || target.Addr != host.Addr {
 					_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
 					target.Addr = host.Addr
 				}
-			} else if !host.IsConnected() {
+			} else if eo.Repl || !host.IsConnected() {
 				_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
 			}
 
@@ -407,7 +414,7 @@ func (hosts Hosts) FixProxy() {
 			h = h.Proxy
 		}
 
-		if i == 10 { // nolint:gomnd
+		if i == 10 {
 			logrus.Errorf("proxy chain can not exceed 10!")
 		}
 	}

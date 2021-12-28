@@ -46,9 +46,44 @@ execute shell scripts among multiple ssh servers
     "%local rm -fr vendor/",
     ]
     ```
-3. 
+3.
 
 ## Usage demo
+
+### repl mode
+
+```bash
+gossh -H "user:pass@aa.co" -H "user:pass@bb.co" --repl
+log file /Users/bingoobjca/.gossh/logs/.-20211228140231.log created
+>>> date
+
+---> @aa.co:22 <---
+Last login: Tue Dec 28 14:29:43 2021 from 60.247.93.190
+[user@VM-24-15-centos ~]$ date
+Tue Dec 28 14:31:52 CST 2021
+
+---> bb.co:22 <---
+Last login: Tue Dec 28 14:26:23 2021 from 192.168.225.11
+[user@CS1 ~]# date
+2021年 12月 28日 星期二 14:28:28 CST
+
+>>> hostname
+
+---> @aa.co:22 <---
+[user@VM-24-15-centos ~]$ hostname
+VM-24-15-centos
+
+---> bb.co:22 <---
+[user@CS1 ~]# hostname
+CS1
+>>> %local date
+
+---> localhost <---
+$ date
+2021年12月28日 星期二 14时32分25秒 CST
+>>> exit
+log file /Users/bingoobjca/.gossh/logs/.-20211228140231.log recorded
+```
 
 ```bash
 $ gossh --quoteReplace=%q --bangReplace=%b --hosts="192.168.1.1:8022 app/app" --cmds="%host MYSQL_PWD='%babcdefg' mysql -h127.0.0.1 -uroot -e %qshow variables like 'server%'%q"
@@ -236,7 +271,8 @@ $  gossh --ebp {PBE}eiRMlsZPLikVYpZMcHicyg,{PBE}lAHH0UfuqZ0YtV_5VE77uw -p C9C6D1
 
 1. [A statically-linked ssh server with a reverse connection feature for simple yet powerful remote access. Most useful during HackTheBox challenges, CTFs or similar.](https://github.com/Fahrj/reverse-ssh)
     - CTF（Capture The Flag）中文一般译作夺旗赛，在网络安全领域中指的是网络安全技术人员之间进行技术竞技的一种比赛形式。 https://firmianay.gitbook.io/ctf-all-in-one
-    - hackthebox是一个非常不错的在线实验平台，能帮助你提升渗透测试技能和黑盒测试技能，平台上有很多靶机，从易到难，各个级别的靶机都有。https://cloud.tencent.com/developer/article/1596548
+    -
+    hackthebox是一个非常不错的在线实验平台，能帮助你提升渗透测试技能和黑盒测试技能，平台上有很多靶机，从易到难，各个级别的靶机都有。https://cloud.tencent.com/developer/article/1596548
 1. [Rospo is a tool meant to create reliable ssh tunnels. It embeds an ssh server too if you want to reverse proxy a secured shell](https://github.com/ferama/rospo)
 1. [Stack Up is a simple deployment tool that performs given set of commands on multiple hosts in parallel. It reads Supfile, a YAML, which defines networks (groups of hosts), commands and targets.](https://github.com/pressly/sup)
 2. [Bootstrap](https://getbootstrap.com/)

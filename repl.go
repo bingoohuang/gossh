@@ -22,8 +22,7 @@ func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer, hostGroup string) {
 		os.Exit(1)
 	}
 
-	eo := ExecOption{Repl: true}
-	if err := repl(gs, hosts, stdout, rl, eo, hostGroup); err != nil {
+	if err := repl(gs, hosts, stdout, rl, (ExecOption{Repl: true}), hostGroup); err != nil {
 		fmt.Fprintf(os.Stderr, "could not create prompt: %v", err)
 		os.Exit(1)
 	}
@@ -33,6 +32,7 @@ func Repl(gs *GoSSH, hosts []*Host, stdout io.Writer, hostGroup string) {
 
 func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo ExecOption, hostGroup string) error {
 	lastErrInterrupt := time.Time{}
+	hosts = append(hosts, LocalHost)
 	for {
 		line, err := rl.Readline()
 		if err == readline.ErrInterrupt {
@@ -54,7 +54,6 @@ func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo 
 		}
 
 		lastErrInterrupt = time.Time{}
-
 		if len(line) == 0 {
 			continue
 		}
@@ -65,8 +64,6 @@ func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo 
 
 		executeReplCmd(gs, hosts, stdout, line, eo, hostGroup)
 	}
-
-	return nil
 }
 
 func executeReplCmd(gs *GoSSH, hosts []*Host, w io.Writer, line string, eo ExecOption, hostGroup string) {

@@ -76,7 +76,6 @@ func (u *UlDl) TargetHosts(hostGroup string) Hosts {
 	return hosts
 }
 
-// nolint:gomnd
 func (g *GoSSH) buildUlCmd(hostPart, realCmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {
@@ -90,7 +89,6 @@ func (g *GoSSH) buildUlCmd(hostPart, realCmd string) (HostsCmd, error) {
 	}}, nil
 }
 
-// nolint:gomnd
 func (g *GoSSH) buildDlCmd(hostPart, realCmd string) (HostsCmd, error) {
 	fields := str.Fields(realCmd, 2)
 	if len(fields) < 2 {

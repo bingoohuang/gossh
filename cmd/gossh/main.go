@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bingoohuang/gossh/pkg/cnf"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
@@ -17,7 +19,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/bingoohuang/gossh"
-	"github.com/bingoohuang/gou/cnf"
 	"github.com/bingoohuang/gou/pbe"
 )
 
@@ -50,7 +51,6 @@ func main() {
 	}
 
 	var config gossh.Config
-
 	LoadByPflag(*tag, &config)
 
 	if config.Group == "" {
@@ -62,11 +62,10 @@ func main() {
 	}
 
 	gs := config.Parse()
-
 	ssh.do(gs)
 
-	if len(gs.Cmds) == 0 && !*repl {
-		fmt.Println("There is nothing to do.")
+	if len(gs.Cmds) == 0 {
+		*repl = true
 	}
 
 	logsDir, _ := homedir.Expand("~/.gossh/logs/")
@@ -115,6 +114,7 @@ func main() {
 	}
 
 	if *repl {
+		gs.Config.GlobalRemote = true
 		gossh.Repl(&gs, gs.Hosts, stdout, config.Group)
 	}
 

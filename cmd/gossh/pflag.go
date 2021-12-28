@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/bingoohuang/gou/cnf"
+	"github.com/bingoohuang/gossh/pkg/cnf"
+
 	"github.com/bingoohuang/toml"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
@@ -19,10 +20,11 @@ func LoadByPflag(cmdPrefixTag string, cfgValues ...interface{}) {
 
 // Load loads the cnfFile content and viper bindings to value.
 func Load(cmdPrefixTag, cnfFile string, values ...interface{}) {
-	if err := LoadE(cmdPrefixTag, cnfFile, values...); err != nil {
-		logrus.Panicf("Load Cnf %s error %v", cnfFile, err)
+	if cnfFile != "" {
+		if err := LoadE(cmdPrefixTag, cnfFile, values...); err != nil {
+			logrus.Panicf("Load Cnf %s error %v", cnfFile, err)
+		}
 	}
-
 	cnf.ViperToStruct(values...)
 }
 

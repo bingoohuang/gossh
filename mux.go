@@ -85,14 +85,9 @@ func (s *muxRunner) read() (err error) {
 	return err
 }
 
-// nolint:gomnd
 func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 	if s.readN > 0 {
 		recv = string(s.buf[:s.readN])
-	}
-
-	if s.lastCmd.Repl {
-		return
 	}
 
 	if len(recv) > 2 {
@@ -104,20 +99,15 @@ func (s *muxRunner) parseBuf() (recv, lastTwo string) {
 
 func (s *muxRunner) exec(recv, lastTwo string) bool {
 	if !isPrompt(lastTwo) {
-		if s.lastCmd.Repl {
-			_, _ = fmt.Fprint(s.out, recv)
-		} else {
-			s.last += recv
-		}
+		s.last += recv
 		return true
 	}
 
 	newFound := false
-
 	if s.testEchoState == EchoStateSent {
 		uuidCount := strings.Count(s.last+recv, s.uuidStr)
 		newFound = uuidCount >= 1
-		if uuidCount >= 2 { // nolint:gomnd
+		if uuidCount >= 2 {
 			// 有回显，包括命令中的uuid和执行结果的uuid共2处
 			s.testEchoState = EchoStateFound
 		} else {
@@ -125,22 +115,7 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 		}
 	}
 
-	preLines, curLine := GetLastLine(s.last + recv)
-	if preLines != "" && !newFound {
-		if p := strings.Index(preLines, "Last login:"); p > 0 {
-			preLines = preLines[p:]
-		}
-		_, _ = fmt.Fprint(s.out, StripAnsi(preLines))
-	}
-
-	if s.lastCmd.Cmd != "" {
-		s.executedCh <- s.lastCmd
-
-		_, result := GetLastLine(strings.TrimSpace(preLines))
-		s.host.SetResultVar(s.lastCmd.ResultVar, result)
-	}
-
-	s.last = curLine
+	s.last = s.setResult(recv, newFound)
 
 	if s.testEchoState == EchoStateInit {
 		_, _ = s.w.Write([]byte(s.testEcho + "\n"))
@@ -149,7 +124,6 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	}
 
 	ok := false
-
 	s.lastCmd, ok = <-s.cmdsCh
 	if !ok {
 		s.executedCh <- CmdChanClosed{}
@@ -164,6 +138,23 @@ func (s *muxRunner) exec(recv, lastTwo string) bool {
 	_, _ = s.w.Write([]byte(s.lastCmd.Cmd + "\n"))
 
 	return true
+}
+
+func (s *muxRunner) setResult(recv string, newFound bool) string {
+	preLines, curLine := GetLastLine(s.last + recv)
+	if preLines != "" && !newFound {
+		if p := strings.Index(preLines, "Last login:"); p > 0 {
+			preLines = preLines[p:]
+		}
+		_, _ = fmt.Fprint(s.out, StripAnsi(preLines))
+	}
+
+	if s.lastCmd.Cmd != "" {
+		s.executedCh <- s.lastCmd
+		_, result := GetLastLine(strings.TrimSpace(preLines))
+		s.host.SetResultVar(s.lastCmd.ResultVar, result)
+	}
+	return curLine
 }
 
 func isPrompt(s string) bool {

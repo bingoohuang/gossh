@@ -41,8 +41,7 @@ func (LocalCmd) TargetHosts(string) Hosts { return []*Host{LocalHost} }
 func (l LocalCmd) RawCmd() string { return l.cmd }
 
 // Exec execute in specified host.
-// nolint:nestif
-func (l *LocalCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
+func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
 	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}
@@ -62,7 +61,7 @@ func (l *LocalCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) err
 
 				uuidTimes++
 			} else {
-				if uuidTimes == 2 { // nolint:gomnd
+				if uuidTimes == 2 {
 					pwd, _ := os.Getwd()
 					if pwd != so {
 						_ = os.Chdir(so)

@@ -80,7 +80,6 @@ func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer, eo ExecOpt
 func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	ticker := time.NewTicker(timeout)
-
 	defer ticker.Stop()
 
 	for {
@@ -105,7 +104,6 @@ func (h *Host) waitCmdExecuted(cmd CmdWrap) {
 	}
 }
 
-// nolint:gomnd
 func (h *Host) setupSession(stdout io.Writer) error {
 	if h.session != nil {
 		return nil
@@ -158,6 +156,7 @@ func (h *Host) setupSession(stdout io.Writer) error {
 	return nil
 }
 
+// ExecuteInitialCmd executes initial command.
 func ExecuteInitialCmd(initialCmd string, w io.Writer) {
 	for _, v := range gossh.ConvertKeys(initialCmd) {
 		time.Sleep(100 * time.Millisecond)
