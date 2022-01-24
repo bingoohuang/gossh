@@ -19,13 +19,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/bingoohuang/gossh"
-	"github.com/bingoohuang/gou/pbe"
 )
 
 func main() {
 	logrus.SetLevel(logrus.InfoLevel)
 
-	pbe.DeclarePflags()
+	DeclarePbePflags()
 
 	var ssh sshpassHelp
 
@@ -46,7 +45,7 @@ func main() {
 		return
 	}
 
-	if pbe.DealPflag() {
+	if DealPbePflag() {
 		return
 	}
 
