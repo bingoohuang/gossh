@@ -41,11 +41,13 @@ func Parse(tmpl string) []Host {
 		sc.Props = ParseProps(fields[2:])
 	}
 
+	var passEncodedAlgo string
 	if strings.HasPrefix(sc.Pass, "{URL}") {
 		if pass, err := url.QueryUnescape(sc.Pass[5:]); err != nil {
 			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
 		} else {
 			sc.Pass = pass
+			passEncodedAlgo = "URL"
 		}
 	} else if strings.HasPrefix(sc.Pass, "{BASE64}") {
 		s := strings.TrimRight(sc.Pass[8:], "=")
@@ -53,20 +55,26 @@ func Parse(tmpl string) []Host {
 			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
 		} else {
 			sc.Pass = string(pass)
+			passEncodedAlgo = "BASE64"
 		}
 	}
 
 	t := Host{ID: sc.Props["id"], Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
-	hosts = append(hosts, t.Expands()...)
+	hosts = append(hosts, t.Expands(passEncodedAlgo != "")...)
 
 	return hosts
 }
 
-func (c Host) Expands() []Host {
+func (c Host) Expands(passEncodedAlgo bool) []Host {
 	hosts := str.MakeExpand(c.Addr).MakePart()
 	ports := str.MakeExpand(c.Port).MakePart()
 	users := str.MakeExpand(c.User).MakePart()
-	passes := str.MakeExpand(c.Password).MakePart()
+	var passes str.Part
+	if passEncodedAlgo {
+		passes = str.MakePart([]string{c.Password})
+	} else {
+		passes = str.MakeExpand(c.Password).MakePart()
+	}
 	ids := str.MakeExpand(c.ID).MakePart()
 	maxExpands := mat.MaxInt(hosts.Len(), ports.Len(), users.Len(), passes.Len(), ids.Len())
 
