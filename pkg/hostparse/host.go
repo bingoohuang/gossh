@@ -1,6 +1,7 @@
 package hostparse
 
 import (
+	"encoding/base64"
 	"log"
 	"net/url"
 	"strings"
@@ -45,6 +46,13 @@ func Parse(tmpl string) []Host {
 			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
 		} else {
 			sc.Pass = pass
+		}
+	} else if strings.HasPrefix(sc.Pass, "{BASE64}") {
+		s := strings.TrimRight(sc.Pass[8:], "=")
+		if pass, err := base64.RawURLEncoding.DecodeString(s); err != nil {
+			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
+		} else {
+			sc.Pass = string(pass)
 		}
 	}
 
