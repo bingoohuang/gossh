@@ -1,6 +1,8 @@
 package hostparse
 
 import (
+	"log"
+	"net/url"
 	"strings"
 
 	"github.com/bingoohuang/gou/mat"
@@ -36,6 +38,14 @@ func Parse(tmpl string) []Host {
 		sc.Addr, sc.Port = SplitHostPort(f0)
 		sc.User, sc.Pass, _ = Split2BySeps(fields[1], ":", "/")
 		sc.Props = ParseProps(fields[2:])
+	}
+
+	if strings.HasPrefix(sc.Pass, "{URL}") {
+		if pass, err := url.QueryUnescape(sc.Pass[5:]); err != nil {
+			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
+		} else {
+			sc.Pass = pass
+		}
 	}
 
 	t := Host{ID: sc.Props["id"], Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
