@@ -18,6 +18,8 @@ type Host struct {
 	User     string
 	Password string // empty when using public key
 	Props    map[string]string
+
+	Raw string // register the raw template line like `user:pass@host:port`
 }
 
 // Parse parses the host tmpl configuration.
@@ -61,6 +63,10 @@ func Parse(tmpl string) []Host {
 
 	t := Host{ID: sc.Props["id"], Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
 	hosts = append(hosts, t.Expands(passEncodedAlgo != "")...)
+
+	for i := range hosts {
+		hosts[i].Raw = tmpl
+	}
 
 	return hosts
 }
