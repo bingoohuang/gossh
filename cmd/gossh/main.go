@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bingoohuang/gg/pkg/v"
+
 	"github.com/bingoohuang/gossh/pkg/cnf"
 
 	"github.com/mitchellh/go-homedir"
@@ -41,7 +43,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Println("Version: v1.0.2 at 2021-03-29 11:02:34")
+		fmt.Println(v.Version())
 		return
 	}
 

@@ -5,8 +5,8 @@ import "regexp"
 // https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-stream
 // http://ascii-table.com/ansi-escape-sequences.php
 // https://github.com/acarl005/stripansi/blob/master/stripansi.go
-//const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
-//var re = regexp.MustCompile(ansi)
+// const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
+// var re = regexp.MustCompile(ansi)
 
 // https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-stream
 // sed 's/\x1b\[[0-9;]*m//g'           # Remove color sequences only

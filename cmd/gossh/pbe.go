@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/bingoohuang/gou/pbe"
-	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"os"
 	"sync"
+
+	"github.com/bingoohuang/gou/pbe"
+	"github.com/mitchellh/go-homedir"
 
 	"github.com/howeyc/gopass"
 
@@ -66,8 +67,10 @@ func DealPbePflag() bool {
 	return true
 }
 
-var pbePwdOnce sync.Once // nolint
-var pbePwd string        // nolint
+var (
+	pbePwdOnce sync.Once // nolint
+	pbePwd     string    // nolint
+)
 
 // GetPbePwd read pbe password from viper, or from stdin.
 func GetPbePwd() string {

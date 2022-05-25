@@ -13,7 +13,6 @@ func ParseHostFile(hostsFile string) []Host {
 
 	f, _ := homedir.Expand(hostsFile)
 	file, err := ioutil.ReadFile(f)
-
 	if err != nil {
 		logrus.Warnf("failed to read hosts file %s: %v", hostsFile, err)
 		return nil

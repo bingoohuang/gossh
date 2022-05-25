@@ -26,7 +26,6 @@ func (s *DlCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error 
 		remote = "." + remote[1:]
 	}
 	remotes, err := sf.Glob(remote)
-
 	if err != nil {
 		return errs.Wrapf(err, "Glob %s", s.remote)
 	}
@@ -76,7 +75,7 @@ func download(stdout io.Writer, remoteStat os.FileInfo, host, to, from string, s
 
 	dest := filepath.Join(to, filepath.Base(from))
 
-	if err := os.MkdirAll(to, 0744); err != nil {
+	if err := os.MkdirAll(to, 0o744); err != nil {
 		return fmt.Errorf("MkdirAll %s failed: %w", to, err)
 	}
 

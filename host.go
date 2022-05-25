@@ -26,6 +26,7 @@ func (c Config) parseHosts() Hosts {
 func (c Config) parseHost(host string) Hosts {
 	return convertHosts(hostparse.Parse(host))
 }
+
 func (c Config) parseHostFile() Hosts {
 	return convertHosts(hostparse.ParseHostFile(c.HostsFile))
 }
