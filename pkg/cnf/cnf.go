@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gou/file"
+	"github.com/bingoohuang/gg/pkg/filex"
 
 	"github.com/tkrajina/go-reflector/reflector"
 
+	"github.com/bingoohuang/gg/pkg/strcase"
 	"github.com/bingoohuang/gou/str"
-	"github.com/bingoohuang/strcase"
 
 	"github.com/bingoohuang/toml"
 	homedir "github.com/mitchellh/go-homedir"
@@ -58,19 +58,19 @@ func ParsePflags(envPrefix string) error {
 
 // FindFile tries to find cnfFile from specified path, or current path cnf.toml, executable path cnf.toml.
 func FindFile(cnfFile string) (string, error) {
-	if file.SingleFileExists(cnfFile) == nil {
+	if filex.Exists(cnfFile) {
 		return cnfFile, nil
 	}
 
 	if wd, _ := os.Getwd(); wd != "" {
-		if cnfFile := filepath.Join(wd, "cnf.toml"); file.SingleFileExists(cnfFile) == nil {
-			return cnfFile, nil
+		if cnf := filepath.Join(wd, "cnf.toml"); filex.Exists(cnf) {
+			return cnf, nil
 		}
 	}
 
 	if ex, err := os.Executable(); err == nil {
-		if cnfFile := filepath.Join(filepath.Dir(ex), "cnf.toml"); file.SingleFileExists(cnfFile) == nil {
-			return cnfFile, nil
+		if cnf := filepath.Join(filepath.Dir(ex), "cnf.toml"); filex.Exists(cnf) {
+			return cnf, nil
 		}
 	}
 
