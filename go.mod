@@ -6,7 +6,6 @@ require (
 	github.com/bingoohuang/gg v0.0.0-20220615010848-e9657209b1f5
 	github.com/bingoohuang/gonet v0.0.0-20200511075259-cef8ac6cd867
 	github.com/bingoohuang/gou v0.0.0-20210727012756-4873089fc9df
-	github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d
 	github.com/bingoohuang/toml v0.0.0-20210512074958-7ceff543b9a3
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/cheggaaa/pb/v3 v3.0.8
@@ -33,6 +32,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a // indirect
 	github.com/averagesecurityguy/random v0.0.0-20180326012618-37cce341d2af // indirect
 	github.com/bingoohuang/gor v0.0.0-20200628053500-ec6cb95c0e1b // indirect
+	github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-openapi/errors v0.19.2 // indirect
