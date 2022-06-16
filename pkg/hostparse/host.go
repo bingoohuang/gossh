@@ -1,11 +1,11 @@
 package hostparse
 
 import (
-	"encoding/base64"
 	"log"
 	"net/url"
 	"strings"
 
+	"github.com/bingoohuang/gg/pkg/codec/b64"
 	"github.com/bingoohuang/gou/mat"
 	"github.com/bingoohuang/gou/str"
 )
@@ -44,22 +44,7 @@ func Parse(tmpl string) []Host {
 	}
 
 	var passEncodedAlgo string
-	if strings.HasPrefix(sc.Pass, "{URL}") {
-		if pass, err := url.QueryUnescape(sc.Pass[5:]); err != nil {
-			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
-		} else {
-			sc.Pass = pass
-			passEncodedAlgo = "URL"
-		}
-	} else if strings.HasPrefix(sc.Pass, "{BASE64}") {
-		s := strings.TrimRight(sc.Pass[8:], "=")
-		if pass, err := base64.RawURLEncoding.DecodeString(s); err != nil {
-			log.Fatalf("failed to url decode %s, error: %v", sc.Pass, err)
-		} else {
-			sc.Pass = string(pass)
-			passEncodedAlgo = "BASE64"
-		}
-	}
+	passEncodedAlgo, sc.Pass = EvalPass(sc.Pass)
 
 	t := Host{ID: sc.Props["id"], Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
 	hosts = append(hosts, t.Expands(passEncodedAlgo != "")...)
@@ -69,6 +54,25 @@ func Parse(tmpl string) []Host {
 	}
 
 	return hosts
+}
+
+func EvalPass(pass string) (passEncodedAlgo, evaluated string) {
+	if strings.HasPrefix(pass, "{URL}") {
+		if p, err := url.QueryUnescape(pass[5:]); err != nil {
+			log.Fatalf("failed to url decode %s, error: %v", pass, err)
+		} else {
+			return "URL", p
+		}
+	} else if strings.HasPrefix(pass, "{BASE64}") {
+		s := strings.TrimRight(pass[8:], "=")
+		if p, err := b64.DecodeString(s); err != nil {
+			log.Fatalf("failed to url decode %s, error: %v", pass, err)
+		} else {
+			return "BASE64", p
+		}
+	}
+
+	return "", pass
 }
 
 func (c Host) Expands(passEncodedAlgo bool) []Host {

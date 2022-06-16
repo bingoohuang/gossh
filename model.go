@@ -260,8 +260,7 @@ func (h *Host) IsConnected() bool {
 }
 
 // CmdExcResult means the detail exec result of cmd.
-type CmdExcResult struct {
-}
+type CmdExcResult struct{}
 
 // HostsCmd means the executable interface.
 type HostsCmd interface {
@@ -498,7 +497,6 @@ func (c *Config) parseCmdsFile() {
 
 	cmdsFile, _ := homedir.Expand(c.CmdsFile)
 	file, err := ioutil.ReadFile(cmdsFile)
-
 	if err != nil {
 		logrus.Warnf("failed to read cmds file %s: %v", c.CmdsFile, err)
 		return

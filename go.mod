@@ -3,7 +3,7 @@ module github.com/bingoohuang/gossh
 go 1.17
 
 require (
-	github.com/bingoohuang/gg v0.0.0-20220121011809-a7cafbfdce9b
+	github.com/bingoohuang/gg v0.0.0-20220615010848-e9657209b1f5
 	github.com/bingoohuang/gonet v0.0.0-20200511075259-cef8ac6cd867
 	github.com/bingoohuang/gou v0.0.0-20210727012756-4873089fc9df
 	github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d
@@ -65,5 +65,5 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.0 // indirect
 )

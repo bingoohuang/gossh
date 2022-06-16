@@ -32,6 +32,7 @@ func ParseDirectServer(server string) (ServerConfig, bool) {
 
 	sc.User, sc.Pass, _ = Split2BySeps(left, ":", "/")
 	commaPos := strings.Index(right, ":")
+	_, sc.Pass = EvalPass(sc.Pass)
 
 	if commaPos == -1 {
 		sc.Addr = right
