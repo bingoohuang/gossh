@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	. "github.com/bingoohuang/gossh/pkg/cmdtype"
-
 	"github.com/bingoohuang/gou/lang"
 	"github.com/stretchr/testify/assert"
 )

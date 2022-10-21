@@ -10,11 +10,9 @@ import (
 	"time"
 
 	"github.com/bingoohuang/gou/lang"
+	"github.com/bingoohuang/pb"
 	errs "github.com/pkg/errors"
-
 	"github.com/pkg/sftp"
-
-	"github.com/cheggaaa/pb/v3"
 )
 
 // Exec execute in specified host.
@@ -114,7 +112,7 @@ func uploadSingle(stdout io.Writer, sf *sftp.Client, basedir, local, remote stri
 	fmt.Fprintf(stdout, "start to upload %s to %s\n", local, dest)
 
 	start := time.Now()
-	bar := pb.StartNew(int(fromStat.Size()))
+	bar := pb.Start64(fromStat.Size())
 
 	if _, err := io.Copy(bar.NewProxyWriter(f), fromFile); err != nil {
 		return errs.Wrapf(err, "io.Copy %s to %s", local, dest)

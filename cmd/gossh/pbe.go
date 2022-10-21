@@ -7,10 +7,8 @@ import (
 	"sync"
 
 	"github.com/bingoohuang/gou/pbe"
-	"github.com/mitchellh/go-homedir"
-
 	"github.com/howeyc/gopass"
-
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

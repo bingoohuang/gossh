@@ -6,15 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/bingoohuang/gossh/pkg/gossh"
-
-	"github.com/pkg/errors"
-
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
+	"github.com/bingoohuang/gossh/pkg/gossh"
 	"github.com/bingoohuang/gou/str"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-
 	"golang.org/x/crypto/ssh"
 )
 

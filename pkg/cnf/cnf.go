@@ -9,17 +9,14 @@ import (
 	"time"
 
 	"github.com/bingoohuang/gg/pkg/filex"
-
-	"github.com/tkrajina/go-reflector/reflector"
-
 	"github.com/bingoohuang/gg/pkg/strcase"
 	"github.com/bingoohuang/gou/str"
-
 	"github.com/bingoohuang/toml"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/tkrajina/go-reflector/reflector"
 )
 
 // CheckUnknownPFlags checks the pflag and exiting.

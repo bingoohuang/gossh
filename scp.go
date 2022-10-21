@@ -5,15 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	errs "github.com/pkg/errors"
-
 	"github.com/bingoohuang/gou/file"
 	"github.com/bingoohuang/gou/str"
-
 	"github.com/bmatcuk/doublestar"
-
 	homedir "github.com/mitchellh/go-homedir"
-
+	errs "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 

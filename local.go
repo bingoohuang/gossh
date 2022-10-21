@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
-	"github.com/spf13/viper"
-
 	"github.com/gobars/cmd"
 	"github.com/google/uuid"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 // LocalCmd means local commands.

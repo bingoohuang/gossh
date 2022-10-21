@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	errs "github.com/pkg/errors"
-
 	"github.com/bingoohuang/gou/lang"
+	errs "github.com/pkg/errors"
 	"github.com/pkg/sftp"
 )
 

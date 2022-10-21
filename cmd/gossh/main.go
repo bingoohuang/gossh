@@ -8,19 +8,13 @@ import (
 	"time"
 
 	"github.com/bingoohuang/gg/pkg/v"
-
-	"github.com/bingoohuang/gossh/pkg/cnf"
-
-	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
-
-	"github.com/bingoohuang/gou/enc"
-
-	"github.com/spf13/pflag"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/bingoohuang/gossh"
+	"github.com/bingoohuang/gossh/pkg/cnf"
+	"github.com/bingoohuang/gou/enc"
+	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func main() {

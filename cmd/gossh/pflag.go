@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 
 	"github.com/bingoohuang/gossh/pkg/cnf"
-
 	"github.com/bingoohuang/toml"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"

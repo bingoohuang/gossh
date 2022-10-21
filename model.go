@@ -12,19 +12,15 @@ import (
 	"time"
 	"unicode"
 
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/sync/errgroup"
-
+	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/bingoohuang/gossh/pkg/gossh"
+	"github.com/bingoohuang/gou/pbe"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/sftp"
-
 	"github.com/sirupsen/logrus"
-
-	"github.com/bingoohuang/gou/pbe"
-
-	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/sync/errgroup"
 )
 
 // Config represents the structure of input toml file structure.
