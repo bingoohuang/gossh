@@ -286,11 +286,11 @@ func ExecInHosts(gs *GoSSH, target *Host, hostsCmd HostsCmd, stdout io.Writer, e
 		if target.IsExecModeCmdByCmd() || target == host {
 			if target.IsExecModeCmdByCmd() {
 				if eo.Repl || target.Addr != host.Addr {
-					_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
+					_, _ = fmt.Fprintf(stdout, "\n---> %s <---\n", host.Addr)
 					target.Addr = host.Addr
 				}
 			} else if eo.Repl || !host.IsConnected() {
-				_, _ = fmt.Fprintf(stdout, "\n---> %s <--- \n", host.Addr)
+				_, _ = fmt.Fprintf(stdout, "\n---> %s <---\n", host.Addr)
 			}
 
 			if gs.Config.Confirm {
