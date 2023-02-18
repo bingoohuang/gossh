@@ -23,7 +23,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/tkrajina/go-reflector v0.5.6
 	golang.org/x/crypto v0.1.0
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.7.0
 	golang.org/x/sync v0.1.0
 )
 
@@ -61,9 +61,9 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/thoas/go-funk v0.9.0 // indirect
 	go.mongodb.org/mongo-driver v1.0.3 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
