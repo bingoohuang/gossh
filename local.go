@@ -40,7 +40,7 @@ func (LocalCmd) TargetHosts(string) Hosts { return []*Host{LocalHost} }
 func (l LocalCmd) RawCmd() string { return l.cmd }
 
 // Exec execute in specified host.
-func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
+func (l *LocalCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer, _ ExecOption) error {
 	localCmd, uuidStr := l.buildLocalCmd(h)
 	timeout := viper.Get("CmdTimeout").(time.Duration)
 	opts := cmd.Options{Buffered: true, Streaming: true, Timeout: timeout}

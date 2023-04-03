@@ -32,25 +32,29 @@ type Config struct {
 	NetTimeout string `pflag:"timeout(eg. 15s, 3m), empty for no timeout."`
 	CmdTimeout string `pflag:"timeout(eg. 15s, 3m), default 15m."`
 
-	SplitSSH    bool `pflag:"split ssh commands by comma or not. shorthand=S"`
-	PrintConfig bool `pflag:"print config before running. shorthand=P"`
-	// 是否全局设置为远程shell命令
-	GlobalRemote bool `pflag:"run as global remote ssh command(no need %host). shorthand=g"`
-	Confirm      bool `pflag:"conform to continue."`
-	FirstConfirm bool
+	Group    string `pflag:"group name."`
+	CmdsFile string `pflag:"cmds file."`
+
+	HostsFile string `pflag:"hosts file. shorthand=f"`
+	Pass      string `pflag:"pass."`
+
+	User string `pflag:"user. shorthand=u"`
 
 	Passphrase string   `pflag:"passphrase for decrypt {PBE}Password. shorthand=p"`
-	Hosts      []string `pflag:"hosts. shorthand=H"`
 	Cmds       []string `pflag:"commands to be executedChan. shorthand=C"`
 
-	User      string `pflag:"user. shorthand=u"`
-	Pass      string `pflag:"pass."`
-	HostsFile string `pflag:"hosts file. shorthand=f"`
-	CmdsFile  string `pflag:"cmds file."`
+	Hosts []string `pflag:"hosts. shorthand=H"`
 
 	ExecMode int `pflag:"exec mode(0: cmd by cmd, 1 host by host). shorthand=e"`
 
-	Group string `pflag:"group name."`
+	FirstConfirm bool
+
+	Confirm bool `pflag:"conform to continue."`
+	// 是否全局设置为远程shell命令
+	GlobalRemote bool `pflag:"run as global remote ssh command(no need %host). shorthand=g"`
+	PrintConfig  bool `pflag:"print config before running. shorthand=P"`
+
+	SplitSSH bool `pflag:"split ssh commands by comma or not. shorthand=S"`
 }
 
 const (
@@ -77,29 +81,32 @@ func (c CmdWrap) String() string { return c.Cmd }
 
 // Host represents the structure of remote host information for ssh.
 type Host struct {
-	ID         string
-	Addr       string
-	User       string
-	Password   string // empty when using public key
+	w          io.WriteCloser
+	r          io.Reader
 	Properties map[string]string
+
+	sftpClient *sftp.Client
+
+	groups map[string]int
 
 	Proxy *Host
 
-	client       *gossh.Connect
-	session      *ssh.Session
-	w            io.WriteCloser
-	r            io.Reader
-	cmdChan      chan CmdWrap
-	executedChan chan interface{}
-
-	sftpClient    *sftp.Client
-	sftpSSHClient *ssh.Client
-
-	localConnected bool
+	client  *gossh.Connect
+	session *ssh.Session
 
 	resultVars map[string]string
 
-	groups map[string]int
+	sftpSSHClient *ssh.Client
+
+	cmdChan      chan CmdWrap
+	executedChan chan interface{}
+
+	Password string // empty when using public key
+	Addr     string
+	User     string
+	ID       string
+
+	localConnected bool
 }
 
 // globalVarsMap is the global map of result variable.

@@ -8,6 +8,7 @@ import (
 
 	"github.com/chzyer/readline"
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 )
 
 // Repl execute in specified hosts.
@@ -35,7 +36,7 @@ func repl(gs *GoSSH, hosts []*Host, stdout io.Writer, rl *readline.Instance, eo 
 	hosts = append(hosts, LocalHost)
 	for {
 		line, err := rl.Readline()
-		if err == readline.ErrInterrupt {
+		if errors.Is(err, readline.ErrInterrupt) {
 			if lastErrInterrupt.IsZero() {
 				lastErrInterrupt = time.Now()
 				continue

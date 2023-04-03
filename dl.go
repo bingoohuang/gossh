@@ -14,7 +14,7 @@ import (
 )
 
 // Exec execute in specified host.
-func (s *DlCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
+func (s *DlCmd) Exec(_ *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
 	sf, err := h.GetSftpClient()
 	if err != nil {
 		return errs.Wrapf(err, "GetSftpClient")

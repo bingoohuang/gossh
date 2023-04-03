@@ -40,20 +40,21 @@ func mux(cmdsCh chan CmdWrap, executedCh chan interface{}, w io.Writer, r io.Rea
 }
 
 type muxRunner struct {
-	r          io.Reader
 	w          io.Writer
+	out        io.Writer
+	r          io.Reader
 	cmdsCh     chan CmdWrap
 	executedCh chan interface{}
 
+	host     *Host
+	uuidStr  string
+	last     string
+	testEcho string
+
 	lastCmd       CmdWrap
-	last          string
-	buf           [65 * 1024]byte
-	readN         int
-	testEcho      string
 	testEchoState EchoState
-	uuidStr       string
-	host          *Host
-	out           io.Writer
+	readN         int
+	buf           [65 * 1024]byte
 }
 
 // EchoState 回显状态.

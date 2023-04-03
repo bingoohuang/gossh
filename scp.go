@@ -15,9 +15,9 @@ import (
 
 // UlDl scp...
 type UlDl struct {
-	hosts  Hosts
 	remote string
 	local  string
+	hosts  Hosts
 }
 
 // UlCmd upload cmd structure.
