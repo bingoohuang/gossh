@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/bingoohuang/gossh/pkg/cnf"
 	"github.com/bingoohuang/toml"
@@ -36,7 +36,7 @@ func LoadE(cmdPrefixTag, cnfFile string, values ...interface{}) error {
 
 	prefixMap := toml.WithPrefixMap(map[string]string{"cmds": cmdPrefixTag})
 
-	bs, err := ioutil.ReadFile(f)
+	bs, err := os.ReadFile(f)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"strings"
@@ -499,7 +498,7 @@ func (c *Config) parseCmdsFile() {
 	}
 
 	cmdsFile, _ := homedir.Expand(c.CmdsFile)
-	file, err := ioutil.ReadFile(cmdsFile)
+	file, err := os.ReadFile(cmdsFile)
 	if err != nil {
 		logrus.Warnf("failed to read cmds file %s: %v", c.CmdsFile, err)
 		return

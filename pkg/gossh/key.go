@@ -1,7 +1,7 @@
 package gossh
 
 import (
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -10,7 +10,7 @@ import (
 
 // PrivateKey loads a public key from "path" and returns a SSH ClientConfig to authenticate with the server.
 func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
-	privateKey, err := ioutil.ReadFile(path)
+	privateKey, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func PrivateKey(username, path string) (*ssh.ClientConfig, error) {
 
 // PrivateKeyPassphrase returns the ssh.ClientConfig based on specified username, passphrase and path.
 func PrivateKeyPassphrase(username, passphrase, path string) (*ssh.ClientConfig, error) {
-	privateKey, err := ioutil.ReadFile(path)
+	privateKey, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

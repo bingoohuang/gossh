@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sync"
 
@@ -99,7 +98,7 @@ func processPbeChgFile(filename, passStr, pbenew string) {
 		filename = f
 	}
 
-	file, err := ioutil.ReadFile(filename)
+	file, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +110,7 @@ func processPbeChgFile(filename, passStr, pbenew string) {
 
 	ft, _ := os.Stat(filename)
 
-	if err := ioutil.WriteFile(filename, []byte(text), ft.Mode()); err != nil {
+	if err := os.WriteFile(filename, []byte(text), ft.Mode()); err != nil {
 		panic(err)
 	}
 }
