@@ -40,10 +40,19 @@ func Parse(tmpl string) []Host {
 	} else {
 		sc.Addr, sc.Port = SplitHostPort(f0)
 		if len(fields) > 1 {
-			sc.User, sc.Pass, _ = Split2BySeps(fields[1], ":", "/")
-		}
-		if len(fields) > 2 {
-			sc.Props = ParseProps(fields[2:])
+			eqPos := strings.IndexByte(fields[1], '=')
+			upPos := strings.IndexFunc(fields[1], func(r rune) bool {
+				return r == '/' || r == ':'
+			})
+
+			// 只有 = 在 /: 之前，才认为是 props，否则认为是 user/pass
+			if eqPos > 0 && (upPos < 0 || eqPos < upPos) {
+				sc.Props = ParseProps(fields[1:])
+			} else if upPos > 0 {
+				sc.User, sc.Pass = fields[1][:upPos], fields[1][upPos+1:]
+			}
+		} else {
+			sc.Props = ParseProps(fields[1:])
 		}
 	}
 
