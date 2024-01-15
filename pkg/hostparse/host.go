@@ -39,8 +39,12 @@ func Parse(tmpl string) []Host {
 		sc.Props = ParseProps(fields[1:])
 	} else {
 		sc.Addr, sc.Port = SplitHostPort(f0)
-		sc.User, sc.Pass, _ = Split2BySeps(fields[1], ":", "/")
-		sc.Props = ParseProps(fields[2:])
+		if len(fields) > 1 {
+			sc.User, sc.Pass, _ = Split2BySeps(fields[1], ":", "/")
+		}
+		if len(fields) > 2 {
+			sc.Props = ParseProps(fields[2:])
+		}
 	}
 
 	var passEncodedAlgo string
