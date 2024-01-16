@@ -17,7 +17,7 @@ type Host struct {
 	Port     string
 	User     string
 	Password string // empty when using public key
-	Props    map[string]string
+	Props    map[string][]string
 
 	Raw string // register the raw template line like `user:pass@host:port`
 }
@@ -59,7 +59,7 @@ func Parse(tmpl string) []Host {
 	var passEncodedAlgo string
 	passEncodedAlgo, sc.Pass = EvalPass(sc.Pass)
 
-	t := Host{ID: sc.Props["id"], Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
+	t := Host{ID: sc.GetProp("id"), Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
 	hosts = append(hosts, t.Expands(passEncodedAlgo != "")...)
 
 	for i := range hosts {
@@ -103,17 +103,17 @@ func (c Host) Expands(passEncodedAlgo bool) []Host {
 
 	propsExpands := make(map[string]str.Part)
 	for k, v := range c.Props {
-		expandV := str.MakeExpand(v)
+		expandV := str.MakeExpand(v[0])
 		propsExpands[k] = expandV.MakePart()
 		if l := expandV.MaxLen(); maxExpands < l {
 			maxExpands = l
 		}
 	}
 
-	partPropsFn := func(i int) map[string]string {
-		m := make(map[string]string)
+	partPropsFn := func(i int) map[string][]string {
+		m := make(map[string][]string)
 		for k, v := range propsExpands {
-			m[k] = v.Part(i)
+			m[k] = append(m[k], v.Part(i))
 		}
 		return m
 	}
@@ -122,8 +122,11 @@ func (c Host) Expands(passEncodedAlgo bool) []Host {
 
 	for i := 0; i < maxExpands; i++ {
 		props := partPropsFn(i)
-		for k, v := range props {
-			props[k] = SubstituteProps(v, props)
+		for k, vv := range props {
+			for i, v := range vv {
+				vv[i] = SubstituteProps(v, props)
+			}
+			props[k] = vv
 		}
 
 		tmpls[i] = Host{
@@ -139,12 +142,16 @@ func (c Host) Expands(passEncodedAlgo bool) []Host {
 	return tmpls
 }
 
-func SubstituteProps(s string, props map[string]string) string {
+func SubstituteProps(s string, props map[string][]string) string {
 	if s == "" {
 		return s
 	}
 
-	for k, v := range props {
+	for k, vv := range props {
+		v := ""
+		if len(vv) > 0 {
+			v = vv[len(vv)-1]
+		}
 		s = strings.ReplaceAll(s, "{"+k+"}", v)
 	}
 
@@ -161,12 +168,12 @@ func SplitHostPort(addr string) (string, string) {
 	return addr[0:pos], addr[pos+1:]
 }
 
-func ParseProps(fields []string) map[string]string {
-	props := make(map[string]string)
+func ParseProps(fields []string) map[string][]string {
+	props := make(map[string][]string)
 
 	for i := 0; i < len(fields); i++ {
 		k, v := str.Split2(fields[i], "=", true, true)
-		props[k] = v
+		props[k] = append(props[k], v)
 	}
 
 	return props

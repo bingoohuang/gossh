@@ -10,11 +10,19 @@ func IsDirectServer(server string) bool {
 }
 
 type ServerConfig struct {
-	Props map[string]string
+	Props map[string][]string
 	User  string
 	Pass  string
 	Addr  string
 	Port  string
+}
+
+func (c *ServerConfig) GetProp(k string) string {
+	vals := c.Props[k]
+	if len(vals) > 0 {
+		return vals[len(vals)-1]
+	}
+	return ""
 }
 
 // ParseDirectServer parses a direct server address.

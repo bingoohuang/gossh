@@ -82,7 +82,7 @@ func (c CmdWrap) String() string { return c.Cmd }
 type Host struct {
 	w          io.WriteCloser
 	r          io.Reader
-	Properties map[string]string
+	Properties map[string][]string
 
 	sftpClient *sftp.Client
 
@@ -125,7 +125,7 @@ func (h *Host) IsExecModeCmdByCmd() bool { return h.ID == cmdByCmd }
 // SubstituteResultVars substitutes the variables in the command line string.
 func (h *Host) SubstituteResultVars(cmd string) string {
 	for k, v := range h.Properties {
-		cmd = strings.ReplaceAll(cmd, "@"+k, v)
+		cmd = strings.ReplaceAll(cmd, "@"+k, v[0])
 	}
 	for k, v := range h.resultVars {
 		cmd = strings.ReplaceAll(cmd, k, v)
@@ -240,8 +240,8 @@ func (h Host) PrintSCP() {
 
 // Prop finds property by name.
 func (h *Host) Prop(name string) string {
-	if v, ok := h.Properties[name]; ok {
-		return v
+	if v := h.Properties[name]; len(v) > 0 {
+		return v[0]
 	}
 
 	return ""
@@ -353,11 +353,11 @@ func (hosts Hosts) FixHost() {
 
 		h.groups = make(map[string]int)
 		groups := h.Properties["groups"]
-		if groups == "" {
+		if len(groups) == 0 {
 			groups = h.Properties["group"]
 		}
-		if groups != "" {
-			for _, group := range strings.Split(groups, "/") {
+		if len(groups) > 0 {
+			for _, group := range strings.Split(groups[0], "/") {
 				if group != "" {
 					h.groups[group] = 1
 				}
