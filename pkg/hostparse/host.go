@@ -50,6 +50,7 @@ func Parse(tmpl string) []Host {
 				sc.Props = ParseProps(fields[1:])
 			} else if upPos > 0 {
 				sc.User, sc.Pass = fields[1][:upPos], fields[1][upPos+1:]
+				sc.Props = ParseProps(fields[2:])
 			}
 		} else {
 			sc.Props = ParseProps(fields[1:])
