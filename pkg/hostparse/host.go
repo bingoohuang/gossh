@@ -44,9 +44,10 @@ func Parse(tmpl string) []Host {
 			upPos := strings.IndexFunc(fields[1], func(r rune) bool {
 				return r == '/' || r == ':'
 			})
-
-			// 只有 = 在 /: 之前，才认为是 props，否则认为是 user/pass
-			if eqPos > 0 && (upPos < 0 || eqPos < upPos) {
+			if upPos < 0 && eqPos < 0 {
+				sc.User = fields[1]
+			} else if eqPos > 0 && (upPos < 0 || eqPos < upPos) {
+				// 只有 = 在 /: 之前，才认为是 props，否则认为是 user/pass
 				sc.Props = ParseProps(fields[1:])
 			} else if upPos > 0 {
 				sc.User, sc.Pass = fields[1][:upPos], fields[1][upPos+1:]
