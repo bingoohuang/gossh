@@ -5,6 +5,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/atotto/clipboard"
+	"github.com/bingoohuang/gossh"
 	"github.com/bingoohuang/gou/pbe"
 	"github.com/howeyc/gopass"
 	"github.com/mitchellh/go-homedir"
@@ -24,7 +26,7 @@ func DeclarePbePflags() {
 	pflag.StringP("pbepwdnew", "", "", "new pbe pwd")
 }
 
-// DealPflag deals the request by the pflags.
+// DealPbePflag deals the request by the pflags.
 func DealPbePflag() bool {
 	pbes := viper.GetString("pbe")
 	ebps := viper.GetString("ebp")
@@ -35,11 +37,17 @@ func DealPbePflag() bool {
 	}
 
 	alreadyHasOutput := false
-	passStr := GetPbePwd()
+
+	gossh.DecryptPassphrase("")
+	passStr := pbe.GetPbePwd()
 
 	if len(pbes) > 0 {
 		pbe.PrintEncrypt(passStr, pbes)
-
+		if val, err := pbe.Pbe(pbes); err == nil {
+			if err := clipboard.WriteAll(val); err == nil {
+				fmt.Printf("Copied to clipboard\n")
+			}
+		}
 		alreadyHasOutput = true
 	}
 
@@ -49,6 +57,12 @@ func DealPbePflag() bool {
 		}
 
 		pbe.PrintDecrypt(passStr, ebps)
+
+		if val, err := pbe.Ebp(ebps); err == nil {
+			if err := clipboard.WriteAll(val); err == nil {
+				fmt.Printf("Copied to clipboard\n")
+			}
+		}
 
 		alreadyHasOutput = true
 	}

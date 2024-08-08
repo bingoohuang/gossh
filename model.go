@@ -515,21 +515,7 @@ func (c *Config) parseCmdsFile() {
 }
 
 func (c *Config) parseVars() {
-	if c.Passphrase == "" {
-		c.Passphrase = os.Getenv("PASS")
-	}
-	if c.Passphrase != "" {
-		if strings.HasPrefix(c.Passphrase, "{PBE}") {
-			// 身无彩凤双飞翼，心有灵犀一点通
-			viper.Set(pbe.PbePwd, "S!cfsf1*Ylx1.t")
-			if p, err := pbe.Ebp(c.Passphrase); err == nil {
-				c.Passphrase = p
-			}
-			viper.Set(pbe.PbePwd, "")
-		}
-
-		viper.Set(pbe.PbePwd, c.Passphrase)
-	}
+	DecryptPassphrase(c.Passphrase)
 
 	netTimeout, _ := time.ParseDuration(c.NetTimeout)
 	viper.Set("NetTimeout", netTimeout)
@@ -551,5 +537,23 @@ func (c *Config) parseVars() {
 		for i, cmd := range c.Cmds {
 			c.Cmds[i] = strings.ReplaceAll(cmd, c.ReplaceBang, `!`)
 		}
+	}
+}
+
+func DecryptPassphrase(passphrase string) {
+	if passphrase == "" {
+		passphrase = os.Getenv("PASS")
+	}
+	if passphrase != "" {
+		if strings.HasPrefix(passphrase, "{PBE}") {
+			// 身无彩凤双飞翼，心有灵犀一点通
+			viper.Set(pbe.PbePwd, "S!cfsf1*Ylx1.t")
+			if p, err := pbe.Ebp(passphrase); err == nil {
+				passphrase = p
+			}
+			viper.Set(pbe.PbePwd, "")
+		}
+
+		viper.Set(pbe.PbePwd, passphrase)
 	}
 }
