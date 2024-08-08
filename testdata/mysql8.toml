@@ -1,0 +1,51 @@
+#printConfig = false
+
+hosts = [
+    "101.42.135.127:22 d5k/{PBE}4MJGyM0kRxzZi7F-fHR9Ru4c_jSwdCNJ",
+]
+
+globalRemote = true
+
+cmds = [
+#    "mkdir -f /home/d5k/mysql",
+#    "%host %ul /Users/bingoo/Downloads/dl/mysql-8.0.36-linux-glibc2.17-x86_64-minimal.tar.xz /home/d5k/mysql",
+    "cd /home/d5k/mysql",
+#    "tar xf mysql*.tar.xz",
+    "cd mysql*-minimal",
+    "rm -fr {etc,data} && mkdir {etc,data}",
+    "echo '[mysqld]' > etc/my.cnf",
+    "echo 'port=3306' >> etc/my.cnf",
+    "pwd => @BaseDir",
+    "echo 'socket=@BaseDir/mysqld.sock' >> etc/my.cnf",
+    "echo 'basedir=@BaseDir/mysqld.sock' >> etc/my.cnf",
+    "echo 'datadir=@BaseDir/data' >> etc/my.cnf",
+    "echo 'mysqlx=0' >> etc/my.cnf",
+    "bin/mysqld --defaults-file=etc/my.cnf --initialize-insecure",
+    "bin/mysqld --defaults-file=etc/my.cnf --user=root & => @sleep5s",
+    "bin/mysql -u root -S mysqld.sock -e \"alter user 'root'@'localhost' identified by 'root'\"",
+
+#    "%host date"
+    # "%host rm -fr ./cmd",
+    # "%host %ul ./cmd .",
+    # "%host-22 %dl  /bin/mysqldump ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+    # "%host-22 %dl  /bin/mysql ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+    # "%host %ul ~/go/bin/linux_amd64/mci ./mci",
+    # "%host %ul ~/GitHub/docker-compose-mysql-master-master/tool/mci/res .",
+    # "%host-22 %dl mydir ~/GitHub/docker-compose-mysql-master-master/tool/mci/res",
+    # "%host %ul ~/bin ./mci",
+    # "%host-22 %dl  ./testdir . ",
+    # "cat ./a.txt; rm ./a.txt"
+    # "%host rm -fr cmd",
+    # "%host ./mci/mci --checkmc",
+
+    #"%host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\\G\"",
+    # "%host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('9999')\"",
+    # "%host-18 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"insert into facedb.t_bingoo value('181818')\"",
+    #'''%host MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e "select * from facedb.t_bingoo;show slave status\G" ''',
+    #"%host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"stop slave\"",
+    #"%host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysql -u root -h 127.0.0.1 -vvv -e \"show slave status\G\"",
+    #"%host-9 MYSQL_PWD='!QAZ2wsx' rm *.sql.dump;./mci/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump; ll *.sql.dump",
+    #"%host-9 MYSQL_PWD='!QAZ2wsx' ./mci/mysqldump -h 127.0.0.1 -uroot --all-databases --master-data=1 >mysql_dump_$(hostname)_$(date +%Y-%m-%d_%H-%M).sql.dump",
+    #    "%host-9 %dl ./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump .",
+    #    "%host-18 %ul ./mysql_dump_BJCA-device_2019-11-01_15-46.sql.dump .",
+]

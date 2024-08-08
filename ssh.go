@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
@@ -65,9 +66,45 @@ func (h *Host) SSH(cmds []string, resultVar string, stdout io.Writer, eo ExecOpt
 	}
 
 	for _, cmd := range cmds {
+		extra := parseExtra(resultVar)
+		if extra != nil {
+			resultVar = ""
+		}
+
 		wrap := CmdWrap{Cmd: h.SubstituteResultVars(cmd), ResultVar: resultVar, ExecOption: eo}
 		h.cmdChan <- wrap
 		h.waitCmdExecuted(wrap)
+
+		if extra != nil {
+			extra.DoExtra()
+		}
+	}
+
+	return nil
+}
+
+type Extra struct {
+	Dur time.Duration
+}
+
+func (e *Extra) DoExtra() {
+	if e.Dur > 0 {
+		time.Sleep(e.Dur)
+	}
+}
+
+func parseExtra(resultVar string) *Extra {
+	var sleepDur time.Duration
+	if strings.HasPrefix(resultVar, "@sleep") {
+		dur := resultVar[6:]
+		if dur == "" {
+			dur = "3s"
+		}
+		var err error
+		if sleepDur, err = time.ParseDuration(dur); err != nil {
+			sleepDur = 3 * time.Second
+		}
+		return &Extra{Dur: sleepDur}
 	}
 
 	return nil

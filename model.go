@@ -145,9 +145,12 @@ func (h *Host) SetResultVar(varName, varValue string) {
 		return
 	}
 
-	if len(varValue) > 1 && IsCapitalized(varName[1:]) {
+	if IsCapitalized(varName[1:]) {
 		globalVarsMap.Store(varName, varValue)
 	} else {
+		if h.resultVars == nil {
+			h.resultVars = make(map[string]string)
+		}
 		h.resultVars[varName] = varValue
 	}
 }
@@ -512,7 +515,19 @@ func (c *Config) parseCmdsFile() {
 }
 
 func (c *Config) parseVars() {
+	if c.Passphrase == "" {
+		c.Passphrase = os.Getenv("PASS")
+	}
 	if c.Passphrase != "" {
+		if strings.HasPrefix(c.Passphrase, "{PBE}") {
+			// 身无彩凤双飞翼，心有灵犀一点通
+			viper.Set(pbe.PbePwd, "S!cfsf1*Ylx1.t")
+			if p, err := pbe.Ebp(c.Passphrase); err == nil {
+				c.Passphrase = p
+			}
+			viper.Set(pbe.PbePwd, "")
+		}
+
 		viper.Set(pbe.PbePwd, c.Passphrase)
 	}
 

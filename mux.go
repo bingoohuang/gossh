@@ -171,6 +171,10 @@ func isPrompt(s string) bool {
 func GetLastLine(s string) (preLines, curLine string) {
 	pos := strings.LastIndex(s, "\n")
 	if pos < 0 || pos == len(s)-1 {
+		pos = strings.LastIndex(s, "\r")
+	}
+
+	if pos < 0 || pos == len(s)-1 {
 		return preLines, s
 	}
 

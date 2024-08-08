@@ -2,8 +2,10 @@ package gossh
 
 import (
 	"io"
+	"time"
 
 	"github.com/bingoohuang/gonet"
+	"github.com/bingoohuang/gossh/pkg/brg"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 )
@@ -21,9 +23,20 @@ func (c *Connect) CreateClient(addr string, cc *ssh.ClientConfig) error {
 		dialer = gonet.DialerTimeoutBean{ConnTimeout: cc.Timeout, ReadWriteTimeout: cc.Timeout}
 	}
 
+	targetInfo, addr := brg.CreateTargetInfo(addr)
+
 	netConn, err := dialer.Dial("tcp", addr)
 	if err != nil {
 		return err
+	}
+
+	for i, target := range targetInfo {
+		if i > 0 {
+			time.Sleep(100 * time.Millisecond)
+		}
+		if _, err := netConn.Write([]byte(target)); err != nil {
+			return err
+		}
 	}
 
 	sshCon, channel, req, err := ssh.NewClientConn(netConn, addr, cc)
