@@ -26,6 +26,12 @@ type Host struct {
 func Parse(tmpl string) []Host {
 	hosts := make([]Host, 0)
 
+	note := ""
+	if noteIndex := strings.Index(tmpl, "#"); noteIndex > 0 {
+		note = strings.TrimSpace(tmpl[noteIndex+1:])
+		tmpl = strings.TrimSpace(tmpl[:noteIndex])
+	}
+
 	fields := str.FieldsX(tmpl, "(", ")", -1)
 	if len(fields) == 0 {
 		return hosts
@@ -60,6 +66,14 @@ func Parse(tmpl string) []Host {
 
 	var passEncodedAlgo string
 	passEncodedAlgo, sc.Pass = EvalPass(sc.Pass)
+
+	if note != "" {
+		if len(sc.Props["note"]) > 0 {
+			sc.Props["note"][0] = sc.Props["note"][0] + " " + note
+		} else {
+			sc.Props["note"] = []string{note}
+		}
+	}
 
 	t := Host{ID: sc.GetProp("id"), Addr: sc.Addr, Port: sc.Port, User: sc.User, Password: sc.Pass, Props: sc.Props}
 	hosts = append(hosts, t.Expands(passEncodedAlgo != "")...)
