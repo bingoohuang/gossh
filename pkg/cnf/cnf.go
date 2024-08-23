@@ -2,6 +2,7 @@ package cnf
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"

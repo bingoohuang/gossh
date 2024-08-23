@@ -2,6 +2,7 @@ package gossh
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
