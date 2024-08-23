@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/ngg/ss"
 )
 
 // CmdType represents the cmd types.
@@ -30,7 +30,7 @@ func Parse(globalRemote bool, cmd string) (CmdType, string, string) {
 		return Noop, "", ""
 	}
 
-	f := str.Fields(cmd, 2)
+	f := ss.Fields(cmd, 2)
 	if strings.HasPrefix(f[0], hostTag) {
 		return parseRemote(f[1], f[0])
 	}
@@ -51,7 +51,7 @@ const (
 )
 
 func parseRemote(cmd, hostPart string) (CmdType, string, string) {
-	fields2 := str.Fields(cmd, 2)
+	fields2 := ss.Fields(cmd, 2)
 	switch fields2[0] {
 	case "%ul":
 		return Ul, hostPart, fields2[1]

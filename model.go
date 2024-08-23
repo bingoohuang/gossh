@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -13,10 +14,8 @@ import (
 
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/bingoohuang/gossh/pkg/gossh"
-	"github.com/bingoohuang/gou/pbe"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/pkg/sftp"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
@@ -348,7 +347,7 @@ func (hosts Hosts) FixHost() {
 		if h.ID == "" {
 			h.ID = fmt.Sprintf("%d", i+1)
 		}
-		if v, err := pbe.Ebp(h.Password); err != nil {
+		if v, err := ss.PbeDecode(h.Password); err != nil {
 			panic(err)
 		} else {
 			h.Password = v
@@ -391,7 +390,7 @@ func (hosts Hosts) FixProxy() {
 			if proxyHost, ok := m[proxy]; ok {
 				h.Proxy = proxyHost
 			} else {
-				logrus.Panicf("unable to fine proxy host by ID %s", proxy)
+				log.Printf("P! unable to fine proxy host by ID %s", proxy)
 			}
 		}
 	}
@@ -410,7 +409,7 @@ func (hosts Hosts) FixProxy() {
 
 		for ; i < 10 && h != nil; i++ {
 			if _, ok := m[h.ID]; ok {
-				logrus.Errorf("proxy circled!")
+				log.Printf("E! proxy circled!")
 				os.Exit(1)
 			}
 
@@ -419,7 +418,7 @@ func (hosts Hosts) FixProxy() {
 		}
 
 		if i == 10 {
-			logrus.Errorf("proxy chain can not exceed 10!")
+			log.Printf("E! proxy chain can not exceed 10!")
 		}
 	}
 }
@@ -459,7 +458,7 @@ func (c *Config) fixPass() {
 
 	var err error
 
-	if c.Pass, err = pbe.Ebp(c.Pass); err != nil {
+	if c.Pass, err = ss.PbeDecode(c.Pass); err != nil {
 		panic(err)
 	}
 }
@@ -470,7 +469,7 @@ func (c *Config) parseCmdGroups(gs *GoSSH) []HostsCmd {
 	for _, cmd := range c.Cmds {
 		hostCmd, err := c.parseCmd(gs, cmd)
 		if err != nil {
-			logrus.Fatalf("failed to parse cmd: %s error: %v", cmd, err)
+			log.Fatalf("F! failed to parse cmd: %s error: %v", cmd, err)
 		}
 		if hostCmd != nil {
 			cmds = append(cmds, hostCmd)
@@ -500,10 +499,10 @@ func (c *Config) parseCmdsFile() {
 		return
 	}
 
-	cmdsFile, _ := homedir.Expand(c.CmdsFile)
+	cmdsFile := ss.ExpandHome(c.CmdsFile)
 	file, err := os.ReadFile(cmdsFile)
 	if err != nil {
-		logrus.Warnf("failed to read cmds file %s: %v", c.CmdsFile, err)
+		log.Printf("W! failed to read cmds file %s: %v", c.CmdsFile, err)
 		return
 	}
 
@@ -547,13 +546,13 @@ func DecryptPassphrase(passphrase string) {
 	if passphrase != "" {
 		if strings.HasPrefix(passphrase, "{PBE}") {
 			// 身无彩凤双飞翼，心有灵犀一点通
-			viper.Set(pbe.PbePwd, "S!cfsf1*Ylx1.t")
-			if p, err := pbe.Ebp(passphrase); err == nil {
+			viper.Set(ss.PbePwd, "S!cfsf1*Ylx1.t")
+			if p, err := ss.PbeDecode(passphrase); err == nil {
 				passphrase = p
 			}
-			viper.Set(pbe.PbePwd, "")
+			viper.Set(ss.PbePwd, "")
 		}
 
-		viper.Set(pbe.PbePwd, passphrase)
+		viper.Set(ss.PbePwd, passphrase)
 	}
 }

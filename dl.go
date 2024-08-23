@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gou/lang"
+	"github.com/bingoohuang/ngg/ss"
 	errs "github.com/pkg/errors"
 	"github.com/pkg/sftp"
 )
@@ -94,7 +94,7 @@ func downloadFile(stdout io.Writer, sf *sftp.Client, perm os.FileMode, host, fro
 		return fmt.Errorf("os.OpenFile %s failed: %w", to, err)
 	}
 
-	defer lang.Closef(&err, localFile, "close file %s", to)
+	defer ss.Close(localFile)
 
 	writer := io.Writer(localFile)
 	if _, err := io.Copy(writer, remoteFile); err != nil {

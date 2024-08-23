@@ -4,8 +4,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/bingoohuang/gg/pkg/ss"
 	"github.com/bingoohuang/gossh/pkg/hostparse"
+	"github.com/bingoohuang/ngg/ss"
 )
 
 func (c Config) parseHosts() Hosts {

@@ -1,20 +1,20 @@
 package hostparse
 
 import (
+	"log"
 	"os"
 	"strings"
 
-	"github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
+	"github.com/bingoohuang/ngg/ss"
 )
 
 func ParseHostFile(hostsFile string) []Host {
 	hosts := make([]Host, 0)
 
-	f, _ := homedir.Expand(hostsFile)
+	f := ss.ExpandHome(hostsFile)
 	file, err := os.ReadFile(f)
 	if err != nil {
-		logrus.Warnf("failed to read hosts file %s: %v", hostsFile, err)
+		log.Printf("W! failed to read hosts file %s: %v", hostsFile, err)
 		return nil
 	}
 

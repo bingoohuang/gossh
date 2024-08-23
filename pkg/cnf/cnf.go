@@ -8,12 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gg/pkg/filex"
-	"github.com/bingoohuang/gg/pkg/strcase"
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/ngg/ss"
+	"github.com/bingoohuang/ngg/tick"
 	"github.com/bingoohuang/toml"
-	homedir "github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/tkrajina/go-reflector/reflector"
@@ -35,7 +32,7 @@ func DeclarePflags() {
 
 // LoadByPflag load values to cfgValue from pflag cnf specified path.
 func LoadByPflag(cfgValues ...interface{}) {
-	f, _ := homedir.Expand(viper.GetString("cnf"))
+	f := ss.ExpandHome(viper.GetString("cnf"))
 	Load(f, cfgValues...)
 }
 
@@ -55,18 +52,18 @@ func ParsePflags(envPrefix string) error {
 
 // FindFile tries to find cnfFile from specified path, or current path cnf.toml, executable path cnf.toml.
 func FindFile(cnfFile string) (string, error) {
-	if filex.Exists(cnfFile) {
+	if yes, _ := ss.Exists(cnfFile); yes {
 		return cnfFile, nil
 	}
 
 	if wd, _ := os.Getwd(); wd != "" {
-		if cnf := filepath.Join(wd, "cnf.toml"); filex.Exists(cnf) {
+		if cnf := filepath.Join(wd, "cnf.toml"); ss.Pick1(ss.Exists(cnf)) {
 			return cnf, nil
 		}
 	}
 
 	if ex, err := os.Executable(); err == nil {
-		if cnf := filepath.Join(filepath.Dir(ex), "cnf.toml"); filex.Exists(cnf) {
+		if cnf := filepath.Join(filepath.Dir(ex), "cnf.toml"); ss.Pick1(ss.Exists(cnf)) {
 			return cnf, nil
 		}
 	}
@@ -93,7 +90,7 @@ func LoadE(cnfFile string, values ...interface{}) error {
 // Load loads the cnfFile content and viper bindings to value.
 func Load(cnfFile string, values ...interface{}) {
 	if err := LoadE(cnfFile, values...); err != nil {
-		logrus.Panicf("Load Cnf %s error %v", cnfFile, err)
+		log.Printf("P! Load Cnf %s error %v", cnfFile, err)
 	}
 
 	ViperToStruct(values...)
@@ -141,7 +138,7 @@ func viperObjectFieldsValue(pValue reflect.Value, separator string) {
 			continue
 		}
 
-		setField(strcase.ToCamelLower(ft.Name), fv, separator)
+		setField(ss.ToCamelLower(ft.Name), fv, separator)
 	}
 }
 
@@ -151,7 +148,7 @@ func setField(name string, fv reflect.Value, separator string) {
 		values := viper.GetStringSlice(name)
 		if len(values) == 1 {
 			if v := strings.TrimSpace(viper.GetString(name)); v != "" {
-				fv.Set(reflect.ValueOf(str.SplitX(v, separator)))
+				fv.Set(reflect.ValueOf(ss.SplitX(v, separator)))
 			}
 		} else if len(values) > 1 {
 			fv.Set(reflect.ValueOf(values))
@@ -171,7 +168,8 @@ func setField(name string, fv reflect.Value, separator string) {
 	default:
 		if v := viper.GetString(name); v != "" {
 			if ft == reflect.TypeOf(time.Second) {
-				fv.Set(reflect.ValueOf(str.ParseDuration(v)))
+				val, _, _ := tick.Parse(v)
+				fv.Set(reflect.ValueOf(val))
 			}
 		}
 	}
@@ -216,16 +214,16 @@ func DeclarePflagsByStruct(structVars ...interface{}) {
 				continue
 			}
 
-			name := strcase.ToCamelLower(f.Name())
-			tag := str.DecodeTag(str.PickFirst(f.Tag("pflag")))
+			name := ss.ToCamelLower(f.Name())
+			tag := ss.ParseStructTag(ss.Pick1(f.Tag("pflag")))
 			shorthand := tag.GetOpt("shorthand")
 			defaultValue := tag.GetOpt("default")
 
 			switch t, _ := f.Get(); t.(type) {
 			case int:
-				pflag.IntP(name, shorthand, str.ParseInt(defaultValue), tag.Main)
+				pflag.IntP(name, shorthand, ss.Pick1(ss.Parse[int](defaultValue)), tag.Main)
 			case bool:
-				pflag.BoolP(name, shorthand, str.ParseBool(defaultValue), tag.Main)
+				pflag.BoolP(name, shorthand, ss.Pick1(ss.ParseBool(defaultValue)), tag.Main)
 			case []string:
 				var values []string
 				if defaultValue != "" {

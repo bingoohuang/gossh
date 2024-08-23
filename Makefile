@@ -1,6 +1,13 @@
-.PHONY: test install git.commit git.branch default
+.PHONY: test install git.commit git.branch default docker
 all: install
 
+# 检查是否存在 vendor 目录
+ifneq ($(wildcard vendor/.),)
+    # 如果存在 vendor 目录，则设置 VENDOR_FLAG 为 "-mod=vendor"
+    VENDOR_FLAG := -mod=vendor
+endif
+
+export TAGS := all
 app=$(notdir $(shell pwd))
 appVersion := 1.0.0
 goVersion := $(shell go version | sed 's/go version //'|sed 's/ /_/')
@@ -11,25 +18,50 @@ buildTimeCompact := $(shell date +%Y%m%d%H%M%S)
 # https://git-scm.com/docs/git-rev-list#Documentation/git-rev-list.txt-emaIem
 # e.g. ffd23d3@2022-04-06T18:07:14+08:00
 gitCommit := $(shell [ -f git.commit ] && cat git.commit || git log --format=format:'%h@%aI' -1)
-gitBranch := $(shell [ -f git.branch ] && cat git.branch || git rev-parse --abbrev-ref HEAD)
+gitBranch := $(shell [ -f git.branch ] && cat git.branch || git reflog | head -1)
 gitInfo = $(gitBranch)-$(gitCommit)
 #gitCommit := $(shell git rev-list -1 HEAD)
 # https://stackoverflow.com/a/47510909
-pkg := github.com/bingoohuang/gg/pkg/v
+pkg := github.com/bingoohuang/ngg/ver
+hostname := $(shell hostname)
+hostip := $(shell hostname -I 2>/dev/null || ifconfig -a | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print $$2}')
+BuildCI := $(if $(BUILD_TAG),$(BUILD_TAG),Unknown)
 
 extldflags := -extldflags -static
 # https://ms2008.github.io/2018/10/08/golang-build-version/
 # https://github.com/kubermatic/kubeone/blob/master/Makefile
-flags1 = -s -w -X $(pkg).BuildTime=$(buildTime) -X $(pkg).AppVersion=$(appVersion) -X $(pkg).GitCommit=$(gitInfo) -X $(pkg).GoVersion=$(goVersion)
+flags1 = -s -w -X "$(pkg).BuildTime=$(buildTime)" -X "$(pkg).AppVersion=$(appVersion)" -X "$(pkg).GitCommit=$(gitInfo)" -X "$(pkg).GoVersion=$(goVersion)" -X "$(pkg).BuildHost=$(hostname)" -X "$(pkg).BuildIP=$(hostip)" -X "$(pkg).BuildCI=$(BuildCI)"
 flags2 = ${extldflags} ${flags1}
 buildTags = $(if $(TAGS),-tags=$(TAGS),)
 buildFlags = ${buildTags} -trimpath -ldflags="'${flags1}'"
-goinstall_target = $(if $(TARGET),$(TARGET),./...)
 
-goinstall = go install ${buildTags} -trimpath -ldflags='${flags1}' ${goinstall_target}
 gobin := $(shell go env GOBIN)
 # try $GOPATN/bin if $gobin is empty
 gobin := $(if $(gobin),$(gobin),$(shell go env GOPATH)/bin)
+
+goinstall_target = $(if $(TARGET),$(TARGET),./...)
+
+# 不包含 -o
+ifeq (,$(findstring -o,$(TARGET)))
+  goSubCmd := install
+  LS_BIN = 	ls -lh ${gobin}/${app}*
+else
+  goSubCmd := build
+  builtBin := $(shell echo "$(TARGET)" | sed -n 's/.*-o \([^ ]*\).*/\1/p')
+  LS_BIN = ls -hl `readlink -f ${builtBin}`
+endif
+
+goinstall = go ${goSubCmd} ${buildTags} ${VENDOR_FLAG} -trimpath -ldflags='${flags1}' ${goinstall_target}
+
+
+osname := $(shell uname -s | awk '{print tolower($$0)}')
+osarch := $(shell uname -m)
+
+ifeq ($(osarch),x86_64)
+  osarch := amd64
+else ifeq ($(osarch),aarch64)
+  osarch := arm64
+endif
 
 export GOPROXY=https://mirrors.aliyun.com/goproxy/,https://goproxy.cn,https://goproxy.io,direct
 # Active module mode, as we use go modules to manage dependencies
@@ -98,13 +130,12 @@ install-upx: init
 
 install: init
 	${goinstall}
-	ls -lh ${gobin}/${app}*
+	${LS_BIN}
 
 linux: init
-	GOOS=linux GOARCH=amd64 ${goinstall}
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" ${goinstall}
 	ls -lh  ${gobin}/linux_amd64/${app}*
-linux-upx: init
-	GOOS=linux GOARCH=amd64 ${goinstall}
+linux-upx: linux
 	upx --best --lzma ${gobin}/linux_amd64/${app}*
 	ls -lh  ${gobin}/linux_amd64/${app}*
 windows: init
@@ -143,7 +174,9 @@ bench: init
 	go test -tags bench -benchmem -bench . ./...
 
 clean:
-	rm coverage.out
+	go mod tidy
+	rm -fr vendor
+	rm -fr coverage.out
 
 cover:
 	go test -v -race -coverpkg=./... -coverprofile=coverage.out ./...
@@ -162,24 +195,49 @@ docker:
 	gzip -f ~/dockergo/bin/${app}
 
 dockerinstall:
-	go install -v -x -a -ldflags=${flags} ./...
+	go install -tags=all -v -x -a -ldflags=${flags} ./...
+
+vendor:
+	go mod vendor && go mod download
+
 
 targz: git.commit
-	find . -name ".DS_Store" -delete
+	@find . -name ".DS_Store" -delete
 	#find . -type f -name '\.*' -print
-	cd .. && tar czf ${app}.${buildTimeCompact}.tar.gz --exclude .git --exclude .idea  --no-xattrs --no-acls ${app} && ls -hl ${app}.${buildTimeCompact}.tar.gz
+	cd .. && tar czf ${app}.${buildTimeCompact}.tar.gz --exclude .git --exclude .idea --exclude ${app}.built  --no-xattrs --no-acls ${app}.${buildTimeCompact}.built && ls -hl ${app}.${buildTimeCompact}.tar.gz
+
+targz1: git.commit
+	find . -name ".DS_Store" -delete
+	cd .. && tar czf ${app}.tar.gz --exclude .git --exclude .idea --exclude ${app}.built --no-xattrs --no-acls ${app} && ls -hl ${app}.tar.gz
 
 # BSSH_HOST=240f make bssh
 bssh: targz
 	bssh scp ../${app}.${buildTimeCompact}.tar.gz r:.
-	bssh 'rm -fr ${app} && tar zxf ${app}.${buildTimeCompact}.tar.gz && cd ${app} && make install bin_cp && cd .. && mv ${app} ${app}.${buildTimeCompact} && cd ${app}.${buildTimeCompact} && ls -hl ./built/* && md5sum ./built/* && readlink -f ./built/*'
-	mkdir -p ../${app}.${buildTimeCompact}.built
+	@bssh 'rm -fr ${app} && tar zxf ${app}.${buildTimeCompact}.tar.gz && rm -fr ${app}.${buildTimeCompact}.tar.gz && cd ${app} && make install bin_cp && cd .. && mv ${app} ${app}.${buildTimeCompact} && cd ${app}.${buildTimeCompact} && ls -hl ./built/* && md5sum ./built/* && readlink -f ./built/*'
+	@mkdir -p ./${app}.${buildTimeCompact}.built
 	bssh scp r:${app}.${buildTimeCompact}/built ./${app}.${buildTimeCompact}.built/
 	# 显示大小
-	ls -hl ./${app}.${buildTimeCompact}.built/built/*
+	@ls -hl ./${app}.${buildTimeCompact}.built/built/*
 	md5sum ./${app}.${buildTimeCompact}.built/built/*
 	# 显示完整路径
-	readlink -f ./${app}.${buildTimeCompact}.built/built/*
+	@readlink -f ./${app}.${buildTimeCompact}.built/built/*
+	@readlink -f ./${app}.${buildTimeCompact}.built/built/* | gocopy
 
 bin_cp:
 	mkdir -p ./built && cp -r ${gobin}/${app}* ./built/
+	upx ./built/*
+	cd ./built/; for file in *; do [ -f "$$file" ] && mv "$$file" "$${file}_${osname}_${osarch}"; done
+
+# BSSH_HOST=240f make bssh1
+bssh1: targz1
+	bssh scp ../${app}.tar.gz r:.
+	rm -fr ../${app}.tar.gz
+	bssh 'rm -fr ${app} && tar zxf ${app}.tar.gz && rm -fr ${app}.tar.gz && cd ${app} && make install bin_cp && ls -hl ./built/* && md5sum ./built/* && readlink -f ./built/*'
+	mkdir -p ./${app}.built
+	bssh scp r:${app}/built ./${app}.built/
+	# 显示大小
+	ls -hl ./${app}.built/built/*
+	md5sum ./${app}.built/built/*
+	# 显示完整路径
+	readlink -f ./${app}.built/built/*
+	@readlink -f ./${app}.built/built/* | gocopy

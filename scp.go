@@ -5,12 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bingoohuang/gou/file"
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/bmatcuk/doublestar"
-	homedir "github.com/mitchellh/go-homedir"
 	errs "github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // UlDl scp...
@@ -34,7 +31,7 @@ func (s *UlCmd) init(h *Host) error {
 
 	s.local = h.SubstituteResultVars(s.local)
 	localFiles, err := doublestar.Glob(s.local)
-	basedir := file.BaseDir(localFiles)
+	basedir := ss.CommonDir(localFiles)
 
 	if err != nil {
 		return errs.Wrapf(err, "doublestar.Glob(%s)", s.local)
@@ -73,27 +70,27 @@ func (u *UlDl) TargetHosts(hostGroup string) Hosts {
 }
 
 func (g *GoSSH) buildUlCmd(hostPart, realCmd string) (HostsCmd, error) {
-	fields := str.Fields(realCmd, 2)
+	fields := ss.Fields(realCmd, 2)
 	if len(fields) < 2 {
 		return nil, fmt.Errorf("bad format for %s", realCmd) // nolint:goerr113
 	}
 
 	return &UlCmd{UlDl: UlDl{
 		hosts:  g.parseHosts(hostPart),
-		local:  strings.ReplaceAll(fields[0], "~", str.PickFirst(homedir.Dir())),
+		local:  ss.ExpandHome(fields[0]),
 		remote: fields[1],
 	}}, nil
 }
 
 func (g *GoSSH) buildDlCmd(hostPart, realCmd string) (HostsCmd, error) {
-	fields := str.Fields(realCmd, 2)
+	fields := ss.Fields(realCmd, 2)
 	if len(fields) < 2 {
 		return nil, fmt.Errorf("bad format for %s", realCmd) // nolint:goerr113
 	}
 
 	return &DlCmd{UlDl: UlDl{
 		hosts:  g.parseHosts(hostPart),
-		local:  strings.ReplaceAll(fields[1], "~", str.PickFirst(homedir.Dir())),
+		local:  ss.ExpandHome(fields[1]),
 		remote: fields[0],
 	}}, nil
 }
@@ -120,9 +117,9 @@ func (g *GoSSH) findHost(name string) Hosts {
 		m[h.ID] = h
 	}
 
-	for _, id := range str.MakeExpand(name).MakeExpand() {
+	for _, id := range ss.MakeExpand(name).MakeExpand() {
 		if _, yes := tm[id]; yes {
-			logrus.Warnf("ignored duplicate host ID %s", id)
+			log.Printf("W! ignored duplicate host ID %s", id)
 			continue
 		}
 
@@ -130,7 +127,7 @@ func (g *GoSSH) findHost(name string) Hosts {
 			targetHosts = append(targetHosts, v)
 			tm[id] = true
 		} else {
-			logrus.Warnf("unknown host ID %s", id)
+			log.Printf("W! unknown host ID %s", id)
 		}
 	}
 

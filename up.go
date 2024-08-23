@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/gou/lang"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/bingoohuang/pb"
 	errs "github.com/pkg/errors"
 	"github.com/pkg/sftp"
@@ -89,7 +89,7 @@ func (s *UlCmd) sftpUpload(stdout io.Writer, h *Host) error {
 
 func uploadSingle(stdout io.Writer, sf *sftp.Client, basedir, local, remote string, overrideSingle bool) (err error) {
 	fromFile, _ := os.Open(local)
-	defer lang.Closef(&err, fromFile, "close local %s", local)
+	defer ss.Close(fromFile)
 
 	dest := remote
 
@@ -102,7 +102,7 @@ func uploadSingle(stdout io.Writer, sf *sftp.Client, basedir, local, remote stri
 		return errs.Wrapf(err, "sftp Create %s", dest)
 	}
 
-	defer lang.Closef(&err, f, "close dest %s", dest)
+	defer ss.Close(f)
 
 	fromStat, err := fromFile.Stat()
 	if err != nil {

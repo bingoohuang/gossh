@@ -4,8 +4,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/gossh/pkg/brg"
+	"github.com/bingoohuang/ngg/gnet"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 )
@@ -20,7 +20,7 @@ type Connect struct {
 func (c *Connect) CreateClient(addr string, cc *ssh.ClientConfig) error {
 	dialer := c.ProxyDialer
 	if dialer == nil {
-		dialer = gonet.DialerTimeoutBean{ConnTimeout: cc.Timeout, ReadWriteTimeout: cc.Timeout}
+		dialer = gnet.DialerTimeoutBean{ConnTimeout: cc.Timeout, ReadWriteTimeout: cc.Timeout}
 	}
 
 	targetInfo, addr := brg.CreateTargetInfo(addr)

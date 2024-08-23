@@ -5,9 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/bingoohuang/gg/pkg/codec/b64"
-	"github.com/bingoohuang/gou/mat"
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/ngg/ss"
 )
 
 // Host represents the structure of remote host information for ssh.
@@ -32,7 +30,7 @@ func Parse(tmpl string) []Host {
 		tmpl = strings.TrimSpace(tmpl[:noteIndex])
 	}
 
-	fields := str.FieldsX(tmpl, "(", ")", -1)
+	fields := ss.FieldsX(tmpl, "(", ")", -1)
 	if len(fields) == 0 {
 		return hosts
 	}
@@ -94,10 +92,10 @@ func EvalPass(pass string) (passEncodedAlgo, evaluated string) {
 		}
 	} else if strings.HasPrefix(pass, "{BASE64}") {
 		s := strings.TrimRight(pass[8:], "=")
-		if p, err := b64.DecodeString(s); err != nil {
+		if p, err := ss.Base64().Decode(s); err != nil {
 			log.Fatalf("failed to url decode %s, error: %v", pass, err)
 		} else {
-			return "BASE64", p
+			return "BASE64", p.String()
 		}
 	}
 
@@ -105,21 +103,21 @@ func EvalPass(pass string) (passEncodedAlgo, evaluated string) {
 }
 
 func (c Host) Expands(passEncodedAlgo bool) []Host {
-	hosts := str.MakeExpand(c.Addr).MakePart()
-	ports := str.MakeExpand(c.Port).MakePart()
-	users := str.MakeExpand(c.User).MakePart()
-	var passes str.Part
+	hosts := ss.MakeExpand(c.Addr).MakePart()
+	ports := ss.MakeExpand(c.Port).MakePart()
+	users := ss.MakeExpand(c.User).MakePart()
+	var passes ss.ExpandPart
 	if passEncodedAlgo {
-		passes = str.MakePart([]string{c.Password})
+		passes = ss.MakePart([]string{c.Password})
 	} else {
-		passes = str.MakeExpand(c.Password).MakePart()
+		passes = ss.MakeExpand(c.Password).MakePart()
 	}
-	ids := str.MakeExpand(c.ID).MakePart()
-	maxExpands := mat.MaxInt(hosts.Len(), ports.Len(), users.Len(), passes.Len(), ids.Len())
+	ids := ss.MakeExpand(c.ID).MakePart()
+	maxExpands := max(hosts.Len(), ports.Len(), users.Len(), passes.Len(), ids.Len())
 
-	propsExpands := make(map[string]str.Part)
+	propsExpands := make(map[string]ss.ExpandPart)
 	for k, v := range c.Props {
-		expandV := str.MakeExpand(v[0])
+		expandV := ss.MakeExpand(v[0])
 		propsExpands[k] = expandV.MakePart()
 		if l := expandV.MaxLen(); maxExpands < l {
 			maxExpands = l
@@ -129,7 +127,7 @@ func (c Host) Expands(passEncodedAlgo bool) []Host {
 	partPropsFn := func(i int) map[string][]string {
 		m := make(map[string][]string)
 		for k, v := range propsExpands {
-			m[k] = append(m[k], v.Part(i))
+			m[k] = append(m[k], v.ExpandPart(i))
 		}
 		return m
 	}
@@ -146,11 +144,11 @@ func (c Host) Expands(passEncodedAlgo bool) []Host {
 		}
 
 		tmpls[i] = Host{
-			ID:       ids.Part(i),
-			Addr:     hosts.Part(i),
-			Port:     ports.Part(i),
-			User:     users.Part(i),
-			Password: passes.Part(i),
+			ID:       ids.ExpandPart(i),
+			Addr:     hosts.ExpandPart(i),
+			Port:     ports.ExpandPart(i),
+			User:     users.ExpandPart(i),
+			Password: passes.ExpandPart(i),
 			Props:    props,
 		}
 	}
@@ -188,7 +186,7 @@ func ParseProps(fields []string) map[string][]string {
 	props := make(map[string][]string)
 
 	for i := 0; i < len(fields); i++ {
-		k, v := str.Split2(fields[i], "=", true, true)
+		k, v := ss.Split2(fields[i], "=")
 		props[k] = append(props[k], v)
 	}
 

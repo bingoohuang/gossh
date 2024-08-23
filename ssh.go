@@ -9,7 +9,7 @@ import (
 
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
 	"github.com/bingoohuang/gossh/pkg/gossh"
-	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
@@ -39,7 +39,7 @@ func (s *SSHCmd) TargetHosts(hostGroup string) Hosts {
 func (s *SSHCmd) Exec(gs *GoSSH, h *Host, stdout io.Writer, eo ExecOption) error {
 	cmds := []string{s.cmd}
 	if gs.Config.SplitSSH {
-		cmds = str.SplitX(s.cmd, ";")
+		cmds = ss.SplitX(s.cmd, ";")
 	}
 
 	return h.SSH(cmds, s.resultVar, stdout, eo)

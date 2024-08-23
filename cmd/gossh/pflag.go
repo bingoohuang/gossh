@@ -5,15 +5,14 @@ import (
 	"os"
 
 	"github.com/bingoohuang/gossh/pkg/cnf"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/bingoohuang/toml"
-	"github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 // LoadByPflag load values to cfgValue from pflag cnf specified path.
 func LoadByPflag(cmdPrefixTag string, cfgValues ...interface{}) {
-	f, _ := homedir.Expand(viper.GetString("cnf"))
+	f := ss.ExpandHome(viper.GetString("cnf"))
 	Load(cmdPrefixTag, f, cfgValues...)
 }
 
@@ -21,7 +20,7 @@ func LoadByPflag(cmdPrefixTag string, cfgValues ...interface{}) {
 func Load(cmdPrefixTag, cnfFile string, values ...interface{}) {
 	if cnfFile != "" {
 		if err := LoadE(cmdPrefixTag, cnfFile, values...); err != nil {
-			logrus.Panicf("Load Cnf %s error %v", cnfFile, err)
+			log.Printf("P! Load Cnf %s error %v", cnfFile, err)
 		}
 	}
 	cnf.ViperToStruct(values...)

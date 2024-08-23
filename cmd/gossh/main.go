@@ -7,24 +7,20 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/bingoohuang/gg/pkg/v"
 	"github.com/bingoohuang/gossh"
 	"github.com/bingoohuang/gossh/pkg/cnf"
-	"github.com/bingoohuang/gou/enc"
-	"github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
+	"github.com/bingoohuang/ngg/ss"
+	"github.com/bingoohuang/ngg/ver"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func main() {
-	logrus.SetLevel(logrus.InfoLevel)
-
 	DeclarePbePflags()
 
 	var ssh sshpassHelp
 
-	ver := pflag.BoolP("version", "v", false, "show version")
+	pver := pflag.BoolP("version", "v", false, "show version")
 	repl := pflag.BoolP("repl", "", false, "repl mode")
 	tag := pflag.StringP("tag", "t", "", "command prefix tag")
 
@@ -36,8 +32,8 @@ func main() {
 		panic(err)
 	}
 
-	if *ver {
-		fmt.Println(v.Version())
+	if *pver {
+		fmt.Println(ver.Version())
 		return
 	}
 
@@ -53,7 +49,7 @@ func main() {
 	}
 
 	if config.PrintConfig {
-		fmt.Printf("Config%s\n", enc.JSONPretty(config))
+		fmt.Printf("Config%s\n", ss.JSONPretty(config))
 	}
 
 	gs := config.Parse()
@@ -63,7 +59,7 @@ func main() {
 		*repl = true
 	}
 
-	logsDir, _ := homedir.Expand("~/.gossh/logs/")
+	logsDir := ss.ExpandHome("~/.gossh/logs/")
 	_ = os.MkdirAll(logsDir, os.ModePerm)
 	cnfFile := filepath.Base(viper.GetString("cnf"))
 

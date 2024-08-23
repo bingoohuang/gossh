@@ -7,9 +7,8 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/bingoohuang/gossh"
-	"github.com/bingoohuang/gou/pbe"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/howeyc/gopass"
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -39,11 +38,11 @@ func DealPbePflag() bool {
 	alreadyHasOutput := false
 
 	gossh.DecryptPassphrase("")
-	passStr := pbe.GetPbePwd()
+	passStr := ss.GetPbePwd()
 
 	if len(pbes) > 0 {
-		pbe.PrintEncrypt(passStr, pbes)
-		if val, err := pbe.Pbe(pbes); err == nil {
+		ss.PbePrintEncrypt(passStr, pbes)
+		if val, err := ss.PbeEncode(pbes); err == nil {
 			if err := clipboard.WriteAll(val); err == nil {
 				fmt.Printf("Copied to clipboard\n")
 			}
@@ -56,9 +55,9 @@ func DealPbePflag() bool {
 			fmt.Println()
 		}
 
-		pbe.PrintDecrypt(passStr, ebps)
+		ss.PbePrintDecrypt(passStr, ebps)
 
-		if val, err := pbe.Ebp(ebps); err == nil {
+		if val, err := ss.PbeDecode(ebps); err == nil {
 			if err := clipboard.WriteAll(val); err == nil {
 				fmt.Printf("Copied to clipboard\n")
 			}
@@ -108,16 +107,14 @@ func readInternal() {
 }
 
 func processPbeChgFile(filename, passStr, pbenew string) {
-	if f, err := homedir.Expand(filename); err == nil {
-		filename = f
-	}
+	filename = ss.ExpandHome(filename)
 
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 
-	text, err := pbe.Config{Passphrase: passStr}.ChangePbe(string(file), pbenew)
+	text, err := ss.Pbe{Passphrase: passStr}.Change(string(file), pbenew)
 	if err != nil {
 		panic(err)
 	}

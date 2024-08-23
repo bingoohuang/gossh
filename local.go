@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/bingoohuang/gossh/pkg/cmdtype"
+	"github.com/bingoohuang/ngg/ss"
 	"github.com/gobars/cmd"
 	"github.com/google/uuid"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -21,8 +20,7 @@ type LocalCmd struct {
 }
 
 func (g *GoSSH) buildLocalCmd(cmd string) HostsCmd {
-	home, _ := homedir.Dir()
-	cmd = strings.ReplaceAll(cmd, "~", home)
+	cmd = ss.ExpandHome(cmd)
 	c, v := cmdtype.ParseResultVar(cmd)
 	l := &LocalCmd{cmd: c, resultVar: v}
 
